@@ -12,7 +12,7 @@ import ViewerModal from './components/ViewerModal';
 import LeftPanel from './components/LeftPanel';
 import RightPanel from './components/RightPanel';
 import Icon from './components/Icon';
-import { supabase } from './supabaseClient';
+import { supabase, shareSupabase } from './supabaseClient';
 
 const LOCAL_USER_KEY = 'valpoint_user_id';
 const TABLE = 'valorant_lineups';
@@ -260,7 +260,7 @@ function App() {
     async (shareId) => {
       if (!shareId) return null;
       // 先查公共分享表
-      const { data: sharedData, error: sharedError } = await supabase.from(SHARE_TABLE).select('*').eq('share_id', shareId).single();
+    const { data: sharedData, error: sharedError } = await shareSupabase.from(SHARE_TABLE).select('*').eq('share_id', shareId).single();
       if (!sharedError && sharedData) {
         const normalized = normalizeLineup(sharedData, mapNameZhToEn);
         return { ...normalized, id: sharedData.source_id || sharedData.id || shareId, shareId: sharedData.share_id || shareId };
@@ -448,7 +448,7 @@ function App() {
     };
     try {
       setIsSharing(true);
-      const { error } = await supabase.from(SHARE_TABLE).upsert(payload, { onConflict: 'share_id' });
+      const { error } = await shareSupabase.from(SHARE_TABLE).upsert(payload, { onConflict: 'share_id' });
       if (error) throw error;
       const textArea = document.createElement('textarea');
       textArea.value = shareId;
