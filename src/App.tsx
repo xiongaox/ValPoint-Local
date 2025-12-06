@@ -187,7 +187,7 @@ function App() {
       .then((data) => {
         const sorted = data.data.sort((a, b) => a.displayName.localeCompare(b.displayName));
         setAgents(sorted);
-        const sova = sorted.find((a) => a.displayName === '绱㈢摝' || a.displayName === 'Sova');
+        const sova = sorted.find((a) => a.displayName === '猎枭' || a.displayName === 'Sova');
         if (sova) setSelectedAgent(sova);
         else if (sorted.length > 0) setSelectedAgent(sorted[0]);
       });
@@ -459,7 +459,7 @@ function App() {
               <img src="/brand-logo.svg" alt="Logo" className="w-[168px] h-[32px]" />
             </div>
             <button onClick={() => handleTabSwitch('view')} className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors">
-              杩斿洖涓婚〉
+              返回主页
             </button>
           </div>
 
@@ -467,7 +467,7 @@ function App() {
             <div className="flex items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-3">
                 <span className={`text-xs font-bold px-2 py-0.5 rounded ${sharedLineup.side === 'attack' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-                  {sharedLineup.side === 'attack' ? '杩涙敾 (ATK)' : '闃插畧 (DEF)'}
+                  {sharedLineup.side === 'attack' ? '进攻 (ATK)' : '防守 (DEF)'}
                 </span>
                 <span className="text-xs text-gray-400 font-mono uppercase tracking-wider">
                   {getMapDisplayName(getMapEnglishName(sharedLineup.mapName))}
@@ -490,10 +490,10 @@ function App() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#181b1f]">
             <div className="grid grid-cols-1 gap-4">
               {[
-                { src: sharedLineup.standImg, desc: sharedLineup.standDesc, label: '1. 绔欎綅 (Stand)' },
-                { src: sharedLineup.aimImg, desc: sharedLineup.aimDesc, label: '2. 鐬勭偣 1 (Aim)' },
-                { src: sharedLineup.aim2Img, desc: sharedLineup.aim2Desc, label: '3. 鐬勭偣 2 (Aim)' },
-                { src: sharedLineup.landImg, desc: sharedLineup.landDesc, label: '4. 钀界偣 (Land)' },
+                { src: sharedLineup.standImg, desc: sharedLineup.standDesc, label: '1. 站位 (Stand)' },
+                { src: sharedLineup.aimImg, desc: sharedLineup.aimDesc, label: '2. 瞄点 1 (Aim)' },
+                { src: sharedLineup.aim2Img, desc: sharedLineup.aim2Desc, label: '3. 瞄点 2 (Aim)' },
+                { src: sharedLineup.landImg, desc: sharedLineup.landDesc, label: '4. 落点 (Land)' },
               ].map((item, idx) =>
                 item.src ? (
                   <div key={idx} className="flex flex-col gap-2">
@@ -513,7 +513,7 @@ function App() {
               )}
             </div>
             {!sharedLineup.standImg && !sharedLineup.aimImg && !sharedLineup.aim2Img && !sharedLineup.landImg && (
-              <div className="h-full flex items-center justify-center text-gray-500 text-sm">鏆傛棤鍥剧墖璧勬枡</div>
+              <div className="h-full flex items-center justify-center text-gray-500 text-sm">暂无图片资料</div>
             )}
           </div>
 
