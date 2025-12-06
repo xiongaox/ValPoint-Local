@@ -744,7 +744,10 @@ function App() {
 
       <ViewerModal
         viewingLineup={viewingLineup}
-        setViewingLineup={setViewingLineup}
+        onClose={() => {
+          setViewingLineup(null);
+          setSelectedLineupId(null);
+        }}
         handleEditStart={handleEditStart}
         setViewingImage={setViewingImage}
         getMapDisplayName={getMapDisplayName}

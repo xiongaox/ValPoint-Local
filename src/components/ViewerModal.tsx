@@ -2,7 +2,7 @@
 import React from 'react';
 import Icon from './Icon';
 
-const ViewerModal = ({ viewingLineup, setViewingLineup, handleEditStart, setViewingImage, getMapDisplayName, getMapEnglishName }) => {
+const ViewerModal = ({ viewingLineup, onClose, handleEditStart, setViewingImage, getMapDisplayName, getMapEnglishName }) => {
   if (!viewingLineup) return null;
   return (
     <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
@@ -49,7 +49,7 @@ const ViewerModal = ({ viewingLineup, setViewingLineup, handleEditStart, setView
               </button>
               <button
                 type="button"
-                onClick={() => setViewingLineup(null)}
+                onClick={onClose}
                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[#ff4655]/60 bg-[#ff4655]/10 text-sm text-white hover:bg-[#ff4655]/20 hover:border-[#ff4655] transition-colors"
                 title="关闭"
               >
