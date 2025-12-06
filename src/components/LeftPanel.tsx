@@ -48,13 +48,6 @@ const LeftPanel: React.FC<Props> = ({
         <div className="flex items-center gap-3">
           <img src="/brand-logo.svg" alt="Logo" className="w-[168px] h-[32px]" />
         </div>
-        <button
-          onClick={() => setIsPreviewModalOpen(true)}
-          className="text-gray-500 hover:text-white transition-colors"
-          title="加载分享链接"
-        >
-          <Icon name="Link" size={16} />
-        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">

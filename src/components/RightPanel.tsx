@@ -20,6 +20,7 @@ type Props = {
   handleRequestDelete: (id: string, e: any) => void;
   handleClearAll: () => void;
   getMapDisplayName: (name: string) => string;
+  setIsPreviewModalOpen: (v: boolean) => void;
 };
 
 const RightPanel: React.FC<Props> = ({
@@ -40,6 +41,7 @@ const RightPanel: React.FC<Props> = ({
   handleRequestDelete,
   handleClearAll,
   getMapDisplayName,
+  setIsPreviewModalOpen,
 }) => {
   return (
     <div className="w-96 flex-shrink-0 flex flex-col bg-[#1f2326] border-l border-white/10 z-20 shadow-2xl">
@@ -59,6 +61,13 @@ const RightPanel: React.FC<Props> = ({
           }`}
         >
           <Icon name="Plus" size={18} /> 新增点位
+        </button>
+        <button
+          onClick={() => setIsPreviewModalOpen(true)}
+          className="py-4 px-4 flex items-center justify-center border-l border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+          title="加载分享链接"
+        >
+          <Icon name="Link" size={18} />
         </button>
       </div>
 

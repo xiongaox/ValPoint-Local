@@ -456,7 +456,7 @@ function App() {
     return (
       <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
         <div className="w-[360px] flex-shrink-0 flex flex-col bg-[#1f2326] border-r border-white/10 z-20 shadow-2xl">
-          <div className="flex items-center justify-between gap-3 px-6 py-3 border-b border-white/5 bg-[#1f2326] shadow-sm">
+          <div className="h-16 flex items-center justify-between gap-3 px-6 border-b border-white/5 bg-[#1f2326] shadow-sm">
             <div className="flex items-center gap-3">
               <img src="/brand-logo.svg" alt="Logo" className="w-[168px] h-[32px]" />
             </div>
@@ -605,6 +605,7 @@ function App() {
         handleRequestDelete={handleRequestDelete}
         handleClearAll={handleClearAll}
         getMapDisplayName={getMapDisplayName}
+        setIsPreviewModalOpen={setIsPreviewModalOpen}
       />
 
       <MapPickerModal
