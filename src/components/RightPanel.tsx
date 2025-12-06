@@ -53,9 +53,9 @@ const RightPanel: React.FC<Props> = ({
   handleApplyCustomUserId,
   handleResetUserId,
 }) => {
-  const pageSize = 6;
+  const pageSize = 7;
   const [page, setPage] = useState(1);
-  const showPagination = filteredLineups.length > 7;
+  const showPagination = filteredLineups.length > 8;
   const totalPages = Math.max(1, Math.ceil(filteredLineups.length / pageSize));
 
   useEffect(() => {
