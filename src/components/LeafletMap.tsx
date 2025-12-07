@@ -12,6 +12,7 @@ type Lineup = {
 
 type Props = {
   mapIcon: string | null;
+  mapCover?: string | null;
   activeTab: string;
   lineups: Lineup[];
   selectedLineupId: string | null;
@@ -29,6 +30,7 @@ type Props = {
 
 const LeafletMap: React.FC<Props> = ({
   mapIcon,
+  mapCover,
   activeTab,
   lineups,
   selectedLineupId,
@@ -317,7 +319,17 @@ const LeafletMap: React.FC<Props> = ({
     }
   }, [hoveredLineupId, lineups, activeTab, selectedLineupId, isFlipped]);
 
-  return <div ref={mapRef} className="w-full h-full z-0 outline-none" />;
+  return (
+    <div className="w-full h-full relative">
+      {mapCover && (
+        <div
+          className="absolute inset-0 pointer-events-none opacity-10"
+          style={{ backgroundImage: `url(${mapCover})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        />
+      )}
+      <div ref={mapRef} className="w-full h-full z-0 outline-none relative" />
+    </div>
+  );
 };
 
 export default React.memo(LeafletMap);

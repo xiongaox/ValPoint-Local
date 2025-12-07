@@ -137,6 +137,16 @@ function App() {
   const getMapDisplayName = (apiMapName) => MAP_TRANSLATIONS[apiMapName] || apiMapName;
   const getMapEnglishName = (displayName) =>
     Object.keys(MAP_TRANSLATIONS).find((key) => MAP_TRANSLATIONS[key] === displayName) || displayName;
+  const mapCoverOverrides = {
+    Abyss: 'https://game.gtimg.cn/images/val/agamezlk/map/abyss/cover.PNG',
+  };
+
+  const getMapCoverUrl = () => {
+    const enName = getMapEnglishName(selectedMap?.displayName);
+    const key = enName ? enName.toLowerCase() : '';
+    const template = key ? `https://game.gtimg.cn/images/val/agamezlk/map/${key}/cover.PNG` : null;
+    return mapCoverOverrides[enName] || template || selectedMap?.displayIcon || getMapUrl();
+  };
 
   const { agentCounts, filteredLineups, sharedFilteredLineups, isFlipped, mapLineups } = useLineupFiltering({
     lineups,
@@ -572,6 +582,7 @@ function App() {
       <div className="flex-1 relative bg-[#0f1923] z-0 border-l border-r border-white/10">
         <LeafletMap
           mapIcon={getMapUrl()}
+          mapCover={getMapCoverUrl()}
           activeTab={activeTab}
           lineups={mapLineups}
           selectedLineupId={selectedLineupId}
