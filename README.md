@@ -25,9 +25,9 @@ VITE_SUPABASE_SHARE_ANON_KEY=sb_publishable_3UBYzGE1w5z3cSb5cMfM1Q_ilKneWlM
 ```
 说明：anon/publishable key 可以公开，但不要提交 `.env`；部署时在平台环境变量里填写。
 
-## 数据库表设计
-### 个人点位表 `valorant_lineups`
+## 数据库初始化（一次复制全部）
 ```sql
+-- 1) 三张表
 create table if not exists public.valorant_lineups (
   id              uuid primary key default gen_random_uuid(),
   user_id         text not null,
@@ -36,10 +36,10 @@ create table if not exists public.valorant_lineups (
   agent_name      text not null,
   agent_icon      text,
   skill_icon      text,
-  side            text not null default 'attack',          -- attack / defense
+  side            text not null default 'attack', -- attack / defense
   ability_index   int,
-  agent_pos       jsonb,                                   -- {lat,lng}
-  skill_pos       jsonb,                                   -- {lat,lng}
+  agent_pos       jsonb,
+  skill_pos       jsonb,
   stand_img       text,
   stand_desc      text,
   stand2_img      text,
@@ -55,18 +55,7 @@ create table if not exists public.valorant_lineups (
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );
-```
-RLS 示例（允许匿名读写；如需严格隔离可改为 `user_id = auth.uid()` 并开启 Auth）：
-```sql
-alter table public.valorant_lineups enable row level security;
-create policy "anon select" on public.valorant_lineups for select using (auth.role() = 'anon');
-create policy "anon insert" on public.valorant_lineups for insert with check (auth.role() = 'anon');
-create policy "anon update" on public.valorant_lineups for update using (auth.role() = 'anon');
-create policy "anon delete" on public.valorant_lineups for delete using (auth.role() = 'anon');
-```
 
-### 分享中转表 `valorant_shared`
-```sql
 create table if not exists public.valorant_shared (
   share_id        text primary key,
   source_id       uuid,
@@ -96,36 +85,62 @@ create table if not exists public.valorant_shared (
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now()
 );
-alter table public.valorant_shared enable row level security;
-create policy "anon select shared" on public.valorant_shared for select using (auth.role() = 'anon');
-create policy "anon insert shared" on public.valorant_shared for insert with check (auth.role() = 'anon');
-create policy "anon update shared" on public.valorant_shared for update using (auth.role() = 'anon');
-create policy "anon delete shared" on public.valorant_shared for delete using (auth.role() = 'anon');
-```
 
-### 用户表 `valorant_users`
-```sql
 create table if not exists public.valorant_users (
   user_id    text primary key,
   password   text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-```
 
-### 索引与增量补丁
-```sql
+-- 2) 索引
 create index if not exists idx_lineups_user_created_at on public.valorant_lineups (user_id, created_at desc);
 create index if not exists idx_shared_source on public.valorant_shared (source_id);
 
--- 若已有旧表，补充新字段
-alter table public.valorant_lineups
-  add column if not exists stand2_img text,
-  add column if not exists stand2_desc text;
-alter table public.valorant_shared
-  add column if not exists stand2_img text,
-  add column if not exists stand2_desc text;
+-- 3) RLS（示例：允许 anon 读写；若需严格隔离可改为 user_id = auth.uid() 并开启 Auth）
+alter table public.valorant_lineups enable row level security;
+create policy if not exists "anon select" on public.valorant_lineups for select using (auth.role() = 'anon');
+create policy if not exists "anon insert" on public.valorant_lineups for insert with check (auth.role() = 'anon');
+create policy if not exists "anon update" on public.valorant_lineups for update using (auth.role() = 'anon');
+create policy if not exists "anon delete" on public.valorant_lineups for delete using (auth.role() = 'anon');
+
+alter table public.valorant_shared enable row level security;
+create policy if not exists "anon select shared" on public.valorant_shared for select using (auth.role() = 'anon');
+create policy if not exists "anon insert shared" on public.valorant_shared for insert with check (auth.role() = 'anon');
+create policy if not exists "anon update shared" on public.valorant_shared for update using (auth.role() = 'anon');
+create policy if not exists "anon delete shared" on public.valorant_shared for delete using (auth.role() = 'anon');
+
+alter table public.valorant_users enable row level security;
+create policy if not exists "anon select users" on public.valorant_users for select using (auth.role() = 'anon');
+create policy if not exists "anon upsert users" on public.valorant_users for insert with check (auth.role() = 'anon');
+create policy if not exists "anon update users" on public.valorant_users for update using (auth.role() = 'anon');
+
+-- 4) 共享库 15 天自动清理（需 pg_cron 或 Supabase Scheduled Jobs）
+create or replace function public.cleanup_shared_lineups()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from public.valorant_shared
+  where created_at < now() - interval '15 days';
+end;
+$$;
+
+select cron.schedule(
+  'cleanup_shared_lineups_daily',
+  '0 3 * * *',
+  $$call public.cleanup_shared_lineups();$$
+);
 ```
+
+表字段说明（简版）：  
+- `valorant_lineups`: 个人点位数据，包含站位/瞄点/落点图与描述。  
+- `valorant_shared`: 公共分享数据，share_id 为短 ID，支持少量临时存储。  
+- `valorant_users`: 8 位 user_id + 密码（可空代表游客）。  
+
+提示：若你不希望匿名写入，请调整 RLS 条件或改用 Supabase Auth。 pg_cron 若未开启，可在 Supabase SQL 里先 `create extension if not exists pg_cron with schema extensions;`，或改用 Dashboard 的 Scheduled Jobs 调度同一清理函数。
 
 ## 快速开始
 ```bash
