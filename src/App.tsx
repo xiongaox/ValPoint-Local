@@ -844,6 +844,32 @@ function App() {
           isFlipped={isFlipped}
           sharedLineup={sharedLineup}
         />
+        {activeTab !== 'shared' && (
+          <div className="absolute top-3 left-3 z-20 flex overflow-hidden rounded-xl border border-white/15 bg-black/70 backdrop-blur px-2 py-2 shadow-lg">
+            <button
+              onClick={() => setLibraryMode('personal')}
+              className={`px-4 py-2 text-sm font-bold rounded-lg ${
+                libraryMode === 'personal'
+                  ? 'bg-[#ff4655] text-white'
+                  : 'text-gray-100 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              个人库
+            </button>
+            <button
+              onClick={() => setLibraryMode('shared')}
+              disabled={activeTab === 'create'}
+              className={`px-4 py-2 text-sm font-bold rounded-lg ${
+                libraryMode === 'shared'
+                  ? 'bg-emerald-500 text-white'
+                  : 'text-gray-100 hover:text-white hover:bg-white/10'
+              } ${activeTab === 'create' ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title={activeTab === 'create' ? '创建模式仅支持个人库' : '切换到共享库（只读，可复制到个人库）'}
+            >
+              共享库
+            </button>
+          </div>
+        )}
       </div>
 
       <RightPanel

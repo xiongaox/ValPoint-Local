@@ -28,7 +28,6 @@ type Props = {
   handleApplyCustomUserId: () => void;
   handleResetUserId: () => void;
   libraryMode: 'personal' | 'shared';
-  setLibraryMode: (v: 'personal' | 'shared') => void;
 };
 
 const RightPanel: React.FC<Props> = ({
@@ -57,7 +56,6 @@ const RightPanel: React.FC<Props> = ({
   handleApplyCustomUserId,
   handleResetUserId,
   libraryMode,
-  setLibraryMode,
 }) => {
   const pageSize = 7;
   const [page, setPage] = useState(1);
@@ -228,24 +226,6 @@ const RightPanel: React.FC<Props> = ({
           </div>
         ) : (
           <div className="h-full flex flex-col">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xs text-gray-400">库来源</span>
-              <div className="flex rounded-lg overflow-hidden border border-white/10">
-                <button
-                  onClick={() => setLibraryMode('personal')}
-                  className={`px-3 py-1 text-xs font-bold ${isSharedMode ? 'text-gray-400 hover:text-white' : 'bg-[#ff4655] text-white'}`}
-                >
-                  个人库
-                </button>
-                <button
-                  onClick={() => setLibraryMode('shared')}
-                  className={`px-3 py-1 text-xs font-bold ${isSharedMode ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white'}`}
-                >
-                  共享库
-                </button>
-              </div>
-              {isSharedMode && <span className="text-[11px] text-gray-500">仅查看与复制，禁用编辑/删除</span>}
-            </div>
             <div className="flex items-center gap-2 mb-4">
               <div className="relative flex-1">
                 <input
@@ -319,7 +299,7 @@ const RightPanel: React.FC<Props> = ({
                   <div
                     key={l.id}
                     onClick={() => handleViewLineup(l.id)}
-                    className={`group p-4 rounded-lg border cursor-pointer transition-all flex items-center gap-4 ${
+                    className={`group p-4 rounded-lg border cursor-pointer transition-all flex items-center gap-4 h-20 ${
                       selectedLineupId === l.id ? 'bg-[#ff4655]/10 border-[#ff4655] shadow-md' : 'bg-[#0f1923] border-white/5 hover:border-white/20'
                     }`}
                   >
