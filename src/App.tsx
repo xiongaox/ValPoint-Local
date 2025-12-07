@@ -1073,9 +1073,23 @@ function App() {
                 <div key={entry.date} className="bg-white/5 border border-white/10 rounded-lg p-3 space-y-2">
                   <div className="text-[#ff4655] text-xs font-bold uppercase tracking-wider">{entry.date}</div>
                   <ul className="list-disc list-inside space-y-1 text-gray-100">
-                    {entry.items.map((item, idx) => (
-                      <li key={idx}>{item}</li>
-                    ))}
+                    {entry.items.map((item, idx) => {
+                      if (typeof item === 'string') {
+                        return <li key={idx}>{item}</li>;
+                      }
+                      return (
+                        <li key={idx}>
+                          {item.text}
+                          {item.children && item.children.length > 0 && (
+                            <ul className="list-disc list-inside pl-4 space-y-1 text-gray-300">
+                              {item.children.map((child, cidx) => (
+                                <li key={cidx}>{child}</li>
+                              ))}
+                            </ul>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))}
