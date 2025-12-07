@@ -1,6 +1,7 @@
 ﻿// @ts-nocheck
 import React from 'react';
 import Icon from './Icon';
+import { getAbilityIcon } from '../utils/abilityIcons';
 
 type Props = {
   activeTab: string;
@@ -112,14 +113,16 @@ const LeftPanel: React.FC<Props> = ({
                 .map((ability: any, idx: number) => (
                   <button
                     key={idx}
-                    onClick={() => setSelectedAbilityIndex(selectedAbilityIndex === idx ? null : idx)}
-                    className={`ability-icon flex flex-col items-center gap-1 flex-1 p-1 rounded ${selectedAbilityIndex === idx ? 'selected bg-white/5' : ''}`}
-                    title={ability.displayName}
-                  >
-                    <img src={ability.displayIcon} className="w-8 h-8 object-contain" />
-                    <span className="text-[8px] uppercase font-bold text-gray-500">{ability.slot}</span>
-                  </button>
-                ))}
+                  onClick={() => setSelectedAbilityIndex(selectedAbilityIndex === idx ? null : idx)}
+                  className={`ability-icon flex flex-col items-center gap-1 flex-1 p-1 rounded ${selectedAbilityIndex === idx ? 'selected bg-white/5' : ''}`}
+                  title={ability.displayName}
+                >
+                  <img src={getAbilityIcon(selectedAgent, idx)} className="w-8 h-8 object-contain" />
+                  <span className="text-[10px] uppercase font-bold text-gray-500">
+                    技能：{['C', 'Q', 'E', 'X'][idx] || ability.slot}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         )}
