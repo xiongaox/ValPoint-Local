@@ -84,11 +84,11 @@ const ViewerModal = ({
         <div className="flex-1 overflow-y-auto p-6 bg-[#181b1f]">
           <div className="grid grid-cols-2 gap-6">
             {[
-              { src: viewingLineup.standImg, desc: viewingLineup.standDesc, label: '1. 站位 (Stand)' },
-              { src: viewingLineup.stand2Img, desc: viewingLineup.stand2Desc, label: '2. 站位 2 (Stand)' },
-              { src: viewingLineup.aimImg, desc: viewingLineup.aimDesc, label: '3. 瞄点 1 (Aim)' },
-              { src: viewingLineup.aim2Img, desc: viewingLineup.aim2Desc, label: '4. 瞄点 2 (Aim)' },
-              { src: viewingLineup.landImg, desc: viewingLineup.landDesc, label: '5. 落点 (Land)' },
+              { src: viewingLineup.standImg, desc: viewingLineup.standDesc, label: '站位 (Stand)' },
+              { src: viewingLineup.stand2Img, desc: viewingLineup.stand2Desc, label: '站位 2 (Stand)' },
+              { src: viewingLineup.aimImg, desc: viewingLineup.aimDesc, label: '瞄点 1 (Aim)' },
+              { src: viewingLineup.aim2Img, desc: viewingLineup.aim2Desc, label: '瞄点 2 (Aim)' },
+              { src: viewingLineup.landImg, desc: viewingLineup.landDesc, label: '落点 (Land)' },
             ].map((item, idx) =>
               item.src ? (
                 <div key={idx} className="flex flex-col gap-2">

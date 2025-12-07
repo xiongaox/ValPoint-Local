@@ -31,7 +31,7 @@ const EditorModal = ({ isEditorOpen, editingLineupId, newLineupData, setNewLineu
   return (
     <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
       <div className="modal-content bg-[#1f2326] w-full max-w-3xl h-[85vh] flex flex-col rounded-xl border border-white/10 shadow-2xl">
-        <div className="flex justify-between items-center p-6 border-b border-white/10 bg-[#252a30]">
+        <div className="flex justify-between items-center p-6 border-b border-white/10 bg-[#252a30] rounded-t-xl">
           <h2 className="text-xl font-bold text-white uppercase tracking-wider flex items-center gap-3">
             <Icon name="FileText" className="text-[#ff4655]" /> {editingLineupId ? '编辑图文攻略' : '新增图文攻略'}
           </h2>
@@ -136,7 +136,7 @@ const EditorModal = ({ isEditorOpen, editingLineupId, newLineupData, setNewLineu
             })}
           </div>
         </div>
-        <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-[#252a30]">
+        <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-[#252a30] rounded-b-xl">
           <button onClick={onClose} className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold transition-colors">
             取消
           </button>

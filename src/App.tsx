@@ -752,11 +752,11 @@ function App() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#181b1f]">
             <div className="grid grid-cols-1 gap-4">
               {[
-                { src: sharedLineup.standImg, desc: sharedLineup.standDesc, label: '1. 站位 (Stand)' },
-                { src: sharedLineup.stand2Img, desc: sharedLineup.stand2Desc, label: '2. 站位 2 (Stand)' },
-                { src: sharedLineup.aimImg, desc: sharedLineup.aimDesc, label: '3. 瞄点 1 (Aim)' },
-                { src: sharedLineup.aim2Img, desc: sharedLineup.aim2Desc, label: '4. 瞄点 2 (Aim)' },
-                { src: sharedLineup.landImg, desc: sharedLineup.landDesc, label: '5. 落点 (Land)' },
+                { src: sharedLineup.standImg, desc: sharedLineup.standDesc, label: '站位 (Stand)' },
+                { src: sharedLineup.stand2Img, desc: sharedLineup.stand2Desc, label: '站位 2 (Stand)' },
+                { src: sharedLineup.aimImg, desc: sharedLineup.aimDesc, label: '瞄点 1 (Aim)' },
+                { src: sharedLineup.aim2Img, desc: sharedLineup.aim2Desc, label: '瞄点 2 (Aim)' },
+                { src: sharedLineup.landImg, desc: sharedLineup.landDesc, label: '落点 (Land)' },
               ].map((item, idx) =>
                 item.src ? (
                   <div key={idx} className="flex flex-col gap-2">
