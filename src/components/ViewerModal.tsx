@@ -86,23 +86,32 @@ const ViewerModal = ({
             {[
               { src: viewingLineup.standImg, desc: viewingLineup.standDesc, label: '站位 (Stand)' },
               { src: viewingLineup.stand2Img, desc: viewingLineup.stand2Desc, label: '站位 2 (Stand)' },
-              { src: viewingLineup.aimImg, desc: viewingLineup.aimDesc, label: '瞄点 1 (Aim)' },
+              { src: viewingLineup.aimImg, desc: viewingLineup.aimDesc, label: '瞄点 (Aim)' },
               { src: viewingLineup.aim2Img, desc: viewingLineup.aim2Desc, label: '瞄点 2 (Aim)' },
               { src: viewingLineup.landImg, desc: viewingLineup.landDesc, label: '落点 (Land)' },
             ].map((item, idx) =>
               item.src ? (
                 <div key={idx} className="flex flex-col gap-2">
-                  <div className="text-[#ff4655] font-bold text-xs uppercase tracking-wider">{item.label}</div>
                   <div
-                    className="relative group cursor-zoom-in aspect-video bg-[#0f1923] rounded-lg overflow-hidden border border-white/10 hover:border-[#ff4655] transition-colors"
+                    className="relative group cursor-zoom-in aspect-video bg-[#0f1923] rounded-lg overflow-hidden border border-white/10 hover:border-[#ff4655]/70 transition-colors"
                     onClick={() => setViewingImage(item.src)}
                   >
                     <img src={item.src} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-transparent pointer-events-none" />
+                    <div className="absolute inset-x-0 top-0 p-3 flex items-center gap-2 text-white font-bold text-base drop-shadow pointer-events-none">
+                      <Icon name="Image" size={16} className="text-[#ff4655]" /> {item.label}
+                    </div>
+                    {item.desc && (
+                      <div className="absolute inset-x-0 bottom-0 pointer-events-none">
+                        <div className="text-sm text-gray-100 leading-snug max-h-20 overflow-hidden px-3 py-2 rounded-b-md rounded-t-none bg-black/40 backdrop-blur-sm border border-white/10 shadow shadow-black/40">
+                          {item.desc}
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <Icon name="Maximize2" className="text-white" />
                     </div>
                   </div>
-                  {item.desc && <div className="text-xs text-gray-300 bg-black/20 p-2 rounded border border-white/5">{item.desc}</div>}
                 </div>
               ) : null,
             )}
