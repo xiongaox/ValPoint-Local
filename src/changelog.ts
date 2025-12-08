@@ -4,6 +4,7 @@ export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
     {
     date: '2025-12-09',
     items: [
+      '统一图文弹窗底部按钮样式',
       '优化查看点位弹窗标题与说明文案的位置',
       '编辑实现能再次修改地图点位数据',
       '优化新增/编辑图文攻略弹窗，从中部弹窗改成右侧抽屉式弹窗',

@@ -176,12 +176,15 @@ const EditorModal = ({
           </div>
         </div>
         <div className="p-5 border-t border-[#1b1f2a] flex justify-end gap-3 bg-[#1f2326]/90">
-          <button onClick={onClose} className="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold transition-colors">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-lg border border-[#2a323d] bg-[#0f1923] text-sm font-bold text-gray-200 hover:border-[#ff4655] hover:text-white hover:bg-white/5 transition-colors"
+          >
             取消
           </button>
           <button
             onClick={handleEditorSave}
-            className="px-6 py-2 rounded bg-[#ff4655] hover:bg-[#d93a49] text-white text-sm font-bold transition-colors"
+            className="px-6 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-lg shadow-red-900/30 transition-all"
           >
             保存
           </button>
