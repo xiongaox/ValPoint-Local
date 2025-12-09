@@ -14,6 +14,15 @@ const ViewerModal = ({
   handleCopyShared,
 }) => {
   if (!viewingLineup) return null;
+
+  const imageItems = [
+    { src: viewingLineup.standImg, desc: viewingLineup.standDesc, label: '站位 (Stand)' },
+    { src: viewingLineup.stand2Img, desc: viewingLineup.stand2Desc, label: '站位 2 (Stand)' },
+    { src: viewingLineup.aimImg, desc: viewingLineup.aimDesc, label: '瞄点 (Aim)' },
+    { src: viewingLineup.aim2Img, desc: viewingLineup.aim2Desc, label: '瞄点 2 (Aim)' },
+    { src: viewingLineup.landImg, desc: viewingLineup.landDesc, label: '落点 (Land)' },
+  ];
+  const imageList = imageItems.filter((item) => item.src).map((item) => item.src);
   return (
     <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
       <div className="modal-content bg-[#1f2326] w-full max-w-4xl max-h-[90vh] flex flex-col rounded-xl border border-white/10 shadow-2xl overflow-hidden relative">
@@ -83,18 +92,18 @@ const ViewerModal = ({
 
         <div className="flex-1 overflow-y-auto p-6 bg-[#181b1f]">
           <div className="grid grid-cols-2 gap-6">
-            {[
-              { src: viewingLineup.standImg, desc: viewingLineup.standDesc, label: '站位 (Stand)' },
-              { src: viewingLineup.stand2Img, desc: viewingLineup.stand2Desc, label: '站位 2 (Stand)' },
-              { src: viewingLineup.aimImg, desc: viewingLineup.aimDesc, label: '瞄点 (Aim)' },
-              { src: viewingLineup.aim2Img, desc: viewingLineup.aim2Desc, label: '瞄点 2 (Aim)' },
-              { src: viewingLineup.landImg, desc: viewingLineup.landDesc, label: '落点 (Land)' },
-            ].map((item, idx) =>
+            {imageItems.map((item, idx) =>
               item.src ? (
                 <div key={idx} className="flex flex-col gap-2">
                   <div
                     className="relative group cursor-zoom-in aspect-video bg-[#0f1923] rounded-lg overflow-hidden border border-white/10 hover:border-[#ff4655]/70 transition-colors"
-                    onClick={() => setViewingImage(item.src)}
+                    onClick={() =>
+                      setViewingImage({
+                        src: item.src,
+                        list: imageList,
+                        index: imageList.indexOf(item.src),
+                      })
+                    }
                   >
                     <img src={item.src} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-transparent pointer-events-none" />

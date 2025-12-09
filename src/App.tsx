@@ -471,6 +471,14 @@ function App() {
   };
 
   if (activeTab === 'shared' && sharedLineup) {
+    const sharedImages = [
+      { src: sharedLineup.standImg, desc: sharedLineup.standDesc, label: '站位 (Stand)' },
+      { src: sharedLineup.stand2Img, desc: sharedLineup.stand2Desc, label: '站位 2 (Stand)' },
+      { src: sharedLineup.aimImg, desc: sharedLineup.aimDesc, label: '瞄点 1 (Aim)' },
+      { src: sharedLineup.aim2Img, desc: sharedLineup.aim2Desc, label: '瞄点 2 (Aim)' },
+      { src: sharedLineup.landImg, desc: sharedLineup.landDesc, label: '落点 (Land)' },
+    ].filter((item) => item.src);
+    const sharedImageList = sharedImages.map((item) => item.src);
     return (
       <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
         <div className="w-[360px] flex-shrink-0 flex flex-col bg-[#1f2326] border-r border-white/10 z-20 shadow-2xl">
@@ -509,19 +517,19 @@ function App() {
 
           <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#181b1f]">
             <div className="grid grid-cols-1 gap-4">
-              {[
-                { src: sharedLineup.standImg, desc: sharedLineup.standDesc, label: '站位 (Stand)' },
-                { src: sharedLineup.stand2Img, desc: sharedLineup.stand2Desc, label: '站位 2 (Stand)' },
-                { src: sharedLineup.aimImg, desc: sharedLineup.aimDesc, label: '瞄点 1 (Aim)' },
-                { src: sharedLineup.aim2Img, desc: sharedLineup.aim2Desc, label: '瞄点 2 (Aim)' },
-                { src: sharedLineup.landImg, desc: sharedLineup.landDesc, label: '落点 (Land)' },
-              ].map((item, idx) =>
+              {sharedImages.map((item, idx) =>
                 item.src ? (
                   <div key={idx} className="flex flex-col gap-2">
                     <div className="text-[#ff4655] font-bold text-xs uppercase tracking-wider">{item.label}</div>
                     <div
                       className="relative group cursor-zoom-in aspect-video bg-[#0f1923] rounded-lg overflow-hidden border border-white/10 hover:border-[#ff4655] transition-colors"
-                      onClick={() => setViewingImage(item.src)}
+                      onClick={() =>
+                        setViewingImage({
+                          src: item.src,
+                          list: sharedImageList,
+                          index: idx,
+                        })
+                      }
                     >
                       <img src={item.src} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
