@@ -1,6 +1,7 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from './Icon';
+import { uploadToOss } from '../utils/ossUpload';
 
 const fields = [
   { k: 'stand', l: '站位图' },
@@ -19,8 +20,53 @@ const EditorModal = ({
   onClose,
   selectedSide,
   setSelectedSide,
+  imageBedConfig,
+  setAlertMessage,
 }) => {
   if (!isEditorOpen) return null;
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [uploadingField, setUploadingField] = useState(null);
+
+    const handleClipboardUpload = async (fieldKey) => {
+    if (!navigator.clipboard?.read) {
+      setAlertMessage?.('当前浏览器不支持从剪贴板读取图片');
+      return;
+    }
+    const missing = ['accessKeyId', 'accessKeySecret', 'bucket', 'region'].filter((k) => !imageBedConfig?.[k]);
+    if (missing.length) {
+      setAlertMessage?.('请先在快捷功能中配置图床（AK/AS/Bucket/Region）');
+      return;
+    }
+    try {
+      setUploadingField(fieldKey);
+      const items = await navigator.clipboard.read();
+      const imgItem = items.find((item) => item.types.some((t) => t.startsWith('image/')));
+      if (!imgItem) {
+        setAlertMessage?.('剪贴板中未检测到图片');
+        return;
+      }
+      const imgType = imgItem.types.find((t) => t.startsWith('image/')) || 'image/png';
+      const blob = await imgItem.getType(imgType);
+      const ext = imgType.split('/')[1] || 'png';
+      const file = new File([blob], 'clipboard_' + Date.now() + '.' + ext, { type: imgType });
+      const result = await uploadToOss(file, imageBedConfig);
+      setNewLineupData({ ...newLineupData, [fieldKey + 'Img']: result.url });
+      setAlertMessage?.('图片已上传并填入链接');
+    } catch (e) {
+      console.error(e);
+      if (e?.message === 'MISSING_CONFIG') {
+        setAlertMessage?.('请先配置图床信息后再上传');
+      } else {
+        setAlertMessage?.('上传失败，请检查权限或稍后再试');
+      }
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
+const handleClearImage = (fieldKey) => {
+    setNewLineupData({ ...newLineupData, [`${fieldKey}Img`]: '' });
+  };
 
   const toggleField = (field) => {
     if (!field.toggleKey) return;
@@ -104,6 +150,18 @@ const EditorModal = ({
             </div>
           </div>
 
+          <div className="flex items-center justify-between text-xs text-gray-400 uppercase font-bold">
+            <span>截图与描述</span>
+            <button
+              type="button"
+              onClick={() => setShowLinkInput((v) => !v)}
+              className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-[11px] text-white hover:border-[#ff4655] hover:bg-[#ff4655]/10 transition-colors flex items-center gap-1"
+            >
+              <Icon name="Link" size={12} />
+              {showLinkInput ? '关闭链接输入' : '启用链接输入'}
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 gap-4">
             {fields.map((field) => {
               const enabled = field.toggleKey ? newLineupData[field.toggleKey] : true;
@@ -144,32 +202,60 @@ const EditorModal = ({
                       </button>
                     )}
                   </div>
-                  <input
-                    className="w-full bg-[#0f1923] border border-[#2a323d] rounded p-2 text-white mb-2 focus:border-[#ff4655] outline-none"
-                    placeholder="图片链接（可选）"
-                    value={newLineupData[`${field.k}Img`]}
-                    onChange={(e) => setNewLineupData({ ...newLineupData, [`${field.k}Img`]: e.target.value })}
-                  />
-                  <textarea
-                    className="w-full bg-[#0f1923] border border-[#2a323d] rounded p-2 text-white h-16 resize-none overflow-y-auto focus:border-[#ff4655] outline-none"
+                  <div className="flex flex-col gap-3">
+                    {!showLinkInput && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleClipboardUpload(field.k)}
+                          disabled={uploadingField === field.k}
+                          className="h-10 flex-1 px-3 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          <Icon name="ClipboardCheck" size={14} />
+                          {uploadingField === field.k ? '上传中...' : '剪贴板上传'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleClearImage(field.k)}
+                          className="h-10 flex-1 px-3 py-2 rounded-lg border border-[#2a323d] bg-[#0f1923] text-xs text-gray-200 hover:border-red-500/60 hover:text-red-200 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Icon name="Eraser" size={14} />
+                          清除预览图
+                        </button>
+                      </div>
+                    )}
+
+                    {showLinkInput && (
+                      <input
+                        className="w-full h-10 bg-[#0f1923] border border-[#2a323d] rounded-lg px-3 text-sm text-white placeholder-gray-500 leading-5 focus:border-[#ff4655] outline-none"
+                        placeholder="图片链接（可选）"
+                        value={newLineupData[`${field.k}Img`]}
+                        onChange={(e) => setNewLineupData({ ...newLineupData, [`${field.k}Img`]: e.target.value })}
+                      />
+                    )}
+
+                    <textarea
+                    className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-2 text-sm text-white placeholder-gray-500 h-16 resize-none overflow-y-auto focus:border-[#ff4655] outline-none"
                     placeholder="描述（可选）"
                     value={newLineupData[`${field.k}Desc`]}
                     onChange={(e) => setNewLineupData({ ...newLineupData, [`${field.k}Desc`]: e.target.value })}
                   />
-                  {newLineupData[`${field.k}Img`] ? (
-                    <div className="mt-3 relative overflow-hidden rounded border border-white/10 bg-[#0f1923]">
-                      <img
-                        src={newLineupData[`${field.k}Img`]}
-                        alt={`${field.l} 预览`}
-                        className="w-full h-40 object-cover"
-                        onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
-                      />
-                    </div>
-                  ) : (
-                    <div className="mt-3 h-40 flex items-center justify-center text-xs text-gray-600 border border-dashed border-[#2a323d] rounded bg-[#0f1923]">
-                      暂无预览
-                    </div>
-                  )}
+
+                    {newLineupData[`${field.k}Img`] ? (
+                      <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#0f1923] h-40">
+                        <img
+                          src={newLineupData[`${field.k}Img`]}
+                          alt={`${field.l} 预览`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-40 flex items-center justify-center text-xs text-gray-600 border border-dashed border-[#2a323d] rounded-lg bg-[#0f1923]">
+                        暂无预览
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}

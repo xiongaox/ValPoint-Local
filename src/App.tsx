@@ -9,6 +9,8 @@ import DeleteConfirmModal from './components/DeleteConfirmModal';
 import Lightbox from './components/Lightbox';
 import EditorModal from './components/EditorModal';
 import ViewerModal from './components/ViewerModal';
+import QuickActions from './components/QuickActions';
+import ImageBedConfigModal, { defaultImageBedConfig } from './components/ImageBedConfigModal';
 import LeftPanel from './components/LeftPanel';
 import RightPanel from './components/RightPanel';
 import Icon from './components/Icon';
@@ -114,6 +116,9 @@ function App() {
   const [newLineupData, setNewLineupData] = useState(createEmptyLineup());
   const [placingType, setPlacingType] = useState(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
+  const [isImageConfigOpen, setIsImageConfigOpen] = useState(false);
+  const [imageBedConfig, setImageBedConfig] = useState(defaultImageBedConfig);
   const {
     userId,
     userMode,
@@ -193,6 +198,15 @@ function App() {
   useEffect(() => {
     if (libraryMode === 'shared') fetchSharedLineups();
   }, [libraryMode, fetchSharedLineups]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('valpoint_imagebed_config');
+      if (saved) setImageBedConfig({ ...defaultImageBedConfig, ...JSON.parse(saved) });
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -435,6 +449,40 @@ function App() {
     setIsClearConfirmOpen(true);
   };
 
+  const handleImageBedConfig = () => {
+    setIsActionMenuOpen(false);
+    setIsImageConfigOpen(true);
+  };
+
+  const handleChangePassword = () => {
+    if (!userId) {
+      setAlertMessage('请先创建或登录一个 ID，再修改密码');
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setIsActionMenuOpen(false);
+    setPendingUserId(userId);
+    setCustomUserIdInput(userId);
+    setPasswordInput('');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleQuickClear = () => {
+    setIsActionMenuOpen(false);
+    handleClearAll();
+  };
+
+  const handleImageConfigSave = (cfg) => {
+    setImageBedConfig(cfg);
+    try {
+      localStorage.setItem('valpoint_imagebed_config', JSON.stringify(cfg));
+    } catch (e) {
+      console.error(e);
+    }
+    setAlertMessage('图床配置已保存，仅当前设备生效。');
+    setIsImageConfigOpen(false);
+  };
+
   const performClearAll = async () => {
     try {
       await clearLineups(userId);
@@ -568,6 +616,13 @@ function App() {
             isFlipped={isFlipped}
             sharedLineup={sharedLineup}
           />
+          <QuickActions
+            isOpen={isActionMenuOpen}
+            onToggle={() => setIsActionMenuOpen((v) => !v)}
+            onImageBedConfig={handleImageBedConfig}
+            onChangePassword={handleChangePassword}
+            onClearLineups={handleQuickClear}
+          />
         </div>
         <Lightbox viewingImage={viewingImage} setViewingImage={setViewingImage} />
         <AlertModal message={alertMessage} onClose={() => setAlertMessage(null)} />
@@ -611,6 +666,13 @@ function App() {
           onViewLineup={handleViewLineup}
           isFlipped={isFlipped}
           sharedLineup={sharedLineup}
+        />
+        <QuickActions
+          isOpen={isActionMenuOpen}
+          onToggle={() => setIsActionMenuOpen((v) => !v)}
+          onImageBedConfig={handleImageBedConfig}
+          onChangePassword={handleChangePassword}
+          onClearLineups={handleQuickClear}
         />
         {activeTab !== 'shared' && (
           <div className="absolute top-3 left-3 z-20 flex overflow-hidden rounded-xl border border-white/15 bg-black/70 backdrop-blur px-2 py-2 shadow-lg">
@@ -801,6 +863,13 @@ function App() {
         />
       )}
 
+      <ImageBedConfigModal
+        isOpen={isImageConfigOpen}
+        config={imageBedConfig}
+        onClose={() => setIsImageConfigOpen(false)}
+        onSave={handleImageConfigSave}
+      />
+
       <EditorModal
         isEditorOpen={isEditorOpen}
         editingLineupId={editingLineupId}
@@ -810,6 +879,8 @@ function App() {
         onClose={handleEditorClose}
         selectedSide={selectedSide}
         setSelectedSide={setSelectedSide}
+        imageBedConfig={imageBedConfig}
+        setAlertMessage={setAlertMessage}
       />
 
       <ViewerModal
