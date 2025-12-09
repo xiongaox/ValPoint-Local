@@ -51,7 +51,6 @@ const EditorModal = ({
       const file = new File([blob], 'clipboard_' + Date.now() + '.' + ext, { type: imgType });
       const result = await uploadToOss(file, imageBedConfig);
       setNewLineupData({ ...newLineupData, [fieldKey + 'Img']: result.url });
-      setAlertMessage?.('图片已上传并填入链接');
     } catch (e) {
       console.error(e);
       if (e?.message === 'MISSING_CONFIG') {
