@@ -28,6 +28,9 @@ type Props = {
   handleApplyCustomUserId: () => void;
   handleResetUserId: () => void;
   libraryMode: 'personal' | 'shared';
+  pinnedLineupIds: string[];
+  onTogglePinLineup: (id: string) => void;
+  pinnedLimit: number;
 };
 
 const RightPanel: React.FC<Props> = ({
@@ -56,6 +59,9 @@ const RightPanel: React.FC<Props> = ({
   handleApplyCustomUserId,
   handleResetUserId,
   libraryMode,
+  pinnedLineupIds,
+  onTogglePinLineup,
+  pinnedLimit,
 }) => {
   const pageSize = 7;
   const [page, setPage] = useState(1);
@@ -260,7 +266,7 @@ const RightPanel: React.FC<Props> = ({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               <div className="flex bg-[#0f1923] p-1 rounded-lg border border-white/10 mb-3">
                 <button
                   onClick={() => setSelectedSide('all')}
@@ -295,65 +301,82 @@ const RightPanel: React.FC<Props> = ({
                   <span className="text-xs">暂无相关点位</span>
                 </div>
               ) : (
-                visibleLineups.map((l) => (
-                  <div
-                    key={l.id}
-                    onClick={() => handleViewLineup(l.id)}
-                    className={`group p-4 rounded-lg border cursor-pointer transition-all flex items-center gap-4 h-20 ${
-                      selectedLineupId === l.id ? 'bg-[#ff4655]/10 border-[#ff4655] shadow-md' : 'bg-[#0f1923] border-white/5 hover:border-white/20'
-                    }`}
-                  >
-                    <div className="relative">
-                      {l.agentIcon ? (
-                        <img src={l.agentIcon} className="w-10 h-10 rounded-full border border-white/10" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-xs">{l.agentName?.[0]}</div>
-                      )}
-                      {l.skillIcon && <img src={l.skillIcon} className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#1f2326] rounded-full p-0.5 border border-white/20" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between gap-2 items-center mb-1">
-                        <h4 className={`text-sm font-bold truncate ${selectedLineupId === l.id ? 'text-[#ff4655]' : 'text-white'}`}>{l.title}</h4>
-                        <div className="flex gap-1 text-[12px] text-gray-500 shrink-0">
-                          <span>{getMapDisplayName(l.mapName)}</span>
-                          <span>·</span>
-                          <span>{l.agentName}</span>
+                visibleLineups.map((l) => {
+                  const isPinned = pinnedLineupIds.includes(l.id);
+                  return (
+                    <div
+                      key={l.id}
+                      onClick={() => handleViewLineup(l.id)}
+                      className={`group p-4 rounded-lg border cursor-pointer transition-all flex items-center gap-4 h-20 ${
+                        selectedLineupId === l.id ? 'bg-[#ff4655]/10 border-[#ff4655] shadow-md' : 'bg-[#0f1923] border-white/5 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="relative">
+                        {l.agentIcon ? (
+                          <img src={l.agentIcon} className="w-10 h-10 rounded-full border border-white/10" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-xs">{l.agentName?.[0]}</div>
+                        )}
+                        {l.skillIcon && <img src={l.skillIcon} className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#1f2326] rounded-full p-0.5 border border-white/20" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between gap-2 items-center mb-1">
+                          <h4 className={`text-sm font-bold truncate ${selectedLineupId === l.id ? 'text-[#ff4655]' : 'text-white'}`}>{l.title}</h4>
+                          <div className="flex gap-1 text-[12px] text-gray-500 shrink-0">
+                            <span>{getMapDisplayName(l.mapName)}</span>
+                            <span>·</span>
+                            <span>{l.agentName}</span>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span
+                            className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${
+                              l.side === 'attack'
+                                ? 'text-red-400 border-red-500/30 bg-red-500/10'
+                                : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                            }`}
+                          >
+                            {l.side === 'attack' ? '进攻' : '防守'}
+                          </span>
+                          <div className="flex gap-1">
+                            {!isSharedMode && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onTogglePinLineup(l.id);
+                                }}
+                                className={`p-1 rounded transition-colors ${
+                                  isPinned ? 'text-amber-300 hover:text-amber-200' : 'text-gray-600 hover:text-amber-300'
+                                } hover:bg-white/5`}
+                                title={isPinned ? '取消置顶' : '置顶此点位'}
+                              >
+                                <Icon name="Pin" size={14} />
+                              </button>
+                            )}
+                            {!isSharedMode && (
+                              <button
+                                onClick={(e) => handleShare(l.id, e)}
+                                className="text-gray-600 hover:text-blue-400 p-1 rounded hover:bg-white/5 transition-colors"
+                                title="分享"
+                              >
+                                <Icon name="Share2" size={14} />
+                              </button>
+                            )}
+                            {userMode === 'login' && !isSharedMode && (
+                              <button
+                                onClick={(e) => handleRequestDelete(l.id, e)}
+                                className="text-gray-600 hover:text-red-500 p-1 rounded hover:bg-white/5 transition-colors"
+                                title="删除"
+                              >
+                                <Icon name="Trash2" size={14} />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span
-                          className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${
-                            l.side === 'attack'
-                              ? 'text-red-400 border-red-500/30 bg-red-500/10'
-                              : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
-                          }`}
-                        >
-                          {l.side === 'attack' ? '进攻' : '防守'}
-                        </span>
-                        <div className="flex gap-1">
-                          {!isSharedMode && (
-                            <button
-                              onClick={(e) => handleShare(l.id, e)}
-                              className="text-gray-600 hover:text-blue-400 p-1 rounded hover:bg-white/5 transition-colors"
-                              title="分享"
-                            >
-                              <Icon name="Share2" size={14} />
-                            </button>
-                          )}
-                          {userMode === 'login' && !isSharedMode && (
-                            <button
-                              onClick={(e) => handleRequestDelete(l.id, e)}
-                              className="text-gray-600 hover:text-red-500 p-1 rounded hover:bg-white/5 transition-colors"
-                              title="删除"
-                            >
-                              <Icon name="Trash2" size={14} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
             {showPagination && (

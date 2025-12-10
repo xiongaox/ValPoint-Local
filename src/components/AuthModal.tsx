@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from './Icon';
 
 type Props = {
@@ -28,6 +28,8 @@ const AuthModal: React.FC<Props> = ({
   onGuestConfirm,
   onLoginConfirm,
 }) => {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
   if (!isOpen) return null;
 
   return (
@@ -79,13 +81,23 @@ const AuthModal: React.FC<Props> = ({
 
         <div className="space-y-2">
           <label className="text-xs text-gray-400">密码（留空则游客模式：仅查看与分享）</label>
-          <input
-            type="password"
-            value={passwordInput}
-            onChange={(e) => onPasswordChange(e.target.value)}
-            placeholder="请输入密码，或留空以游客身份进入"
-            className="w-full bg-black/30 border border-gray-700 rounded-lg py-3 px-3 text-sm text-white focus:border-[#ff4655] outline-none transition-colors"
-          />
+          <div className="relative">
+            <input
+              type={isPasswordVisible ? 'text' : 'password'}
+              value={passwordInput}
+              onChange={(e) => onPasswordChange(e.target.value)}
+              placeholder="请输入密码，或留空以游客身份进入"
+              className="w-full bg-black/30 border border-gray-700 rounded-lg py-3 pl-3 pr-10 text-sm text-white focus:border-[#ff4655] outline-none transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setIsPasswordVisible((v) => !v)}
+              className="absolute inset-y-0 right-2 px-2 text-gray-400 hover:text-white transition-colors"
+              aria-label={isPasswordVisible ? '隐藏密码' : '显示密码'}
+            >
+              <Icon name={isPasswordVisible ? 'EyeOff' : 'Eye'} size={16} />
+            </button>
+          </div>
         </div>
         <div className="text-[12px] text-gray-400 bg-black/20 border border-white/10 rounded-lg p-3 leading-relaxed">
           登录模式：可新增、编辑、删除、分享点位。<br />

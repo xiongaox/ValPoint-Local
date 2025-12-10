@@ -77,6 +77,9 @@ type RightProps = {
   handleApplyCustomUserId: () => void;
   handleResetUserId: () => void;
   libraryMode: LibraryMode;
+  pinnedLineupIds: string[];
+  onTogglePinLineup: (id: string) => void;
+  pinnedLimit: number;
 };
 
 type Props = {
@@ -175,6 +178,9 @@ const MainView: React.FC<Props> = ({ activeTab, libraryMode, setLibraryMode, cle
         handleApplyCustomUserId={right.handleApplyCustomUserId}
         handleResetUserId={right.handleResetUserId}
         libraryMode={right.libraryMode}
+        pinnedLineupIds={right.pinnedLineupIds}
+        onTogglePinLineup={right.onTogglePinLineup}
+        pinnedLimit={right.pinnedLimit}
       />
     </div>
   );

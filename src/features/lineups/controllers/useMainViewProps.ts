@@ -57,6 +57,9 @@ type Params = {
   setCustomUserIdInput: (v: string) => void;
   handleApplyCustomUserId: () => void;
   handleResetUserId: () => void;
+  pinnedLineupIds: string[];
+  onTogglePinLineup: (id: string) => void;
+  pinnedLimit: number;
 };
 
 export function buildMainViewProps(params: Params): React.ComponentProps<typeof MainView> {
@@ -135,6 +138,9 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       handleApplyCustomUserId: params.handleApplyCustomUserId,
       handleResetUserId: params.handleResetUserId,
       libraryMode: params.libraryMode,
+      pinnedLineupIds: params.pinnedLineupIds,
+      onTogglePinLineup: params.onTogglePinLineup,
+      pinnedLimit: params.pinnedLimit,
     },
   };
 }

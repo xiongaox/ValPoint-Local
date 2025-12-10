@@ -6,6 +6,7 @@ import { useLineupActions } from '../../hooks/useLineupActions';
 import { useValorantData } from '../../hooks/useValorantData';
 import { useLineupFiltering } from '../../hooks/useLineupFiltering';
 import { useModalState } from '../../hooks/useModalState';
+import { usePinnedLineups } from '../../hooks/usePinnedLineups';
 import { AgentOption, BaseLineup, LibraryMode, SharedLineup } from '../../types/lineup';
 import { useMapInfo } from './controllers/useMapInfo';
 import { useActionMenu } from './controllers/useActionMenu';
@@ -18,6 +19,8 @@ import { buildMainViewProps } from './controllers/useMainViewProps';
 import { buildModalProps } from './controllers/useModalProps';
 import { buildUiProps } from './controllers/useUiProps';
 import { useAppState } from './controllers/useAppState';
+
+const DEFAULT_PINNED_COUNT = 8;
 
 export function useAppController() {
   const {
@@ -53,10 +56,6 @@ export function useAppController() {
     activeTab,
     sharedLineup,
   });
-  const { lineups, setLineups, fetchLineups } = useLineups(mapNameZhToEn);
-  const { sharedLineups, setSharedLineups, fetchSharedLineups, fetchSharedById } = useSharedLineups(mapNameZhToEn);
-  const { saveNewLineup, updateLineup, deleteLineup, clearLineups } = useLineupActions();
-
   const {
     userId,
     userMode,
@@ -78,9 +77,17 @@ export function useAppController() {
     onAuthSuccess: async () => {},
     setAlertMessage: modal.setAlertMessage,
   });
+  const { lineups, setLineups, fetchLineups } = useLineups(mapNameZhToEn);
+  const { pinnedLineupIds, togglePinnedLineup, orderedLineups } = usePinnedLineups({
+    userId,
+    lineups,
+    defaultPinnedCount: DEFAULT_PINNED_COUNT,
+  });
+  const { sharedLineups, setSharedLineups, fetchSharedLineups, fetchSharedById } = useSharedLineups(mapNameZhToEn);
+  const { saveNewLineup, updateLineup, deleteLineup, clearLineups } = useLineupActions();
 
   const { agentCounts, filteredLineups, sharedFilteredLineups, isFlipped, mapLineups } = useLineupFiltering({
-    lineups,
+    lineups: orderedLineups,
     sharedLineups,
     libraryMode,
     selectedMap,
@@ -232,11 +239,11 @@ export function useAppController() {
   const handleViewLineup = useCallback(
     (id: string) => {
       setSelectedLineupId(id);
-      const source = libraryMode === 'shared' ? sharedLineups : lineups;
+      const source = libraryMode === 'shared' ? sharedLineups : orderedLineups;
       const lineup = source.find((l) => l.id === id);
       if (lineup) setViewingLineup(lineup);
     },
-    [lineups, sharedLineups, libraryMode],
+    [orderedLineups, sharedLineups, libraryMode],
   );
 
   const setLibraryModeSafe: React.Dispatch<React.SetStateAction<LibraryMode>> = (mode) => {
@@ -302,6 +309,9 @@ export function useAppController() {
     setCustomUserIdInput,
     handleApplyCustomUserId,
     handleResetUserId,
+    pinnedLineupIds,
+    onTogglePinLineup: togglePinnedLineup,
+    pinnedLimit: DEFAULT_PINNED_COUNT,
   });
 
   const modalProps = buildModalProps({
