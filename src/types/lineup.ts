@@ -1,4 +1,5 @@
 export type LineupSide = 'attack' | 'defense';
+export type LibraryMode = 'personal' | 'shared';
 
 export type LineupPosition = {
   lat: number;

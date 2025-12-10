@@ -1,0 +1,157 @@
+import React from 'react';
+import AppModals from '../AppModals';
+import { ActiveTab } from '../../../types/app';
+import { MapOption, NewLineupForm, SharedLineup, BaseLineup, LibraryMode } from '../../../types/lineup';
+
+type Params = {
+  // auth
+  isAuthModalOpen: boolean;
+  userId: string | null;
+  targetUserId: string;
+  passwordInput: string;
+  isAuthLoading: boolean;
+  setIsAuthModalOpen: (v: boolean) => void;
+  setPendingUserId: (v: string) => void;
+  setPasswordInput: (v: string) => void;
+  setCustomUserIdInput: (v: string) => void;
+  handleResetUserId: () => void;
+  handleConfirmUserAuth: (pwd?: string) => void;
+  handleApplyCustomUserId: () => void;
+  // map
+  isMapModalOpen: boolean;
+  maps: MapOption[];
+  selectedMap: MapOption | null;
+  setSelectedMap: (v: MapOption | null) => void;
+  setIsMapModalOpen: (v: boolean) => void;
+  getMapDisplayName: (name: string) => string;
+  // preview
+  isPreviewModalOpen: boolean;
+  previewInput: string;
+  setPreviewInput: (v: string) => void;
+  onPreviewSubmit: () => void;
+  setIsPreviewModalOpen: (v: boolean) => void;
+  // alert
+  alertMessage: string | null;
+  alertActionLabel: string | null;
+  alertAction: (() => void) | null;
+  alertSecondaryLabel: string | null;
+  alertSecondaryAction: (() => void) | null;
+  setAlertMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  setAlertActionLabel: (v: string | null) => void;
+  setAlertAction: (v: (() => void) | null) => void;
+  setAlertSecondaryLabel: (v: string | null) => void;
+  setAlertSecondaryAction: (v: (() => void) | null) => void;
+  // delete
+  deleteTargetId: string | null;
+  isClearConfirmOpen: boolean;
+  performDelete: () => void;
+  performClearAll: () => void;
+  setDeleteTargetId: (v: string | null) => void;
+  // image bed
+  isImageConfigOpen: boolean;
+  imageBedConfig: any;
+  onImageConfigSave: (cfg: any) => void;
+  setIsImageConfigOpen: (v: boolean) => void;
+  // editor/viewer
+  isEditorOpen: boolean;
+  editingLineupId: string | null;
+  newLineupData: NewLineupForm;
+  setNewLineupData: (fn: (prev: NewLineupForm) => NewLineupForm) => void;
+  handleEditorSave: () => void;
+  handleEditorClose: () => void;
+  selectedSide: 'all' | 'attack' | 'defense';
+  setSelectedSide: (val: 'all' | 'attack' | 'defense') => void;
+  viewingLineup: BaseLineup | null;
+  setViewingLineup: (v: BaseLineup | null) => void;
+  setSelectedLineupId: (v: string | null) => void;
+  handleEditStart: (lineup: BaseLineup) => void;
+  setViewingImage: (v: any) => void;
+  getMapEnglishName: (name: string) => string;
+  isGuest: boolean;
+  libraryMode: LibraryMode;
+  onSaveShared: (lineup?: SharedLineup | null) => void;
+  isSavingShared: boolean;
+  viewingImage: any;
+  isChangelogOpen: boolean;
+  setIsChangelogOpen: (v: boolean) => void;
+};
+
+export function buildModalProps(params: Params): React.ComponentProps<typeof AppModals> {
+  return {
+    isAuthModalOpen: params.isAuthModalOpen,
+    userId: params.userId,
+    targetUserId: params.targetUserId,
+    passwordInput: params.passwordInput,
+    isAuthLoading: params.isAuthLoading,
+    onAuthClose: () => {
+      if (!params.userId) return;
+      params.setIsAuthModalOpen(false);
+      params.setPendingUserId('');
+      params.setPasswordInput('');
+    },
+    onTargetUserChange: (val: string) => {
+      params.setPendingUserId(val);
+      params.setCustomUserIdInput(val);
+    },
+    onResetUserId: params.handleResetUserId,
+    onPasswordChange: (val: string) => params.setPasswordInput(val),
+    onGuestConfirm: () => params.handleConfirmUserAuth(''),
+    onLoginConfirm: () => params.handleConfirmUserAuth(),
+    isMapModalOpen: params.isMapModalOpen,
+    maps: params.maps,
+    selectedMap: params.selectedMap,
+    setSelectedMap: params.setSelectedMap,
+    setIsMapModalOpen: params.setIsMapModalOpen,
+    getMapDisplayName: params.getMapDisplayName,
+    isPreviewModalOpen: params.isPreviewModalOpen,
+    previewInput: params.previewInput,
+    setPreviewInput: params.setPreviewInput,
+    onPreviewClose: () => params.setIsPreviewModalOpen(false),
+    onPreviewSubmit: params.onPreviewSubmit,
+    alertMessage: params.alertMessage,
+    alertActionLabel: params.alertActionLabel,
+    alertAction: params.alertAction,
+    alertSecondaryLabel: params.alertSecondaryLabel,
+    alertSecondaryAction: params.alertSecondaryAction,
+    onAlertClose: () => {
+      params.setAlertMessage(null);
+      params.setAlertActionLabel(null);
+      params.setAlertAction(null);
+      params.setAlertSecondaryLabel(null);
+      params.setAlertSecondaryAction(null);
+    },
+    setAlertMessage: params.setAlertMessage,
+    deleteTargetId: params.deleteTargetId,
+    isClearConfirmOpen: params.isClearConfirmOpen,
+    onDeleteCancel: () => params.setDeleteTargetId(null),
+    onDeleteConfirm: params.performDelete,
+    onClearConfirm: params.performClearAll,
+    isImageConfigOpen: params.isImageConfigOpen,
+    imageBedConfig: params.imageBedConfig,
+    onImageConfigClose: () => params.setIsImageConfigOpen(false),
+    onImageConfigSave: params.onImageConfigSave,
+    isEditorOpen: params.isEditorOpen,
+    editingLineupId: params.editingLineupId,
+    newLineupData: params.newLineupData,
+    setNewLineupData: params.setNewLineupData,
+    handleEditorSave: params.handleEditorSave,
+    onEditorClose: params.handleEditorClose,
+    selectedSide: params.selectedSide,
+    setSelectedSide: params.setSelectedSide,
+    viewingLineup: params.viewingLineup,
+    onViewerClose: () => {
+      params.setViewingLineup(null);
+      params.setSelectedLineupId(null);
+    },
+    handleEditStart: params.handleEditStart,
+    setViewingImage: params.setViewingImage,
+    getMapEnglishName: params.getMapEnglishName,
+    isGuest: params.isGuest,
+    libraryMode: params.libraryMode,
+    handleCopyShared: params.onSaveShared,
+    isSavingShared: params.isSavingShared,
+    viewingImage: params.viewingImage,
+    isChangelogOpen: params.isChangelogOpen,
+    onChangelogClose: () => params.setIsChangelogOpen(false),
+  };
+}

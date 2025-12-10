@@ -1,0 +1,92 @@
+import React from 'react';
+import { BaseLineup } from '../../../types/lineup';
+
+type Params = {
+  isGuest: boolean;
+  userId: string | null;
+  lineups: BaseLineup[];
+  deleteTargetId: string | null;
+  setDeleteTargetId: (id: string | null) => void;
+  setIsClearConfirmOpen: (open: boolean) => void;
+  setAlertMessage: (msg: string) => void;
+  deleteLineup: (id: string) => Promise<void>;
+  clearLineups: (userId: string) => Promise<void>;
+  setSelectedLineupId: (id: string | null) => void;
+  setViewingLineup: (lineup: BaseLineup | null) => void;
+  fetchLineups: (userId: string) => void;
+};
+
+export function useDeletionController({
+  isGuest,
+  userId,
+  lineups,
+  deleteTargetId,
+  setDeleteTargetId,
+  setIsClearConfirmOpen,
+  setAlertMessage,
+  deleteLineup,
+  clearLineups,
+  setSelectedLineupId,
+  setViewingLineup,
+  fetchLineups,
+}: Params) {
+  const handleRequestDelete = (id: string, e?: React.MouseEvent) => {
+    if (isGuest) {
+      e?.stopPropagation();
+      setAlertMessage('游客模式无法删除点位，请先输入密码切换到登录模式');
+      return;
+    }
+    e?.stopPropagation();
+    setDeleteTargetId(id);
+  };
+
+  const performDelete = async () => {
+    if (isGuest) {
+      setAlertMessage('游客模式无法删除点位，请先输入密码切换到登录模式');
+      return;
+    }
+    if (!deleteTargetId) return;
+    try {
+      await deleteLineup(deleteTargetId);
+      setSelectedLineupId(null);
+      setViewingLineup(null);
+    } catch (e) {
+      setAlertMessage('删除失败，请重试。');
+    }
+    setDeleteTargetId(null);
+    fetchLineups(userId || '');
+  };
+
+  const handleClearAll = () => {
+    if (isGuest) {
+      setAlertMessage('游客模式无法删除点位，请先输入密码切换到登录模式');
+      return;
+    }
+    if (!lineups.length) {
+      setAlertMessage('当前没有可删除的点位。');
+      return;
+    }
+    setIsClearConfirmOpen(true);
+  };
+
+  const performClearAll = async () => {
+    if (!userId) return;
+    try {
+      await clearLineups(userId);
+      setIsClearConfirmOpen(false);
+      setSelectedLineupId(null);
+      setViewingLineup(null);
+      setAlertMessage('已清空当前账号的点位。');
+      fetchLineups(userId);
+    } catch (e) {
+      setAlertMessage('清空失败，请重试。');
+    }
+  };
+
+  return {
+    handleRequestDelete,
+    performDelete,
+    handleClearAll,
+    performClearAll,
+  };
+}

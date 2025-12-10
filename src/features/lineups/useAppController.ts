@@ -1,0 +1,422 @@
+import React, { useCallback } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { useLineups } from '../../hooks/useLineups';
+import { useSharedLineups } from '../../hooks/useSharedLineups';
+import { useLineupActions } from '../../hooks/useLineupActions';
+import { useValorantData } from '../../hooks/useValorantData';
+import { useLineupFiltering } from '../../hooks/useLineupFiltering';
+import { useModalState } from '../../hooks/useModalState';
+import { AgentOption, BaseLineup, LibraryMode, SharedLineup } from '../../types/lineup';
+import { useMapInfo } from './controllers/useMapInfo';
+import { useActionMenu } from './controllers/useActionMenu';
+import { useAppLifecycle } from './controllers/useAppLifecycle';
+import { useEditorController } from './controllers/useEditorController';
+import { useDeletionController } from './controllers/useDeletionController';
+import { useShareController } from './controllers/useShareController';
+import { useViewController } from './controllers/useViewController';
+import { buildMainViewProps } from './controllers/useMainViewProps';
+import { buildModalProps } from './controllers/useModalProps';
+import { buildUiProps } from './controllers/useUiProps';
+import { useAppState } from './controllers/useAppState';
+
+export function useAppController() {
+  const {
+    activeTab,
+    setActiveTab,
+    selectedSide,
+    setSelectedSide,
+    selectedAbilityIndex,
+    setSelectedAbilityIndex,
+    searchQuery,
+    setSearchQuery,
+    selectedLineupId,
+    setSelectedLineupId,
+    viewingLineup,
+    setViewingLineup,
+    editingLineupId,
+    setEditingLineupId,
+    sharedLineup,
+    setSharedLineup,
+    libraryMode,
+    setLibraryMode,
+    newLineupData,
+    setNewLineupData,
+    placingType,
+    setPlacingType,
+  } = useAppState();
+
+  const { maps, agents, selectedMap, setSelectedMap, selectedAgent, setSelectedAgent } = useValorantData();
+  const modal = useModalState();
+  const { mapNameZhToEn, getMapDisplayName, getMapEnglishName, getMapUrl, getMapCoverUrl } = useMapInfo({
+    selectedMap,
+    selectedSide,
+    activeTab,
+    sharedLineup,
+  });
+  const { lineups, setLineups, fetchLineups } = useLineups(mapNameZhToEn);
+  const { sharedLineups, setSharedLineups, fetchSharedLineups, fetchSharedById } = useSharedLineups(mapNameZhToEn);
+  const { saveNewLineup, updateLineup, deleteLineup, clearLineups } = useLineupActions();
+
+  const {
+    userId,
+    userMode,
+    isGuest,
+    isAuthModalOpen,
+    setIsAuthModalOpen,
+    pendingUserId,
+    setPendingUserId,
+    customUserIdInput,
+    setCustomUserIdInput,
+    passwordInput,
+    setPasswordInput,
+    isAuthLoading,
+    targetUserId,
+    handleApplyCustomUserId,
+    handleResetUserId,
+    handleConfirmUserAuth,
+  } = useAuth({
+    onAuthSuccess: async () => {},
+    setAlertMessage: modal.setAlertMessage,
+  });
+
+  const { agentCounts, filteredLineups, sharedFilteredLineups, isFlipped, mapLineups } = useLineupFiltering({
+    lineups,
+    sharedLineups,
+    libraryMode,
+    selectedMap,
+    selectedAgent,
+    selectedSide,
+    selectedAbilityIndex,
+    searchQuery,
+    activeTab,
+    sharedLineup,
+  });
+
+  useAppLifecycle({
+    userId,
+    activeTab,
+    setActiveTab,
+    fetchLineups,
+    fetchSharedLineups,
+    fetchSharedById,
+    setLineups,
+    setSelectedLineupId,
+    setViewingLineup,
+    setSharedLineup,
+    setEditingLineupId,
+    setIsEditorOpen: modal.setIsEditorOpen,
+    setPlacingType,
+    setNewLineupData,
+    libraryMode,
+    setAlertMessage: modal.setAlertMessage,
+  });
+
+  const { handleTabSwitch, handlePreviewSubmit } = useViewController({
+    isGuest,
+    activeTab,
+    agents,
+    selectedAgent,
+    selectedSide,
+    previewInput: modal.previewInput,
+    setActiveTab,
+    setPlacingType,
+    setSelectedLineupId,
+    setViewingLineup,
+    setEditingLineupId,
+    setSharedLineup,
+    setLibraryMode,
+    setNewLineupData,
+    setSelectedSide,
+    setSelectedAbilityIndex,
+    setSelectedAgent,
+    fetchLineups,
+    userId,
+    setIsPreviewModalOpen: modal.setIsPreviewModalOpen,
+    setPreviewInput: modal.setPreviewInput,
+    fetchSharedById,
+    setAlertMessage: modal.setAlertMessage,
+    setSelectedMap,
+  });
+
+  const { handleOpenEditor, handleEditorClose, handleEditStart, handleEditorSave } = useEditorController({
+    isGuest,
+    userId,
+    activeTab,
+    selectedMap,
+    selectedAgent,
+    selectedSide,
+    selectedAbilityIndex,
+    newLineupData,
+    setNewLineupData,
+    setSelectedSide,
+    setSelectedAbilityIndex,
+    setActiveTab,
+    setPlacingType,
+    setIsEditorOpen: modal.setIsEditorOpen,
+    setEditingLineupId,
+    setSelectedLineupId,
+    setViewingLineup,
+    setSelectedMap,
+    setSelectedAgent,
+    maps,
+    agents,
+    getMapDisplayName,
+    setAlertMessage: modal.setAlertMessage,
+    fetchLineups,
+    saveNewLineup,
+    updateLineup,
+    editingLineupId,
+    lineups,
+  });
+
+  const { handleRequestDelete, performDelete, handleClearAll, performClearAll } = useDeletionController({
+    isGuest,
+    userId,
+    lineups,
+    deleteTargetId: modal.deleteTargetId,
+    setDeleteTargetId: modal.setDeleteTargetId,
+    setIsClearConfirmOpen: modal.setIsClearConfirmOpen,
+    setAlertMessage: modal.setAlertMessage,
+    deleteLineup,
+    clearLineups,
+    setSelectedLineupId,
+    setViewingLineup,
+    fetchLineups,
+  });
+
+  const {
+    isActionMenuOpen,
+    setIsActionMenuOpen,
+    isImageConfigOpen,
+    setIsImageConfigOpen,
+    imageBedConfig,
+    handleImageBedConfig,
+    handleChangePassword,
+    handleQuickClear,
+    handleImageConfigSave,
+  } = useActionMenu({
+    userId,
+    setAlertMessage: (msg) => modal.setAlertMessage(msg),
+    setIsAuthModalOpen,
+    setPendingUserId,
+    setCustomUserIdInput,
+    setPasswordInput,
+    handleClearAll,
+  });
+
+  const { onShare, onSaveShared, isSavingShared, pendingTransfers } = useShareController({
+    lineups,
+    userId,
+    isGuest,
+    getMapEnglishName,
+    setAlertMessage: modal.setAlertMessage,
+    handleTabSwitch,
+    setAlertActionLabel: modal.setAlertActionLabel,
+    setAlertAction: modal.setAlertAction,
+    setAlertSecondaryLabel: modal.setAlertSecondaryLabel,
+    setAlertSecondaryAction: modal.setAlertSecondaryAction,
+    imageBedConfig,
+    saveNewLineup,
+    fetchLineups,
+    updateLineup,
+  });
+
+  const togglePlacingType = (type: 'agent' | 'skill') => {
+    if (isGuest) {
+      modal.setAlertMessage('游客模式无法标注点位，请先输入密码进入登录模式');
+      return;
+    }
+    setPlacingType((prev) => (prev === type ? null : type));
+  };
+
+  const handleViewLineup = useCallback(
+    (id: string) => {
+      setSelectedLineupId(id);
+      const source = libraryMode === 'shared' ? sharedLineups : lineups;
+      const lineup = source.find((l) => l.id === id);
+      if (lineup) setViewingLineup(lineup);
+    },
+    [lineups, sharedLineups, libraryMode],
+  );
+
+  const setLibraryModeSafe: React.Dispatch<React.SetStateAction<LibraryMode>> = (mode) => {
+    setLibraryMode((prev) => {
+      const next = typeof mode === 'function' ? mode(prev) : mode;
+      setSelectedLineupId(null);
+      setViewingLineup(null);
+      return next;
+    });
+  };
+
+  const mainViewProps = buildMainViewProps({
+    activeTab,
+    selectedMap,
+    setIsMapModalOpen: modal.setIsMapModalOpen,
+    selectedSide,
+    setSelectedSide,
+    selectedAgent,
+    setSelectedAgent,
+    agents,
+    agentCounts,
+    selectedAbilityIndex,
+    setSelectedAbilityIndex,
+    setIsPreviewModalOpen: modal.setIsPreviewModalOpen,
+    getMapDisplayName,
+    openChangelog: () => modal.setIsChangelogOpen(true),
+    mapIcon: getMapUrl(),
+    mapCover: getMapCoverUrl(),
+    lineups: mapLineups,
+    selectedLineupId,
+    onLineupSelect: setSelectedLineupId,
+    newLineupData,
+    setNewLineupData,
+    placingType,
+    setPlacingType,
+    onViewLineup: handleViewLineup,
+    isFlipped,
+    sharedLineup,
+    isActionMenuOpen,
+    onToggleActions: () => setIsActionMenuOpen((v) => !v),
+    onImageBedConfig: handleImageBedConfig,
+    onChangePassword: handleChangePassword,
+    onClearLineups: handleQuickClear,
+    pendingTransfers,
+    libraryMode,
+    setLibraryMode: setLibraryModeSafe,
+    handleTabSwitch,
+    togglePlacingType,
+    handleOpenEditor,
+    searchQuery,
+    setSearchQuery,
+    filteredLineups: libraryMode === 'shared' ? sharedFilteredLineups : filteredLineups,
+    selectedLineupIdRight: selectedLineupId,
+    handleViewLineup,
+    handleShare: onShare,
+    handleRequestDelete,
+    handleClearAll,
+    userId,
+    userMode,
+    customUserIdInput,
+    setCustomUserIdInput,
+    handleApplyCustomUserId,
+    handleResetUserId,
+  });
+
+  const modalProps = buildModalProps({
+    isAuthModalOpen,
+    userId,
+    targetUserId,
+    passwordInput,
+    isAuthLoading,
+    setIsAuthModalOpen,
+    setPendingUserId,
+    setPasswordInput,
+    setCustomUserIdInput,
+    handleResetUserId,
+    handleConfirmUserAuth,
+    handleApplyCustomUserId,
+    isMapModalOpen: modal.isMapModalOpen,
+    maps,
+    selectedMap,
+    setSelectedMap,
+    setIsMapModalOpen: modal.setIsMapModalOpen,
+    getMapDisplayName,
+    isPreviewModalOpen: modal.isPreviewModalOpen,
+    previewInput: modal.previewInput,
+    setPreviewInput: modal.setPreviewInput,
+    onPreviewSubmit: handlePreviewSubmit,
+    setIsPreviewModalOpen: modal.setIsPreviewModalOpen,
+    alertMessage: modal.alertMessage,
+    alertActionLabel: modal.alertActionLabel,
+    alertAction: modal.alertAction,
+    alertSecondaryLabel: modal.alertSecondaryLabel,
+    alertSecondaryAction: modal.alertSecondaryAction,
+    setAlertMessage: modal.setAlertMessage,
+    setAlertActionLabel: modal.setAlertActionLabel,
+    setAlertAction: modal.setAlertAction,
+    setAlertSecondaryLabel: modal.setAlertSecondaryLabel,
+    setAlertSecondaryAction: modal.setAlertSecondaryAction,
+    deleteTargetId: modal.deleteTargetId,
+    isClearConfirmOpen: modal.isClearConfirmOpen,
+    performDelete,
+    performClearAll,
+    setDeleteTargetId: modal.setDeleteTargetId,
+    isImageConfigOpen,
+    imageBedConfig,
+    onImageConfigSave: handleImageConfigSave,
+    setIsImageConfigOpen,
+    isEditorOpen: modal.isEditorOpen,
+    editingLineupId,
+    newLineupData,
+    setNewLineupData,
+    handleEditorSave,
+    handleEditorClose,
+    selectedSide,
+    setSelectedSide,
+    viewingLineup,
+    setViewingLineup,
+    setSelectedLineupId,
+    handleEditStart,
+    setViewingImage: modal.setViewingImage,
+    getMapEnglishName,
+    isGuest,
+    libraryMode,
+    onSaveShared: (lineup?: SharedLineup | null) => onSaveShared(lineup ?? null, sharedLineup),
+    isSavingShared,
+    viewingImage: modal.viewingImage,
+    isChangelogOpen: modal.isChangelogOpen,
+    setIsChangelogOpen: modal.setIsChangelogOpen,
+  });
+
+  const { alertProps, lightboxProps } = buildUiProps({
+    alertMessage: modal.alertMessage,
+    alertActionLabel: modal.alertActionLabel,
+    alertAction: modal.alertAction,
+    alertSecondaryLabel: modal.alertSecondaryLabel,
+    alertSecondaryAction: modal.alertSecondaryAction,
+    setAlertMessage: modal.setAlertMessage,
+    setAlertActionLabel: modal.setAlertActionLabel,
+    setAlertAction: modal.setAlertAction,
+    setAlertSecondaryLabel: modal.setAlertSecondaryLabel,
+    setAlertSecondaryAction: modal.setAlertSecondaryAction,
+    viewingImage: modal.viewingImage,
+    setViewingImage: modal.setViewingImage,
+  });
+
+  return {
+    activeTab,
+    isSharedView: activeTab === 'shared' && !!sharedLineup,
+    sharedViewProps: sharedLineup
+      ? {
+          sharedLineup,
+          isSavingShared,
+          onSaveShared: (lineup: SharedLineup | null) => void onSaveShared(lineup, sharedLineup),
+          onBack: () => handleTabSwitch('view'),
+          getMapDisplayName,
+          getMapEnglishName,
+          getMapUrl,
+          newLineupData,
+          setNewLineupData,
+          placingType,
+          setPlacingType,
+          selectedAgent,
+          selectedAbilityIndex,
+          onViewLineup: handleViewLineup,
+          isFlipped,
+          setViewingImage: modal.setViewingImage,
+          quickActions: {
+            isActionMenuOpen,
+            onToggle: () => setIsActionMenuOpen((v) => !v),
+            onImageBedConfig: handleImageBedConfig,
+            onChangePassword: handleChangePassword,
+            onClearLineups: handleQuickClear,
+            pendingTransfers,
+          },
+        }
+      : null,
+    lightboxProps,
+    alertProps,
+    mainViewProps,
+    modalProps,
+  };
+}
