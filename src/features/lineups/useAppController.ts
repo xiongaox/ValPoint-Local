@@ -83,7 +83,7 @@ export function useAppController() {
     lineups,
   });
   const { sharedLineups, setSharedLineups, fetchSharedLineups, fetchSharedById } = useSharedLineups(mapNameZhToEn);
-  const { saveNewLineup, updateLineup, deleteLineup, clearLineups } = useLineupActions();
+  const { saveNewLineup, updateLineup, deleteLineup, clearLineups, clearLineupsByAgent } = useLineupActions();
 
   const { agentCounts, filteredLineups, sharedFilteredLineups, isFlipped, mapLineups } = useLineupFiltering({
     lineups: orderedLineups,
@@ -175,16 +175,18 @@ export function useAppController() {
     lineups,
   });
 
-  const { handleRequestDelete, performDelete, handleClearAll, performClearAll } = useDeletionController({
+  const { handleRequestDelete, performDelete, handleClearAll, performClearAll, performClearSelectedAgent } = useDeletionController({
     isGuest,
     userId,
     lineups,
+    selectedAgent,
     deleteTargetId: modal.deleteTargetId,
     setDeleteTargetId: modal.setDeleteTargetId,
     setIsClearConfirmOpen: modal.setIsClearConfirmOpen,
     setAlertMessage: modal.setAlertMessage,
     deleteLineup,
     clearLineups,
+    clearLineupsByAgent,
     setSelectedLineupId,
     setViewingLineup,
     fetchLineups,
@@ -351,7 +353,11 @@ export function useAppController() {
     isClearConfirmOpen: modal.isClearConfirmOpen,
     performDelete,
     performClearAll,
+    performClearSelectedAgent,
     setDeleteTargetId: modal.setDeleteTargetId,
+    setIsClearConfirmOpen: modal.setIsClearConfirmOpen,
+    selectedAgentName: selectedAgent?.displayName ?? null,
+    selectedAgentIcon: selectedAgent?.displayIcon ?? null,
     isImageConfigOpen,
     imageBedConfig,
     onImageConfigSave: handleImageConfigSave,

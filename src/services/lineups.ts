@@ -45,3 +45,8 @@ export async function clearLineupsApi(userId: string) {
   const { error } = await supabase.from(TABLE.lineups).delete().eq('user_id', userId);
   if (error) throw error;
 }
+
+export async function clearLineupsByAgentApi(userId: string, agentName: string) {
+  const { error } = await supabase.from(TABLE.lineups).delete().eq('user_id', userId).eq('agent_name', agentName);
+  if (error) throw error;
+}

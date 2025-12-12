@@ -3,6 +3,7 @@ import MapPickerModal from '../../components/MapPickerModal';
 import PreviewModal from '../../components/PreviewModal';
 import AlertModal from '../../components/AlertModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
+import ClearLineupsModal from '../../components/ClearLineupsModal';
 import ImageBedConfigModal from '../../components/ImageBedConfigModal';
 import EditorModal from '../../components/EditorModal';
 import ViewerModal from '../../components/ViewerModal';
@@ -50,9 +51,13 @@ type Props = {
   // delete
   deleteTargetId: string | null;
   isClearConfirmOpen: boolean;
+  selectedAgentName: string | null;
+  selectedAgentIcon: string | null;
   onDeleteCancel: () => void;
   onDeleteConfirm: () => void;
   onClearConfirm: () => void;
+  onClearAgentConfirm: () => void;
+  onClearModalClose: () => void;
   // image bed
   isImageConfigOpen: boolean;
   imageBedConfig: ImageBedConfig;
@@ -115,9 +120,13 @@ const AppModals: React.FC<Props> = ({
   setAlertMessage,
   deleteTargetId,
   isClearConfirmOpen,
+  selectedAgentName,
+  selectedAgentIcon,
   onDeleteCancel,
   onDeleteConfirm,
   onClearConfirm,
+  onClearAgentConfirm,
+  onClearModalClose,
   isImageConfigOpen,
   imageBedConfig,
   onImageConfigClose,
@@ -186,7 +195,14 @@ const AppModals: React.FC<Props> = ({
       />
 
       <DeleteConfirmModal deleteTargetId={deleteTargetId} onCancel={onDeleteCancel} onConfirm={onDeleteConfirm} />
-      {isClearConfirmOpen && <DeleteConfirmModal deleteTargetId="ALL" onCancel={onDeleteCancel} onConfirm={onClearConfirm} />}
+      <ClearLineupsModal
+        isOpen={isClearConfirmOpen}
+        selectedAgentName={selectedAgentName}
+        selectedAgentIcon={selectedAgentIcon}
+        onClose={onClearModalClose}
+        onClearAll={onClearConfirm}
+        onClearSelectedAgent={onClearAgentConfirm}
+      />
 
       <ImageBedConfigModal isOpen={isImageConfigOpen} config={imageBedConfig} onClose={onImageConfigClose} onSave={onImageConfigSave} />
 

@@ -47,7 +47,11 @@ type Params = {
   isClearConfirmOpen: boolean;
   performDelete: () => void;
   performClearAll: () => void;
+  performClearSelectedAgent: () => void;
   setDeleteTargetId: (v: string | null) => void;
+  setIsClearConfirmOpen: (v: boolean) => void;
+  selectedAgentName: string | null;
+  selectedAgentIcon: string | null;
   // image bed
   isImageConfigOpen: boolean;
   imageBedConfig: ImageBedConfig;
@@ -124,9 +128,15 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     setAlertMessage: params.setAlertMessage,
     deleteTargetId: params.deleteTargetId,
     isClearConfirmOpen: params.isClearConfirmOpen,
+    selectedAgentName: params.selectedAgentName,
+    selectedAgentIcon: params.selectedAgentIcon,
     onDeleteCancel: () => params.setDeleteTargetId(null),
     onDeleteConfirm: params.performDelete,
     onClearConfirm: params.performClearAll,
+    onClearAgentConfirm: params.performClearSelectedAgent,
+    onClearModalClose: () => {
+      params.setIsClearConfirmOpen(false);
+    },
     isImageConfigOpen: params.isImageConfigOpen,
     imageBedConfig: params.imageBedConfig,
     onImageConfigClose: () => params.setIsImageConfigOpen(false),

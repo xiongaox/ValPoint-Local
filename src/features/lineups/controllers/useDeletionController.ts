@@ -1,16 +1,18 @@
 import React from 'react';
-import { BaseLineup } from '../../../types/lineup';
+import { AgentOption, BaseLineup } from '../../../types/lineup';
 
 type Params = {
   isGuest: boolean;
   userId: string | null;
   lineups: BaseLineup[];
+  selectedAgent: AgentOption | null;
   deleteTargetId: string | null;
   setDeleteTargetId: (id: string | null) => void;
   setIsClearConfirmOpen: (open: boolean) => void;
   setAlertMessage: (msg: string) => void;
   deleteLineup: (id: string) => Promise<void>;
   clearLineups: (userId: string) => Promise<void>;
+  clearLineupsByAgent: (userId: string, agentName: string) => Promise<void>;
   setSelectedLineupId: (id: string | null) => void;
   setViewingLineup: (lineup: BaseLineup | null) => void;
   fetchLineups: (userId: string) => void;
@@ -20,12 +22,14 @@ export function useDeletionController({
   isGuest,
   userId,
   lineups,
+  selectedAgent,
   deleteTargetId,
   setDeleteTargetId,
   setIsClearConfirmOpen,
   setAlertMessage,
   deleteLineup,
   clearLineups,
+  clearLineupsByAgent,
   setSelectedLineupId,
   setViewingLineup,
   fetchLineups,
@@ -83,10 +87,29 @@ export function useDeletionController({
     }
   };
 
+  const performClearSelectedAgent = async () => {
+    if (!userId) return;
+    if (!selectedAgent?.displayName) {
+      setAlertMessage('请先选择一个英雄，以清空对应点位。');
+      return;
+    }
+    try {
+      await clearLineupsByAgent(userId, selectedAgent.displayName);
+      setIsClearConfirmOpen(false);
+      setSelectedLineupId(null);
+      setViewingLineup(null);
+      setAlertMessage(`已清空以 ${selectedAgent.displayName} 为英雄的点位。`);
+      fetchLineups(userId);
+    } catch (e) {
+      setAlertMessage('清空失败，请重试。');
+    }
+  };
+
   return {
     handleRequestDelete,
     performDelete,
     handleClearAll,
     performClearAll,
+    performClearSelectedAgent,
   };
 }

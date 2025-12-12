@@ -1,4 +1,4 @@
-import { saveLineupApi, updateLineupApi, deleteLineupApi, clearLineupsApi } from '../services/lineups';
+import { saveLineupApi, updateLineupApi, deleteLineupApi, clearLineupsApi, clearLineupsByAgentApi } from '../services/lineups';
 import { LineupDbPayload, BaseLineup } from '../types/lineup';
 
 export const useLineupActions = () => {
@@ -18,5 +18,9 @@ export const useLineupActions = () => {
     await clearLineupsApi(userId);
   };
 
-  return { saveNewLineup, updateLineup, deleteLineup, clearLineups };
+  const clearLineupsByAgent = async (userId: string, agentName: string) => {
+    await clearLineupsByAgentApi(userId, agentName);
+  };
+
+  return { saveNewLineup, updateLineup, deleteLineup, clearLineups, clearLineupsByAgent };
 };
