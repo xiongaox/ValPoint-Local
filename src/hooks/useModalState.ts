@@ -17,6 +17,7 @@ export function useModalState() {
   const [viewingImage, setViewingImage] = useState<LightboxImage | null>(null);
   const [isChangelogOpen, setIsChangelogOpen] = useState<boolean>(false);
   const [isSharedFilterOpen, setIsSharedFilterOpen] = useState<boolean>(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState<boolean>(false);
 
   return {
     isMapModalOpen,
@@ -47,5 +48,7 @@ export function useModalState() {
     setIsChangelogOpen,
     isSharedFilterOpen,
     setIsSharedFilterOpen,
+    isChangePasswordOpen,
+    setIsChangePasswordOpen,
   };
 }

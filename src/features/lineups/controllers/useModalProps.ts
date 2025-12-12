@@ -57,6 +57,10 @@ type Params = {
   sharedContributors: string[];
   selectedSharedUserId: string | null;
   onSelectSharedUser: (userId: string | null) => void;
+  isChangePasswordOpen: boolean;
+  setIsChangePasswordOpen: (v: boolean) => void;
+  isChangingPassword: boolean;
+  onChangePasswordSubmit: (oldPassword: string, newPassword: string, confirmPassword: string) => void;
   // image bed
   isImageConfigOpen: boolean;
   imageBedConfig: ImageBedConfig;
@@ -147,6 +151,10 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     selectedSharedUserId: params.selectedSharedUserId,
     onSelectSharedUser: params.onSelectSharedUser,
     onSharedFilterClose: () => params.setIsSharedFilterOpen(false),
+    isChangePasswordOpen: params.isChangePasswordOpen,
+    isChangingPassword: params.isChangingPassword,
+    onChangePasswordSubmit: params.onChangePasswordSubmit,
+    setIsChangePasswordOpen: params.setIsChangePasswordOpen,
     isImageConfigOpen: params.isImageConfigOpen,
     imageBedConfig: params.imageBedConfig,
     onImageConfigClose: () => params.setIsImageConfigOpen(false),

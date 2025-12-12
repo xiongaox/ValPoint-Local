@@ -11,6 +11,7 @@ import ViewerModal from '../../components/ViewerModal';
 import Lightbox from '../../components/Lightbox';
 import AuthModal from '../../components/AuthModal';
 import ChangelogModal from '../../components/ChangelogModal';
+import ChangePasswordModal from '../../components/ChangePasswordModal';
 import { BaseLineup, SharedLineup, MapOption, LineupSide, NewLineupForm } from '../../types/lineup';
 import { ImageBedConfig } from '../../types/imageBed';
 import { LightboxImage } from '../../types/ui';
@@ -64,6 +65,10 @@ type Props = {
   selectedSharedUserId: string | null;
   onSelectSharedUser: (userId: string | null) => void;
   onSharedFilterClose: () => void;
+  isChangePasswordOpen: boolean;
+  isChangingPassword: boolean;
+  onChangePasswordSubmit: (oldPassword: string, newPassword: string, confirmPassword: string) => void;
+  setIsChangePasswordOpen: (v: boolean) => void;
   // image bed
   isImageConfigOpen: boolean;
   imageBedConfig: ImageBedConfig;
@@ -138,6 +143,10 @@ const AppModals: React.FC<Props> = ({
   selectedSharedUserId,
   onSelectSharedUser,
   onSharedFilterClose,
+  isChangePasswordOpen,
+  isChangingPassword,
+  onChangePasswordSubmit,
+  setIsChangePasswordOpen,
   isImageConfigOpen,
   imageBedConfig,
   onImageConfigClose,
@@ -221,6 +230,14 @@ const AppModals: React.FC<Props> = ({
         selectedUserId={selectedSharedUserId}
         onSelect={onSelectSharedUser}
         onClose={onSharedFilterClose}
+      />
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        userId={userId}
+        isSubmitting={isChangingPassword}
+        onSubmit={onChangePasswordSubmit}
+        onClose={() => setIsChangePasswordOpen(false)}
       />
 
       <ImageBedConfigModal isOpen={isImageConfigOpen} config={imageBedConfig} onClose={onImageConfigClose} onSave={onImageConfigSave} />

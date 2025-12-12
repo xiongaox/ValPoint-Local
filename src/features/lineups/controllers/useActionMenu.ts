@@ -10,6 +10,7 @@ type Params = {
   setCustomUserIdInput: (val: string) => void;
   setPasswordInput: (val: string) => void;
   handleClearAll: () => void;
+  setIsChangePasswordOpen: (v: boolean) => void;
 };
 
 export function useActionMenu({
@@ -20,6 +21,7 @@ export function useActionMenu({
   setCustomUserIdInput,
   setPasswordInput,
   handleClearAll,
+  setIsChangePasswordOpen,
 }: Params) {
   const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [isImageConfigOpen, setIsImageConfigOpen] = useState(false);
@@ -49,7 +51,7 @@ export function useActionMenu({
     setPendingUserId(userId);
     setCustomUserIdInput(userId);
     setPasswordInput('');
-    setIsAuthModalOpen(true);
+    setIsChangePasswordOpen(true);
   };
 
   const handleQuickClear = () => {

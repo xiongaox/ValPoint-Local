@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useLineups } from '../../hooks/useLineups';
 import { useSharedLineups } from '../../hooks/useSharedLineups';
@@ -19,6 +19,7 @@ import { buildMainViewProps } from './controllers/useMainViewProps';
 import { buildModalProps } from './controllers/useModalProps';
 import { buildUiProps } from './controllers/useUiProps';
 import { useAppState } from './controllers/useAppState';
+import { fetchUserApi, upsertUserApi } from '../../services/users';
 
 const DEFAULT_PINNED_COUNT = 8;
 
@@ -86,6 +87,7 @@ export function useAppController() {
   });
   const { sharedLineups, setSharedLineups, fetchSharedLineups, fetchSharedById } = useSharedLineups(mapNameZhToEn);
   const { saveNewLineup, updateLineup, deleteLineup, clearLineups, clearLineupsByAgent } = useLineupActions();
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const { agentCounts, filteredLineups, sharedFilteredLineups, isFlipped, mapLineups } = useLineupFiltering({
     lineups: orderedLineups,
@@ -213,6 +215,7 @@ export function useAppController() {
     setCustomUserIdInput,
     setPasswordInput,
     handleClearAll,
+    setIsChangePasswordOpen: modal.setIsChangePasswordOpen,
   });
 
   const { onShare, onSaveShared, isSavingShared, pendingTransfers } = useShareController({
@@ -231,6 +234,57 @@ export function useAppController() {
     fetchLineups,
     updateLineup,
   });
+
+  const handleChangePasswordSubmit = useCallback(
+    async (oldPassword: string, newPassword: string, confirmPassword: string) => {
+      if (!userId) {
+        modal.setAlertMessage('请先创建或登录一个 ID');
+        return;
+      }
+      if (!oldPassword) {
+        modal.setAlertMessage('请填写原密码');
+        return;
+      }
+      if (!newPassword) {
+        modal.setAlertMessage('请填写新密码');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        modal.setAlertMessage('两次输入的新密码不一致');
+        return;
+      }
+      setIsChangingPassword(true);
+      try {
+        const { data, error } = await fetchUserApi(userId);
+        if (error) throw error;
+        const existing = data?.[0];
+        if (!existing) {
+          modal.setAlertMessage('未找到该 ID 的账号信息');
+          return;
+        }
+        if ((existing.password || '') !== oldPassword) {
+          modal.setAlertMessage('原密码不正确');
+          return;
+        }
+        const now = new Date().toISOString();
+        const { error: upsertError } = await upsertUserApi({
+          user_id: userId,
+          password: newPassword,
+          created_at: existing.created_at || now,
+          updated_at: now,
+        });
+        if (upsertError) throw upsertError;
+        modal.setIsChangePasswordOpen(false);
+        modal.setAlertMessage('密码已更新，请使用新密码登录');
+      } catch (e) {
+        console.error(e);
+        modal.setAlertMessage('修改密码失败，请稍后再试');
+      } finally {
+        setIsChangingPassword(false);
+      }
+    },
+    [userId, modal],
+  );
 
   const togglePlacingType = (type: 'agent' | 'skill') => {
     if (isGuest) {
@@ -401,6 +455,10 @@ export function useAppController() {
     sharedContributors,
     selectedSharedUserId: sharedFilterUserId,
     onSelectSharedUser: setSharedFilterUserId,
+    isChangePasswordOpen: modal.isChangePasswordOpen,
+    setIsChangePasswordOpen: modal.setIsChangePasswordOpen,
+    isChangingPassword,
+    onChangePasswordSubmit: handleChangePasswordSubmit,
   });
 
   const { alertProps, lightboxProps } = buildUiProps({
