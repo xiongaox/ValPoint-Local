@@ -6,7 +6,7 @@ import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import ClearLineupsModal from '../../components/ClearLineupsModal';
 import SharedFilterModal from '../../components/SharedFilterModal';
 import ImageBedConfigModal from '../../components/ImageBedConfigModal';
-import ImageProcessingSettingsModal from '../../components/ImageProcessingSettingsModal';
+import AdvancedSettingsDrawer from '../../components/AdvancedSettingsDrawer';
 import EditorModal from '../../components/EditorModal';
 import ViewerModal from '../../components/ViewerModal';
 import Lightbox from '../../components/Lightbox';
@@ -251,7 +251,7 @@ const AppModals: React.FC<Props> = ({
       />
 
       <ImageBedConfigModal isOpen={isImageConfigOpen} config={imageBedConfig} onClose={onImageConfigClose} onSave={onImageConfigSave} />
-      <ImageProcessingSettingsModal isOpen={isImageProcessingOpen} settings={imageProcessingSettings} onClose={onImageProcessingClose} onSave={onImageProcessingSave} />
+      <AdvancedSettingsDrawer isOpen={isImageProcessingOpen} settings={imageProcessingSettings} onClose={onImageProcessingClose} onSave={onImageProcessingSave} />
 
       <EditorModal
         isEditorOpen={isEditorOpen}

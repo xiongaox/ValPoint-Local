@@ -23,9 +23,13 @@ type Props = {
 
 const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave }) => {
   const [localConfig, setLocalConfig] = useState<ImageBedConfig>(defaultImageBedConfig);
+  const [isCopied, setIsCopied] = useState(false);
 
   useEffect(() => {
-    if (isOpen) setLocalConfig(config || defaultImageBedConfig);
+    if (isOpen) {
+      setLocalConfig(config || defaultImageBedConfig);
+      setIsCopied(false);
+    }
   }, [isOpen, config]);
 
   const updateField = (key: keyof ImageBedConfig, value: string) => {
@@ -35,6 +39,8 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(localConfig, null, 2));
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (e) {
       console.error(e);
       alert('复制失败，请手动复制。');
@@ -70,9 +76,13 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopy}
-              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white hover:border-white/40 transition-colors"
+              className={`inline-flex items-center gap-2 px-2 py-1.5 rounded-lg border text-sm transition-colors ${
+                isCopied
+                  ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                  : 'bg-white/5 border-white/10 text-white hover:border-white/40'
+              }`}
             >
-              <Icon name="Copy" size={16} /> 复制配置
+              <Icon name={isCopied ? 'Check' : 'Copy'} size={16} /> {isCopied ? '已复制' : '复制配置'}
             </button>
             <button
               onClick={onClose}
