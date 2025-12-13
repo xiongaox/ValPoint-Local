@@ -28,6 +28,9 @@ export type BaseLineup = {
   landImg?: string | null;
   landDesc?: string | null;
   sourceLink?: string | null;
+  authorName?: string | null;
+  authorAvatar?: string | null;
+  authorUid?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
   clonedFrom?: string | null;
@@ -60,6 +63,9 @@ export type NewLineupForm = {
   landImg: string;
   landDesc: string;
   sourceLink: string;
+  authorName: string;
+  authorAvatar: string;
+  authorUid: string;
   enableStand2: boolean;
   enableAim2: boolean;
 };
@@ -85,6 +91,9 @@ export type LineupDbPayload = {
   land_img?: string | null;
   land_desc?: string | null;
   source_link?: string | null;
+  author_name?: string | null;
+  author_avatar?: string | null;
+  author_uid?: string | null;
   user_id: string;
   cloned_from?: string | null;
   created_at?: string | null;

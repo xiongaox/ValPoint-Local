@@ -1,8 +1,9 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Icon from './Icon';
 import { uploadToOss } from '../utils/ossUpload';
 import { prepareClipboardImage } from '../lib/imageCompression';
+import { fetchAuthorInfo } from '../utils/authorFetcher';
 
 const fields = [
   { k: 'stand', l: '站位图' },
@@ -28,6 +29,50 @@ const EditorModal = ({
   if (!isEditorOpen) return null;
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [uploadingField, setUploadingField] = useState(null);
+  const [isFetchingAuthor, setIsFetchingAuthor] = useState(false);
+  const fetchTimeoutRef = useRef(null);
+
+  // 自动获取作者信息（防抖）
+  useEffect(() => {
+    const link = newLineupData.sourceLink?.trim();
+    
+    // 清除之前的定时器
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+
+    // 如果没有链接或已有作者信息，不获取
+    if (!link || newLineupData.authorName) {
+      return;
+    }
+
+    // 延迟 1 秒后自动获取（防抖）
+    fetchTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsFetchingAuthor(true);
+        const authorInfo = await fetchAuthorInfo(link);
+        
+        if (authorInfo) {
+          setNewLineupData({
+            ...newLineupData,
+            authorName: authorInfo.name,
+            authorAvatar: authorInfo.avatar,
+            authorUid: authorInfo.uid || '',
+          });
+        }
+      } catch (error) {
+        console.error('自动获取作者信息失败:', error);
+      } finally {
+        setIsFetchingAuthor(false);
+      }
+    }, 1000);
+
+    return () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
+  }, [newLineupData.sourceLink]);
 
     const handleClipboardUpload = async (fieldKey) => {
     if (!navigator.clipboard?.read) {
@@ -149,10 +194,23 @@ const handleClearImage = (fieldKey) => {
               <label className="text-xs font-bold text-gray-500 uppercase block mb-2">点位来源链接 (可选)</label>
               <input
                 className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-3 text-white focus:border-[#ff4655] outline-none transition-colors"
-                placeholder="视频/来源链接，查看时可点击跳转"
+                placeholder="B站视频链接，查看时可点击跳转，并自动获取作者信息"
                 value={newLineupData.sourceLink || ''}
                 onChange={(e) => setNewLineupData({ ...newLineupData, sourceLink: e.target.value })}
               />
+              {isFetchingAuthor && (
+                <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                  <Icon name="Loader" size={14} className="text-blue-400 animate-spin" />
+                  <span className="text-sm text-blue-300">正在获取作者信息...</span>
+                </div>
+              )}
+              {newLineupData.authorName && newLineupData.authorAvatar && !isFetchingAuthor && (
+                <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                  <img src={newLineupData.authorAvatar} className="w-6 h-6 rounded-full" alt={newLineupData.authorName} referrerPolicy="no-referrer" />
+                  <span className="text-sm text-emerald-300">{newLineupData.authorName}</span>
+                  <Icon name="Check" size={14} className="text-emerald-400 ml-auto" />
+                </div>
+              )}
             </div>
           </div>
 

@@ -15,6 +15,9 @@ export const createEmptyLineup = (): NewLineupForm => ({
   landImg: '',
   landDesc: '',
   sourceLink: '',
+  authorName: '',
+  authorAvatar: '',
+  authorUid: '',
   enableStand2: false,
   enableAim2: false,
 });
@@ -40,6 +43,9 @@ type WritableLineup = {
   landImg?: string | null;
   landDesc?: string | null;
   sourceLink?: string | null;
+  authorName?: string | null;
+  authorAvatar?: string | null;
+  authorUid?: string | null;
   clonedFrom?: string | null;
 };
 
@@ -64,6 +70,9 @@ export const toDbPayload = (data: WritableLineup, userId: string): LineupDbPaylo
   land_img: data.landImg || '',
   land_desc: data.landDesc || '',
   source_link: data.sourceLink || '',
+  author_name: data.authorName || null,
+  author_avatar: data.authorAvatar || null,
+  author_uid: data.authorUid || null,
   user_id: userId,
   cloned_from: data.clonedFrom || null,
 });

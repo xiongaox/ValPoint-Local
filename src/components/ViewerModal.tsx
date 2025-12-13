@@ -1,6 +1,7 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
+import { fetchAuthorInfo } from '../utils/authorFetcher';
 
 const ViewerModal = ({
   viewingLineup,
@@ -14,6 +15,26 @@ const ViewerModal = ({
   handleCopyShared,
   isSavingShared,
 }) => {
+  const [authorInfo, setAuthorInfo] = useState<{ name: string; avatar: string; uid?: string } | null>(null);
+  const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
+
+  useEffect(() => {
+    if (viewingLineup?.authorName && viewingLineup?.authorAvatar) {
+      setAuthorInfo({
+        name: viewingLineup.authorName,
+        avatar: viewingLineup.authorAvatar,
+        uid: viewingLineup.authorUid || undefined,
+      });
+    } else if (viewingLineup?.sourceLink) {
+      setIsLoadingAuthor(true);
+      fetchAuthorInfo(viewingLineup.sourceLink)
+        .then((info) => {
+          if (info) setAuthorInfo(info);
+        })
+        .finally(() => setIsLoadingAuthor(false));
+    }
+  }, [viewingLineup]);
+
   if (!viewingLineup) return null;
 
   const imageItems = [
@@ -50,6 +71,29 @@ const ViewerModal = ({
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
+              {authorInfo && (
+                authorInfo.uid ? (
+                  <a
+                    href={`https://space.bilibili.com/${authorInfo.uid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white hover:border-[#ff4655] hover:text-[#ff4655] transition-colors"
+                  >
+                    <img src={authorInfo.avatar} className="w-5 h-5 rounded-full" alt={authorInfo.name} referrerPolicy="no-referrer" />
+                    <span>{authorInfo.name}</span>
+                  </a>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white">
+                    <img src={authorInfo.avatar} className="w-5 h-5 rounded-full" alt={authorInfo.name} referrerPolicy="no-referrer" />
+                    <span>{authorInfo.name}</span>
+                  </div>
+                )
+              )}
+              {isLoadingAuthor && (
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-gray-400">
+                  <Icon name="Loader" size={14} className="animate-spin" /> 加载中...
+                </div>
+              )}
               {viewingLineup.sourceLink && (
                 <a
                   href={viewingLineup.sourceLink}

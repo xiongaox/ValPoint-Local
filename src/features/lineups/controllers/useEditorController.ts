@@ -116,6 +116,9 @@ export function useEditorController({
       landImg: lineup.landImg || '',
       landDesc: lineup.landDesc || '',
       sourceLink: lineup.sourceLink || '',
+      authorName: lineup.authorName || '',
+      authorAvatar: lineup.authorAvatar || '',
+      authorUid: lineup.authorUid || '',
       enableStand2: !!(lineup.stand2Img || lineup.stand2Desc),
       enableAim2: !!(lineup.aim2Img || lineup.aim2Desc),
     });
@@ -174,6 +177,9 @@ export function useEditorController({
       landImg: cleaned.landImg,
       landDesc: cleaned.landDesc,
       sourceLink: cleaned.sourceLink,
+      authorName: cleaned.authorName,
+      authorAvatar: cleaned.authorAvatar,
+      authorUid: cleaned.authorUid,
       clonedFrom: null,
     };
     try {
