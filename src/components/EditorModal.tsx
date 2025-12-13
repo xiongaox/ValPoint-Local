@@ -29,36 +29,34 @@ const EditorModal = ({
   if (!isEditorOpen) return null;
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [uploadingField, setUploadingField] = useState(null);
+  const [isPastingSourceLink, setIsPastingSourceLink] = useState(false);
   const [isFetchingAuthor, setIsFetchingAuthor] = useState(false);
   const fetchTimeoutRef = useRef(null);
 
   // 自动获取作者信息（防抖）
   useEffect(() => {
     const link = newLineupData.sourceLink?.trim();
-    
-    // 清除之前的定时器
+
     if (fetchTimeoutRef.current) {
       clearTimeout(fetchTimeoutRef.current);
     }
 
-    // 如果没有链接或已有作者信息，不获取
     if (!link || newLineupData.authorName) {
       return;
     }
 
-    // 延迟 1 秒后自动获取（防抖）
     fetchTimeoutRef.current = setTimeout(async () => {
       try {
         setIsFetchingAuthor(true);
         const authorInfo = await fetchAuthorInfo(link);
-        
+
         if (authorInfo) {
-          setNewLineupData({
-            ...newLineupData,
+          setNewLineupData((prev) => ({
+            ...prev,
             authorName: authorInfo.name,
             authorAvatar: authorInfo.avatar,
             authorUid: authorInfo.uid || '',
-          });
+          }));
         }
       } catch (error) {
         console.error('自动获取作者信息失败:', error);
@@ -72,9 +70,64 @@ const EditorModal = ({
         clearTimeout(fetchTimeoutRef.current);
       }
     };
-  }, [newLineupData.sourceLink]);
+  }, [newLineupData.sourceLink, setNewLineupData]);
 
-    const handleClipboardUpload = async (fieldKey) => {
+  const updateSourceLink = (value) => {
+    setNewLineupData((prev) => ({
+      ...prev,
+      sourceLink: value,
+      authorName: '',
+      authorAvatar: '',
+      authorUid: '',
+    }));
+  };
+
+  const extractSourceLink = (rawText) => {
+    if (!rawText) return '';
+    const matches = rawText.match(/https?:\/\/[^\s"'<>]+/g) || [];
+    const priorities = ['bilibili.com', 'douyin.com', 'tiktok.com'];
+    const prioritized = matches.find((url) => priorities.some((host) => url.includes(host)));
+    return prioritized || matches[0] || '';
+  };
+
+  const handlePasteSourceLink = async () => {
+    if (!navigator.clipboard?.readText) {
+      setAlertMessage?.('当前浏览器不支持读取剪贴板内容');
+      return;
+    }
+    try {
+      setIsPastingSourceLink(true);
+      const text = (await navigator.clipboard.readText())?.trim();
+      const extracted = extractSourceLink(text);
+      if (!extracted) {
+        setAlertMessage?.('剪贴板没有可用的链接');
+        return;
+      }
+      const candidate = /^https?:\/\//i.test(extracted) ? extracted : `https://${extracted}`;
+      try {
+        const url = new URL(candidate);
+        updateSourceLink(url.toString());
+        setAlertMessage?.('已从剪贴板提取来源链接，将自动尝试获取作者信息');
+      } catch {
+        setAlertMessage?.('剪贴板内容不是有效的链接');
+      }
+    } catch (error) {
+      console.error('读取剪贴板失败', error);
+      setAlertMessage?.('读取剪贴板失败，请手动粘贴');
+    } finally {
+      setIsPastingSourceLink(false);
+    }
+  };
+
+  const handleClearSourceLink = () => {
+    if (fetchTimeoutRef.current) {
+      clearTimeout(fetchTimeoutRef.current);
+    }
+    updateSourceLink('');
+    setIsFetchingAuthor(false);
+  };
+
+  const handleClipboardUpload = async (fieldKey) => {
     if (!navigator.clipboard?.read) {
       setAlertMessage?.('????????????????');
       return;
@@ -115,7 +168,7 @@ const EditorModal = ({
     }
   };
 
-const handleClearImage = (fieldKey) => {
+  const handleClearImage = (fieldKey) => {
     setNewLineupData({ ...newLineupData, [`${fieldKey}Img`]: '' });
   };
 
@@ -191,13 +244,50 @@ const handleClearImage = (fieldKey) => {
               </div>
             </div>
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">点位来源链接 (可选)</label>
-              <input
-                className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-3 text-white focus:border-[#ff4655] outline-none transition-colors"
-                placeholder="B站视频链接，查看时可点击跳转，并自动获取作者信息"
-                value={newLineupData.sourceLink || ''}
-                onChange={(e) => setNewLineupData({ ...newLineupData, sourceLink: e.target.value })}
-              />
+              <div className="bg-[#0f1923] border border-[#2a323d] rounded-xl p-3 space-y-3 shadow-inner shadow-black/30">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-bold text-gray-500 uppercase">点位来源链接 (可选)</label>
+                  <div className="text-[11px] text-gray-500 flex items-center gap-1">
+                    <Icon name="Clipboard" size={12} /> 剪贴板读取
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePasteSourceLink}
+                    disabled={isPastingSourceLink}
+                    className="flex-1 h-10 px-3 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <Icon name="ClipboardCheck" size={14} />
+                    {isPastingSourceLink ? '读取中...' : '剪贴板填入'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearSourceLink}
+                    className="h-10 px-3 rounded-lg border border-[#2a323d] bg-[#0f1923] text-xs text-gray-200 hover:border-red-500/60 hover:text-red-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Icon name="Eraser" size={14} />
+                    清空
+                  </button>
+                  {newLineupData.sourceLink && (
+                    <a
+                      href={newLineupData.sourceLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-10 px-3 rounded-lg border border-white/10 bg-white/5 text-xs text-gray-200 hover:border-[#ff4655] hover:text-white transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Icon name="ExternalLink" size={14} />
+                      打开
+                    </a>
+                  )}
+                </div>
+                <input
+                  className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-3 text-white focus:border-[#ff4655] outline-none transition-colors"
+                  placeholder="B站视频链接，查看时可点击跳转，并自动获取作者信息"
+                  value={newLineupData.sourceLink || ''}
+                  onChange={(e) => updateSourceLink(e.target.value)}
+                />
+              </div>
               {isFetchingAuthor && (
                 <div className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/30">
                   <Icon name="Loader" size={14} className="text-blue-400 animate-spin" />
@@ -299,11 +389,11 @@ const handleClearImage = (fieldKey) => {
                     )}
 
                     <textarea
-                    className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-2 text-sm text-white placeholder-gray-500 h-16 resize-none overflow-y-auto focus:border-[#ff4655] outline-none"
-                    placeholder="描述（可选）"
-                    value={newLineupData[`${field.k}Desc`]}
-                    onChange={(e) => setNewLineupData({ ...newLineupData, [`${field.k}Desc`]: e.target.value })}
-                  />
+                      className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-2 text-sm text-white placeholder-gray-500 h-16 resize-none overflow-y-auto focus:border-[#ff4655] outline-none"
+                      placeholder="描述（可选）"
+                      value={newLineupData[`${field.k}Desc`]}
+                      onChange={(e) => setNewLineupData({ ...newLineupData, [`${field.k}Desc`]: e.target.value })}
+                    />
 
                     {newLineupData[`${field.k}Img`] ? (
                       <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#0f1923] h-40">

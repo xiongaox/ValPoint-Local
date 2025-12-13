@@ -19,20 +19,27 @@ const ViewerModal = ({
   const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
 
   useEffect(() => {
+    if (!viewingLineup?.sourceLink) {
+      setAuthorInfo(null);
+      setIsLoadingAuthor(false);
+      return;
+    }
+
     if (viewingLineup?.authorName && viewingLineup?.authorAvatar) {
       setAuthorInfo({
         name: viewingLineup.authorName,
         avatar: viewingLineup.authorAvatar,
         uid: viewingLineup.authorUid || undefined,
       });
-    } else if (viewingLineup?.sourceLink) {
-      setIsLoadingAuthor(true);
-      fetchAuthorInfo(viewingLineup.sourceLink)
-        .then((info) => {
-          if (info) setAuthorInfo(info);
-        })
-        .finally(() => setIsLoadingAuthor(false));
+      return;
     }
+
+    setIsLoadingAuthor(true);
+    fetchAuthorInfo(viewingLineup.sourceLink)
+      .then((info) => {
+        if (info) setAuthorInfo(info);
+      })
+      .finally(() => setIsLoadingAuthor(false));
   }, [viewingLineup]);
 
   if (!viewingLineup) return null;
@@ -71,7 +78,7 @@ const ViewerModal = ({
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              {authorInfo && (
+              {authorInfo && viewingLineup.sourceLink && (
                 authorInfo.uid ? (
                   <a
                     href={
