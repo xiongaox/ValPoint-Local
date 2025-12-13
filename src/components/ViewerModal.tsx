@@ -74,7 +74,11 @@ const ViewerModal = ({
               {authorInfo && (
                 authorInfo.uid ? (
                   <a
-                    href={`https://space.bilibili.com/${authorInfo.uid}`}
+                    href={
+                      authorInfo.uid.startsWith('MS4') 
+                        ? `https://www.douyin.com/user/${authorInfo.uid}` 
+                        : `https://space.bilibili.com/${authorInfo.uid}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white hover:border-[#ff4655] hover:text-[#ff4655] transition-colors"
@@ -101,7 +105,7 @@ const ViewerModal = ({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white hover:border-[#ff4655] hover:text-[#ff4655] transition-colors"
                 >
-                  <Icon name="ExternalLink" size={14} /> 查看来源
+                  <Icon name="Play" size={14} /> 精准空降
                 </a>
               )}
               {libraryMode !== 'shared' && !isGuest && (

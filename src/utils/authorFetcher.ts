@@ -86,9 +86,43 @@ async function fetchBilibiliAuthor(url: string): Promise<AuthorInfo | null> {
 
 async function fetchDouyinAuthor(url: string): Promise<AuthorInfo | null> {
   try {
-    // 抖音 API 需要特殊处理，这里提供基础框架
-    // 实际使用可能需要后端代理或第三方服务
-    console.warn('抖音作者信息获取暂未实现');
+    // 使用项目的 Supabase Edge Function
+    const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+    const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error('Supabase 配置缺失');
+      return null;
+    }
+    
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/get-douyin-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ url }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`抖音 API 错误 ${response.status}:`, errorText);
+      return null;
+    }
+
+    const result = await response.json();
+    
+    if (result.status === 'success' && result.data) {
+      // 从抖音主页链接提取 sec_uid
+      const secUidMatch = result.data.user_home_url?.match(/\/user\/(MS4wLjABAAAA[A-Za-z0-9_\-]+)/);
+      
+      return {
+        name: result.data.username,
+        avatar: result.data.avatar,
+        uid: secUidMatch ? secUidMatch[1] : undefined,
+      };
+    }
+    
     return null;
   } catch (error) {
     console.error('获取抖音作者信息失败:', error);
