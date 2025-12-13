@@ -6,8 +6,8 @@ const DeleteConfirmModal = ({ deleteTargetId, onCancel, onConfirm }) => {
   if (!deleteTargetId) return null;
   return (
     <div className="fixed inset-0 z-[1100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0f131a]/95 shadow-2xl shadow-black/50 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0f131a]">
+      <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
               <Icon name="AlertTriangle" size={22} />
@@ -26,12 +26,11 @@ const DeleteConfirmModal = ({ deleteTargetId, onCancel, onConfirm }) => {
           </button>
         </div>
 
-        <div className="p-5 space-y-4 bg-[#0f131a]">
+        <div className="p-5 space-y-4 bg-[#181b1f]">
           <div className="rounded-lg border border-[#ff4655]/25 bg-[#ff4655]/10 px-4 py-3 text-sm text-[#ffc6cc] flex items-start gap-2">
             <Icon name="Info" size={16} className="mt-[2px]" />
             <div className="space-y-1">
               <div className="font-semibold text-white">删除后不可恢复</div>
-              <div className="text-xs text-[#f3d6db]">该点位将从本地与云端删除，如需保留请先导出备份。</div>
             </div>
           </div>
 
