@@ -129,39 +129,72 @@ const EditorModal = ({
 
   const handleClipboardUpload = async (fieldKey) => {
     if (!navigator.clipboard?.read) {
-      setAlertMessage?.('????????????????');
+      setAlertMessage?.('Clipboard API not supported in this browser');
       return;
     }
-    const missing = ['accessKeyId', 'accessKeySecret', 'bucket', 'region'].filter((k) => !imageBedConfig?.[k]);
-    if (missing.length) {
-      setAlertMessage?.('?????????????AK/AS/Bucket/Region?');
+    
+    // 验证图床配置（根据不同平台验证不同字段）
+    if (!imageBedConfig?.provider) {
+      setAlertMessage?.('Image hosting not configured. Please configure it first.');
       return;
     }
+    
+    const provider = imageBedConfig.provider;
+    let missingFields: string[] = [];
+    
+    console.log('[EditorModal] validating config', { provider, config: imageBedConfig });
+    
+    if (provider === 'aliyun') {
+      missingFields = ['accessKeyId', 'accessKeySecret', 'bucket', 'area'].filter((k) => !imageBedConfig?.[k]);
+    } else if (provider === 'tencent') {
+      missingFields = ['secretId', 'secretKey', 'bucket', 'appId', 'area'].filter((k) => !imageBedConfig?.[k]);
+    } else if (provider === 'qiniu') {
+      missingFields = ['accessKey', 'secretKey', 'bucket', 'url', 'area'].filter((k) => !imageBedConfig?.[k]);
+    }
+    
+    if (missingFields.length > 0) {
+      console.error('[EditorModal] missing required fields:', missingFields);
+      setAlertMessage?.(`Missing required config fields: ${missingFields.join(', ')}`);
+      return;
+    }
+    
+    console.log('[EditorModal] config validation passed');
+    
     try {
       setUploadingField(fieldKey);
+      console.log('[EditorModal] starting clipboard upload');
+      
       const items = await navigator.clipboard.read();
       const imgItem = items.find((item) => item.types.some((t) => t.startsWith('image/')));
       if (!imgItem) {
-        setAlertMessage?.('??????????');
+        console.warn('[EditorModal] no image found in clipboard');
+        setAlertMessage?.('No image found in clipboard');
         return;
       }
+      
       const imgType = imgItem.types.find((t) => t.startsWith('image/')) || 'image/png';
       const blob = await imgItem.getType(imgType);
+      console.log('[EditorModal] image from clipboard', { type: imgType, size: blob.size });
+      
       const fileForUpload = await prepareClipboardImage(blob, 'clipboard_' + Date.now(), imageProcessingSettings);
+      console.log('[EditorModal] image processed', { size: fileForUpload.size });
+      
       const result = await uploadToOss(fileForUpload, imageBedConfig);
+      console.log('[EditorModal] upload success', { url: result.url });
+      
       setNewLineupData({ ...newLineupData, [fieldKey + 'Img']: result.url });
     } catch (e) {
-      console.error(e);
-      if (e?.message === 'MISSING_CONFIG') {
-        setAlertMessage?.('????????????');
+      console.error('[EditorModal] upload error:', e);
+      if (e?.message?.includes('MISSING_CONFIG') || e?.message?.includes('Missing required config')) {
+        setAlertMessage?.('Image hosting config incomplete. Please check your settings.');
       } else if (
         e?.message === 'JPEG_CONVERSION_FAILED' ||
         e?.message === 'IMAGE_LOAD_FAILED' ||
         e?.message === 'CANVAS_CONTEXT_UNAVAILABLE'
       ) {
-        setAlertMessage?.('?????????????????');
+        setAlertMessage?.('Image processing failed. Please try another image.');
       } else {
-        setAlertMessage?.('???????????????');
+        setAlertMessage?.(`Upload failed: ${e?.message || 'Unknown error'}`);
       }
     } finally {
       setUploadingField(null);

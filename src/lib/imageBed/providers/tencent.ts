@@ -1,5 +1,124 @@
-import { ImageBedProviderDefinition, UploadOptions, TransferOptions } from '../types';
+import COS from 'cos-js-sdk-v5';
+import { ImageBedProviderDefinition, UploadOptions, TransferOptions, UploadResult } from '../types';
 import { ImageBedConfig } from '../../../types/imageBed';
+import {
+  trimSlashes,
+  ensureHttps,
+  buildTimestampName,
+  inferExtensionFromFile,
+  downloadImageBlob,
+} from '../utils';
+
+const createCosClient = (config: ImageBedConfig) => {
+  const { secretId, secretKey } = config;
+  if (!secretId || !secretKey) {
+    throw new Error('Missing required config: secretId and secretKey are required');
+  }
+  return new COS({
+    SecretId: secretId,
+    SecretKey: secretKey,
+  });
+};
+
+const buildObjectKey = (basePath: string | undefined, extension: string) => {
+  const prefix = trimSlashes(basePath || '');
+  const fileName = `${buildTimestampName()}.${extension}`;
+  if (prefix) return `${prefix}/${fileName}`;
+  return fileName;
+};
+
+const buildPublicUrl = (config: ImageBedConfig, objectKey: string) => {
+  const { bucket, appId, area, customUrl, options, slim } = config;
+  
+  // 使用自定义域名或默认域名
+  let baseUrl: string;
+  if (customUrl) {
+    baseUrl = customUrl.replace(/\/+$/g, '');
+  } else {
+    // 默认域名格式：https://{bucket}-{appId}.cos.{area}.myqcloud.com
+    baseUrl = `https://${bucket}-${appId}.cos.${area}.myqcloud.com`;
+  }
+  
+  const url = `${ensureHttps(baseUrl)}/${objectKey}`;
+  
+  // 添加图片处理参数
+  const params: string[] = [];
+  if (slim) {
+    params.push('imageMogr2/format/webp');
+  }
+  if (options) {
+    params.push(options);
+  }
+  
+  if (params.length > 0) {
+    return `${url}?${params.join('&')}`;
+  }
+  
+  return url;
+};
+
+const uploadWithRetry = async (
+  cos: COS,
+  bucket: string,
+  area: string,
+  objectKey: string,
+  blob: Blob,
+  onProgress?: (percent: number) => void,
+) => {
+  const maxAttempts = 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const result = await new Promise<{ Location: string }>((resolve, reject) => {
+        cos.putObject(
+          {
+            Bucket: bucket,
+            Region: area,
+            Key: objectKey,
+            Body: blob,
+            onProgress: (progressData) => {
+              if (onProgress) {
+                const percent = Math.round(progressData.percent * 100);
+                onProgress(Math.min(100, Math.max(0, percent)));
+              }
+            },
+          },
+          (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+          },
+        );
+      });
+      return result;
+    } catch (err) {
+      if (attempt === maxAttempts) throw err;
+    }
+  }
+  throw new Error('Upload retry failed after all attempts');
+};
+
+const uploadBlobToCos = async (
+  blob: Blob,
+  config: ImageBedConfig,
+  options: UploadOptions = {},
+): Promise<UploadResult> => {
+  const { bucket, appId, area } = config;
+  if (!bucket || !appId || !area) {
+    throw new Error('Missing required config: bucket, appId and area (Region) are required');
+  }
+
+  const cos = createCosClient(config);
+  const extension = options.extensionHint || 'png';
+  const objectKey = buildObjectKey(config.path, extension);
+  
+  // 构建完整的 bucket 名称（v5 格式）
+  // 如果 bucket 已经包含 appId，则不再拼接
+  const fullBucket = bucket.includes(appId) ? bucket : `${bucket}-${appId}`;
+  
+  await uploadWithRetry(cos, fullBucket, area, objectKey, blob, options.onProgress);
+  const url = buildPublicUrl(config, objectKey);
+  
+  return { url, objectKey };
+};
 
 export const tencentDefinition: ImageBedProviderDefinition = {
   provider: 'tencent',
@@ -23,9 +142,9 @@ export const tencentDefinition: ImageBedProviderDefinition = {
     { key: '_configName', label: '配置名称', required: true, placeholder: '用于区分不同图床配置' },
     { key: 'secretId', label: 'secretId', required: true },
     { key: 'secretKey', label: 'secretKey', required: true },
-    { key: 'bucket', label: '存储桶名', required: true, placeholder: '注意 v4/v5 版本命名差异' },
+    { key: 'bucket', label: '存储桶名', required: true, placeholder: '不含 appId 后缀' },
     { key: 'appId', label: 'appId', required: true, placeholder: '例如：1250000000' },
-    { key: 'area', label: '存储区域', required: true, placeholder: '如：ap-beijing-1' },
+    { key: 'area', label: '存储区域', required: true, placeholder: '如：ap-guangzhou' },
     { key: 'path', label: '自定义存储路径', placeholder: '如：img/' },
     { key: 'customUrl', label: '自定义域名', placeholder: '需包含 http:// 或 https://' },
     {
@@ -38,15 +157,19 @@ export const tencentDefinition: ImageBedProviderDefinition = {
       ],
       required: true,
     },
-    { key: 'options', label: '网站后缀', placeholder: '如：imageMogr2/thumbnail/500x500' },
-    { key: 'slim', label: '开启极智压缩', type: 'switch' },
+    { key: 'options', label: '图片处理参数', placeholder: '如：imageMogr2/thumbnail/500x500' },
+    { key: 'slim', label: '自动转 WebP', type: 'switch' },
   ],
   upload: async (file: File | Blob, config: ImageBedConfig, options: UploadOptions = {}) => {
-    // TODO: 实现腾讯云上传逻辑
-    throw new Error('腾讯云上传功能暂未实现');
+    const extensionHint = options.extensionHint || inferExtensionFromFile(file);
+    return uploadBlobToCos(file, config, { ...options, extensionHint });
   },
   transferImage: async (sourceUrl: string, config: ImageBedConfig, options: TransferOptions = {}) => {
-    // TODO: 实现腾讯云转存逻辑
-    throw new Error('腾讯云转存功能暂未实现');
+    const { blob, extension } = await downloadImageBlob(sourceUrl);
+    const { url } = await uploadBlobToCos(blob, config, {
+      extensionHint: extension,
+      onProgress: options.onUploadProgress,
+    });
+    return ensureHttps(url);
   },
 };
