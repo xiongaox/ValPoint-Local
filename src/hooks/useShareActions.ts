@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { upsertShared } from '../services/shared';
 import { findLineupByClone } from '../services/lineups';
-import { transferImageFromUrl } from '../lib/ossTransfer';
+import { transferImage } from '../lib/imageBed';
 import { ImageBedConfig } from '../types/imageBed';
 import { BaseLineup, SharedLineup, LineupDbPayload } from '../types/lineup';
 
@@ -88,7 +88,7 @@ const transferImagesToOwnBed = async (
       return;
     }
     try {
-      const newUrl = await transferImageFromUrl(url, config);
+      const newUrl = await transferImage(url, config);
       cache.set(url, newUrl);
       replaced[key] = newUrl;
     } catch (err) {

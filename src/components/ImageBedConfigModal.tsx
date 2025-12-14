@@ -66,7 +66,21 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(localConfig, null, 2));
+      // 只复制当前平台需要的字段，避免冗余
+      const cleanConfig: Record<string, string | boolean> = {
+        provider: localConfig.provider,
+        _configName: localConfig._configName,
+      };
+      
+      // 根据当前平台添加对应字段
+      currentDefinition.fields.forEach((field) => {
+        const value = localConfig[field.key];
+        if (value !== undefined && value !== '') {
+          cleanConfig[field.key as string] = value;
+        }
+      });
+
+      await navigator.clipboard.writeText(JSON.stringify(cleanConfig, null, 2));
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch (e) {
@@ -109,7 +123,7 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
 
   return (
     <div className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
+      <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
           <div className="flex items-center gap-3">
@@ -172,7 +186,6 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
 
         {/* Body */}
         <div className="p-6 space-y-6 bg-[#181b1f]">
-          <div className="text-sm text-gray-400">当前图床：{currentDefinition.label}</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {currentDefinition.fields.map((field) => (
               <Field
@@ -294,9 +307,7 @@ const Field: React.FC<FieldProps> = ({ field, value, onChange }) => {
                       setIsSelectOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                      active
-                        ? 'bg-white/10 text-white'
-                        : 'text-gray-200 hover:bg-white/5'
+                      active ? 'bg-white/10 text-white' : 'text-gray-200 hover:bg-white/5'
                     }`}
                   >
                     {opt.label}
