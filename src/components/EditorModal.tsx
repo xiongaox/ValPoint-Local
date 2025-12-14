@@ -280,9 +280,41 @@ const EditorModal = ({
               <div className="bg-[#0f1923] border border-[#2a323d] rounded-xl p-3 space-y-3 shadow-inner shadow-black/30">
                 <div className="flex items-center justify-between gap-2">
                   <label className="text-xs font-bold text-gray-500 uppercase">点位来源链接 (可选)</label>
-                  <div className="text-[11px] text-gray-500 flex items-center gap-1">
-                    <Icon name="Clipboard" size={12} /> 剪贴板读取
-                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const link = newLineupData.sourceLink?.trim();
+                      if (!link) {
+                        setAlertMessage?.('请先输入来源链接');
+                        return;
+                      }
+                      try {
+                        setIsFetchingAuthor(true);
+                        const authorInfo = await fetchAuthorInfo(link);
+                        if (authorInfo) {
+                          setNewLineupData((prev) => ({
+                            ...prev,
+                            authorName: authorInfo.name,
+                            authorAvatar: authorInfo.avatar,
+                            authorUid: authorInfo.uid || '',
+                          }));
+                          setAlertMessage?.('作者信息已更新');
+                        } else {
+                          setAlertMessage?.('无法获取作者信息');
+                        }
+                      } catch (error) {
+                        console.error('手动刷新作者信息失败:', error);
+                        setAlertMessage?.('获取作者信息失败');
+                      } finally {
+                        setIsFetchingAuthor(false);
+                      }
+                    }}
+                    disabled={isFetchingAuthor || !newLineupData.sourceLink?.trim()}
+                    className="text-[11px] text-gray-400 hover:text-[#ff4655] flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Icon name="RefreshCw" size={12} className={isFetchingAuthor ? 'animate-spin' : ''} /> 
+                    {isFetchingAuthor ? '获取中...' : '手动刷新'}
+                  </button>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
