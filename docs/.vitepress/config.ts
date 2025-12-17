@@ -27,23 +27,34 @@ export default defineConfig({
           text: '开始使用',
           items: [
             { text: '快速开始', link: '/guide/快速开始' },
-            { text: '项目起源', link: '/guide/项目起源' },
+            { text: '前置准备',
+              collapsed: true,
+              items: [
+                { text: '数据库建表', link: '/guide/数据库建表' },
+                { text: '图床配置', link: '/guide/图床配置' },
+              ],},
+            { text: '部署指南', link: '/guide/部署指南' },
           ],
         },
         {
-          text: '核心功能',
+          text: '功能分区',
           items: [
-            { text: '个人点位库', link: '/guide/个人点位库' },
-            { text: '共享点位库', link: '/guide/共享点位库' },
-            { text: '作者信息自动获取', link: '/guide/作者信息自动获取' },
-            { text: '地图标注', link: '/guide/地图标注' },
-            { text: '图床配置', link: '/guide/图床配置' },
-            { text: '数据库建表', link: '/guide/数据库建表' },
+            { text: '使用流程', link: '/guide/使用流程' },
+            { text: '左侧栏', link: '/guide/左侧栏' },
+            { text: '中间栏', link: '/guide/中间栏' },
+            { text: '右侧栏', link: '/guide/右侧栏' }
           ],
         },
         {
-          text: '帮助',
-          items: [{ text: '常见问题', link: '/guide/常见问题' }],
+          text: '其他',
+          items: [
+
+            { text: '项目起源', link: '/guide/项目起源' },
+            { text: '作者信息自动获取', link: '/guide/作者信息自动获取' },
+            { text: '常见问题', link: '/guide/常见问题' },
+
+          ],
+          
         },
       ],
       '/dev/': [
@@ -58,8 +69,7 @@ export default defineConfig({
           text: '开发指南',
           items: [
             { text: '开发规范', link: '/dev/开发规范' },
-            { text: '作者信息解析', link: '/dev/作者信息解析' },
-            { text: '部署指南', link: '/dev/部署指南' },
+            { text: '作者信息解析', link: '/dev/作者信息解析' }
           ],
         },
       ],
