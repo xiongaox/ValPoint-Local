@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useLineups } from '../../hooks/useLineups';
-import { useSharedLineups } from '../../hooks/useSharedLineups';
 import { useLineupActions } from '../../hooks/useLineupActions';
 import { useValorantData } from '../../hooks/useValorantData';
 import { useLineupFiltering } from '../../hooks/useLineupFiltering';
@@ -40,16 +39,10 @@ export function useAppController() {
     setViewingLineup,
     editingLineupId,
     setEditingLineupId,
-    sharedLineup,
-    setSharedLineup,
-    libraryMode,
-    setLibraryMode,
     newLineupData,
     setNewLineupData,
     placingType,
     setPlacingType,
-    sharedFilterUserId,
-    setSharedFilterUserId,
   } = useAppState();
 
   const { maps, agents, selectedMap, setSelectedMap, selectedAgent, setSelectedAgent } = useValorantData();
@@ -57,8 +50,6 @@ export function useAppController() {
   const { mapNameZhToEn, getMapDisplayName, getMapEnglishName, getMapUrl, getMapCoverUrl } = useMapInfo({
     selectedMap,
     selectedSide,
-    activeTab,
-    sharedLineup,
   });
   const {
     userId,
@@ -78,7 +69,7 @@ export function useAppController() {
     handleResetUserId,
     handleConfirmUserAuth,
   } = useAuth({
-    onAuthSuccess: async () => {},
+    onAuthSuccess: async () => { },
     setAlertMessage: modal.setAlertMessage,
   });
   const { lineups, setLineups, fetchLineups } = useLineups(mapNameZhToEn);
@@ -90,22 +81,16 @@ export function useAppController() {
     lineups: orderedLineups,
     setAlertMessage: modal.setAlertMessage,
   });
-  const { sharedLineups, setSharedLineups, fetchSharedLineups, fetchSharedById } = useSharedLineups(mapNameZhToEn);
   const { saveNewLineup, updateLineup, deleteLineup, clearLineups, clearLineupsByAgent } = useLineupActions();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  const { agentCounts, filteredLineups, sharedFilteredLineups, isFlipped, mapLineups } = useLineupFiltering({
+  const { agentCounts, filteredLineups, isFlipped, mapLineups } = useLineupFiltering({
     lineups: orderedLineups,
-    sharedLineups,
-    libraryMode,
     selectedMap,
     selectedAgent,
     selectedSide,
     selectedAbilityIndex,
     searchQuery,
-    activeTab,
-    sharedLineup,
-    sharedFilterUserId,
   });
 
   useAppLifecycle({
@@ -113,17 +98,13 @@ export function useAppController() {
     activeTab,
     setActiveTab,
     fetchLineups,
-    fetchSharedLineups,
-    fetchSharedById,
     setLineups,
     setSelectedLineupId,
     setViewingLineup,
-    setSharedLineup,
     setEditingLineupId,
     setIsEditorOpen: modal.setIsEditorOpen,
     setPlacingType,
     setNewLineupData,
-    libraryMode,
     setAlertMessage: modal.setAlertMessage,
   });
 
@@ -133,23 +114,17 @@ export function useAppController() {
     agents,
     selectedAgent,
     selectedSide,
-    previewInput: modal.previewInput,
     setActiveTab,
     setPlacingType,
     setSelectedLineupId,
     setViewingLineup,
     setEditingLineupId,
-    setSharedLineup,
-    setLibraryMode,
     setNewLineupData,
     setSelectedSide,
     setSelectedAbilityIndex,
     setSelectedAgent,
     fetchLineups,
     userId,
-    setIsPreviewModalOpen: modal.setIsPreviewModalOpen,
-    setPreviewInput: modal.setPreviewInput,
-    fetchSharedById,
     setAlertMessage: modal.setAlertMessage,
     setSelectedMap,
   });
@@ -304,27 +279,7 @@ export function useAppController() {
     setPlacingType((prev) => (prev === type ? null : type));
   };
 
-  const handleViewLineup = useCallback(
-    (id: string) => {
-      setSelectedLineupId(id);
-      const source = libraryMode === 'shared' ? sharedLineups : orderedLineups;
-      const lineup = source.find((l) => l.id === id);
-      if (lineup) setViewingLineup(lineup);
-    },
-    [orderedLineups, sharedLineups, libraryMode],
-  );
 
-  const setLibraryModeSafe: React.Dispatch<React.SetStateAction<LibraryMode>> = (mode) => {
-    setLibraryMode((prev) => {
-      const next = typeof mode === 'function' ? mode(prev) : mode;
-      setSelectedLineupId(null);
-      setViewingLineup(null);
-      if (next !== 'shared') {
-        setSharedFilterUserId(null);
-      }
-      return next;
-    });
-  };
 
   const mainViewProps = buildMainViewProps({
     activeTab,
@@ -350,9 +305,12 @@ export function useAppController() {
     setNewLineupData,
     placingType,
     setPlacingType,
-    onViewLineup: handleViewLineup,
+    onViewLineup: (id: string) => {
+      setSelectedLineupId(id);
+      const lineup = orderedLineups.find((l) => l.id === id);
+      if (lineup) setViewingLineup(lineup);
+    },
     isFlipped,
-    sharedLineup,
     isActionMenuOpen,
     onToggleActions: () => setIsActionMenuOpen((v) => !v),
     onImageBedConfig: handleImageBedConfig,
@@ -360,16 +318,18 @@ export function useAppController() {
     onChangePassword: handleChangePassword,
     onClearLineups: handleQuickClear,
     pendingTransfers,
-    libraryMode,
-    setLibraryMode: setLibraryModeSafe,
     handleTabSwitch,
     togglePlacingType,
     handleOpenEditor,
     searchQuery,
     setSearchQuery,
-    filteredLineups: libraryMode === 'shared' ? sharedFilteredLineups : filteredLineups,
+    filteredLineups,
     selectedLineupIdRight: selectedLineupId,
-    handleViewLineup,
+    handleViewLineup: (id: string) => {
+      setSelectedLineupId(id);
+      const lineup = orderedLineups.find((l) => l.id === id);
+      if (lineup) setViewingLineup(lineup);
+    },
     handleDownload,
     handleRequestDelete,
     handleClearAll,
@@ -384,14 +344,7 @@ export function useAppController() {
     pinnedLineupIds,
     onTogglePinLineup: togglePinnedLineup,
     pinnedLimit: DEFAULT_PINNED_COUNT,
-    onOpenSharedFilter: () => modal.setIsSharedFilterOpen(true),
-    selectedSharedUserId: sharedFilterUserId,
   });
-
-  const sharedContributors = useMemo(
-    () => Array.from(new Set(sharedLineups.map((l) => l.userId).filter((v): v is string => !!v))),
-    [sharedLineups],
-  );
 
   const modalProps = buildModalProps({
     isAuthModalOpen,
@@ -459,21 +412,13 @@ export function useAppController() {
     setViewingImage: modal.setViewingImage,
     getMapEnglishName,
     isGuest,
-    libraryMode,
-    onSaveShared: (lineup?: SharedLineup | null) => onSaveShared(lineup ?? null, sharedLineup),
-    isSavingShared,
-    viewingImage: modal.viewingImage,
-    isChangelogOpen: modal.isChangelogOpen,
-    setIsChangelogOpen: modal.setIsChangelogOpen,
-    isSharedFilterOpen: modal.isSharedFilterOpen,
-    setIsSharedFilterOpen: modal.setIsSharedFilterOpen,
-    sharedContributors,
-    selectedSharedUserId: sharedFilterUserId,
-    onSelectSharedUser: setSharedFilterUserId,
     isChangePasswordOpen: modal.isChangePasswordOpen,
     setIsChangePasswordOpen: modal.setIsChangePasswordOpen,
     isChangingPassword,
     onChangePasswordSubmit: handleChangePasswordSubmit,
+    viewingImage: modal.viewingImage,
+    isChangelogOpen: modal.isChangelogOpen,
+    setIsChangelogOpen: modal.setIsChangelogOpen,
   });
 
   const { alertProps, lightboxProps } = buildUiProps({
@@ -493,38 +438,6 @@ export function useAppController() {
 
   return {
     activeTab,
-    isSharedView: activeTab === 'shared' && !!sharedLineup,
-    sharedViewProps: sharedLineup
-      ? {
-          sharedLineup,
-          isSavingShared,
-          onSaveShared: (lineup: SharedLineup | null) => void onSaveShared(lineup, sharedLineup),
-          onBack: () => handleTabSwitch('view'),
-          getMapDisplayName,
-          getMapEnglishName,
-          getMapUrl,
-          newLineupData,
-          setNewLineupData,
-          placingType,
-          setPlacingType,
-          selectedAgent,
-          selectedAbilityIndex,
-          onViewLineup: handleViewLineup,
-          isFlipped,
-          setViewingImage: modal.setViewingImage,
-          quickActions: {
-            isActionMenuOpen,
-            onToggle: () => setIsActionMenuOpen((v) => !v),
-            onImageBedConfig: handleImageBedConfig,
-            onAdvancedSettings: handleOpenAdvancedSettings,
-            onChangePassword: handleChangePassword,
-            onClearLineups: handleQuickClear,
-            pendingTransfers,
-          },
-        }
-      : null,
-    lightboxProps,
-    alertProps,
     mainViewProps,
     modalProps,
   };

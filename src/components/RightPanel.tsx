@@ -27,12 +27,9 @@ type Props = {
   setCustomUserIdInput: (v: string) => void;
   handleApplyCustomUserId: () => void;
   handleResetUserId: () => void;
-  libraryMode: 'personal' | 'shared';
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
-  onOpenSharedFilter: () => void;
-  selectedSharedUserId: string | null;
 };
 
 const RightPanel: React.FC<Props> = ({
@@ -60,18 +57,15 @@ const RightPanel: React.FC<Props> = ({
   setCustomUserIdInput,
   handleApplyCustomUserId,
   handleResetUserId,
-  libraryMode,
   pinnedLineupIds,
   onTogglePinLineup,
   pinnedLimit,
-  onOpenSharedFilter,
-  selectedSharedUserId,
 }) => {
   const pageSize = 7;
   const [page, setPage] = useState(1);
   const showPagination = filteredLineups.length > 8;
   const totalPages = Math.max(1, Math.ceil(filteredLineups.length / pageSize));
-  const isSharedMode = libraryMode === 'shared';
+  // Removed isSharedMode logic
 
   useEffect(() => {
     setPage(1);
@@ -92,22 +86,16 @@ const RightPanel: React.FC<Props> = ({
       <div className="flex border-b border-white/10">
         <button
           onClick={() => handleTabSwitch('view')}
-          className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${
-            activeTab === 'view' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
+          className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${activeTab === 'view' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
         >
           <Icon name="Search" size={18} /> 查看点位
         </button>
         {userMode === 'login' && (
           <button
-            onClick={() => {
-              if (isSharedMode) return;
-              handleTabSwitch('create');
-            }}
-            disabled={isSharedMode}
-            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${
-              activeTab === 'create' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
-            } ${isSharedMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={() => handleTabSwitch('create')}
+            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${activeTab === 'create' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
           >
             <Icon name="Plus" size={18} /> 新增点位
           </button>
@@ -168,19 +156,17 @@ const RightPanel: React.FC<Props> = ({
               <div className="flex bg-[#0f1923] p-1 rounded-lg border border-white/10 h-12">
                 <button
                   onClick={() => setSelectedSide('attack')}
-                  className={`flex-1 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-all border ${
-                    selectedSide === 'attack' ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow' : 'text-gray-500 border-transparent hover:text-red-400'
-                  }`}
+                  className={`flex-1 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-all border ${selectedSide === 'attack' ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow' : 'text-gray-500 border-transparent hover:text-red-400'
+                    }`}
                 >
                   <Icon name="Sword" size={18} /> 进攻
                 </button>
                 <button
                   onClick={() => setSelectedSide('defense')}
-                  className={`flex-1 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-all border ${
-                    selectedSide === 'defense'
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow'
-                      : 'text-gray-500 border-transparent hover:text-emerald-400'
-                  }`}
+                  className={`flex-1 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-all border ${selectedSide === 'defense'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow'
+                    : 'text-gray-500 border-transparent hover:text-emerald-400'
+                    }`}
                 >
                   <Icon name="Shield" size={18} /> 防守
                 </button>
@@ -192,26 +178,24 @@ const RightPanel: React.FC<Props> = ({
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => togglePlacingType('agent')}
-                  className={`p-4 rounded-lg border flex flex-col items-center gap-2 transition-all ${
-                    newLineupData.agentPos
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500'
-                      : placingType === 'agent'
+                  className={`p-4 rounded-lg border flex flex-col items-center gap-2 transition-all ${newLineupData.agentPos
+                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500'
+                    : placingType === 'agent'
                       ? 'bg-[#ff4655] text-white border-transparent'
                       : 'bg-[#0f1923] border-gray-700 text-gray-400 hover:border-gray-500'
-                  }`}
+                    }`}
                 >
                   <Icon name="User" size={24} />
                   <span className="text-xs font-bold">{newLineupData.agentPos ? '站位已定' : '设置站位'}</span>
                 </button>
                 <button
                   onClick={() => togglePlacingType('skill')}
-                  className={`p-4 rounded-lg border flex flex-col items-center gap-2 transition-all ${
-                    newLineupData.skillPos
-                      ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500'
-                      : placingType === 'skill'
+                  className={`p-4 rounded-lg border flex flex-col items-center gap-2 transition-all ${newLineupData.skillPos
+                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-500'
+                    : placingType === 'skill'
                       ? 'bg-[#ff4655] text-white border-transparent'
                       : 'bg-[#0f1923] border-gray-700 text-gray-400 hover:border-gray-500'
-                  }`}
+                    }`}
                 >
                   <Icon name="Target" size={24} />
                   <span className="text-xs font-bold">{newLineupData.skillPos ? '落点已定' : '设置落点'}</span>
@@ -237,69 +221,54 @@ const RightPanel: React.FC<Props> = ({
         ) : (
           <div className="h-full flex flex-col">
             <div className="flex items-center gap-2 mb-4">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="搜索点位标题..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-12 bg-[#0f1923] border border-gray-700 rounded-lg pl-10 pr-4 text-sm text-white focus:border-[#ff4655] outline-none transition-colors"
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                <Icon name="Search" size={16} />
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="搜索点位标题..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-12 bg-[#0f1923] border border-gray-700 rounded-lg pl-10 pr-4 text-sm text-white focus:border-[#ff4655] outline-none transition-colors"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  <Icon name="Search" size={16} />
+                </div>
               </div>
-            </div>
-            {isSharedMode ? (
-              <button
-                onClick={onOpenSharedFilter}
-                className="h-12 px-3 whitespace-nowrap font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-wider transition-colors"
-                style={{ backgroundColor: 'rgb(16, 185, 129)' }}
-              >
-                <Icon name="Filter" size={16} />
-                筛选共享
-              </button>
-            ) : (
               <button
                 onClick={handleClearAll}
                 disabled={userMode === 'guest'}
-                className={`h-12 px-3 whitespace-nowrap font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-wider group transition-colors ${
-                  userMode === 'guest'
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed border border-white/10 shadow-none'
-                    : 'bg-[#ff4655] hover:bg-[#d93a49] text-white shadow-lg shadow-red-900/20'
-                }`}
+                className={`h-12 px-3 whitespace-nowrap font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-wider group transition-colors ${userMode === 'guest'
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed border border-white/10 shadow-none'
+                  : 'bg-[#ff4655] hover:bg-[#d93a49] text-white shadow-lg shadow-red-900/20'
+                  }`}
                 title={userMode === 'guest' ? '游客模式仅可查看' : '清空当前 ID 的全部点位'}
               >
                 <Icon name="Trash2" size={16} className="group-hover:scale-110 transition-transform" />
                 清空点位
               </button>
-            )}
-          </div>
+            </div>
 
-      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
               <div className="flex bg-[#0f1923] p-1 rounded-lg border border-white/10 mb-3">
                 <button
                   onClick={() => setSelectedSide('all')}
-                  className={`flex-1 py-2 rounded text-xs font-bold transition-all border ${
-                    selectedSide === 'all' ? 'bg-gray-600 text-white border-gray-500 shadow' : 'text-gray-500 border-transparent hover:text-white'
-                  }`}
+                  className={`flex-1 py-2 rounded text-xs font-bold transition-all border ${selectedSide === 'all' ? 'bg-gray-600 text-white border-gray-500 shadow' : 'text-gray-500 border-transparent hover:text-white'
+                    }`}
                 >
                   全部
                 </button>
                 <button
                   onClick={() => setSelectedSide('attack')}
-                  className={`flex-1 py-2 rounded text-xs font-bold flex items-center justify-center gap-1 transition-all border ${
-                    selectedSide === 'attack' ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow' : 'text-gray-500 border-transparent hover:text-red-400'
-                  }`}
+                  className={`flex-1 py-2 rounded text-xs font-bold flex items-center justify-center gap-1 transition-all border ${selectedSide === 'attack' ? 'bg-red-500/20 text-red-400 border-red-500/50 shadow' : 'text-gray-500 border-transparent hover:text-red-400'
+                    }`}
                 >
                   <Icon name="Sword" size={14} /> 进攻
                 </button>
                 <button
                   onClick={() => setSelectedSide('defense')}
-                  className={`flex-1 py-2 rounded text-xs font-bold flex items-center justify-center gap-1 transition-all border ${
-                    selectedSide === 'defense'
-                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow'
-                      : 'text-gray-500 border-transparent hover:text-emerald-400'
-                  }`}
+                  className={`flex-1 py-2 rounded text-xs font-bold flex items-center justify-center gap-1 transition-all border ${selectedSide === 'defense'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow'
+                    : 'text-gray-500 border-transparent hover:text-emerald-400'
+                    }`}
                 >
                   <Icon name="Shield" size={14} /> 防守
                 </button>
@@ -316,9 +285,8 @@ const RightPanel: React.FC<Props> = ({
                     <div
                       key={l.id}
                       onClick={() => handleViewLineup(l.id)}
-                      className={`group relative p-4 rounded-lg border cursor-pointer transition-all flex items-center gap-4 h-20 ${
-                        selectedLineupId === l.id ? 'bg-[#ff4655]/10 border-[#ff4655] shadow-md' : 'bg-[#0f1923] border-white/5 hover:border-white/20'
-                      }`}
+                      className={`group relative p-4 rounded-lg border cursor-pointer transition-all flex items-center gap-4 h-20 ${selectedLineupId === l.id ? 'bg-[#ff4655]/10 border-[#ff4655] shadow-md' : 'bg-[#0f1923] border-white/5 hover:border-white/20'
+                        }`}
                     >
                       <div className="relative">
                         {l.agentIcon ? (
@@ -339,40 +307,33 @@ const RightPanel: React.FC<Props> = ({
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${
-                              l.side === 'attack'
-                                ? 'text-red-400 border-red-500/30 bg-red-500/10'
-                                : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
-                            }`}
+                            className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${l.side === 'attack'
+                              ? 'text-red-400 border-red-500/30 bg-red-500/10'
+                              : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                              }`}
                           >
                             {l.side === 'attack' ? '进攻' : '防守'}
                           </span>
                           <div className="ml-auto flex items-center gap-1">
-                            {isSharedMode && l.userId && <span className="text-[12px] text-gray-500">{l.userId}</span>}
-                            {!isSharedMode && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onTogglePinLineup(l.id);
-                                }}
-                                className={`p-1 rounded transition-colors ${
-                                  isPinned ? 'text-amber-300 hover:text-amber-200' : 'text-gray-600 hover:text-amber-300'
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onTogglePinLineup(l.id);
+                              }}
+                              className={`p-1 rounded transition-colors ${isPinned ? 'text-amber-300 hover:text-amber-200' : 'text-gray-600 hover:text-amber-300'
                                 } hover:bg-white/5`}
-                                title={isPinned ? '取消置顶' : '置顶此点位'}
-                              >
-                                <Icon name="Pin" size={14} />
-                              </button>
-                            )}
-                            {!isSharedMode && (
-                              <button
-                                onClick={(e) => handleDownload(l.id, e)}
-                                className="text-gray-600 hover:text-emerald-400 p-1 rounded hover:bg-white/5 transition-colors"
-                                title="下载"
-                              >
-                                <Icon name="Download" size={14} />
-                              </button>
-                            )}
-                            {userMode === 'login' && !isSharedMode && (
+                              title={isPinned ? '取消置顶' : '置顶此点位'}
+                            >
+                              <Icon name="Pin" size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => handleDownload(l.id, e)}
+                              className="text-gray-600 hover:text-emerald-400 p-1 rounded hover:bg-white/5 transition-colors"
+                              title="下载"
+                            >
+                              <Icon name="Download" size={14} />
+                            </button>
+                            {userMode === 'login' && (
                               <button
                                 onClick={(e) => handleRequestDelete(l.id, e)}
                                 className="text-gray-600 hover:text-red-500 p-1 rounded hover:bg-white/5 transition-colors"
@@ -394,11 +355,10 @@ const RightPanel: React.FC<Props> = ({
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className={`px-4 py-2 rounded-lg border transition-colors ${
-                    page === 1
-                      ? 'border-white/5 text-gray-600 cursor-not-allowed'
-                      : 'border-white/10 text-white hover:border-white/40 hover:bg-white/5'
-                  }`}
+                  className={`px-4 py-2 rounded-lg border transition-colors ${page === 1
+                    ? 'border-white/5 text-gray-600 cursor-not-allowed'
+                    : 'border-white/10 text-white hover:border-white/40 hover:bg-white/5'
+                    }`}
                 >
                   上一页
                 </button>
@@ -408,11 +368,10 @@ const RightPanel: React.FC<Props> = ({
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className={`px-4 py-2 rounded-lg border transition-colors ${
-                    page === totalPages
-                      ? 'border-white/5 text-gray-600 cursor-not-allowed'
-                      : 'border-[#ff4655]/60 text-white bg-[#ff4655]/10 hover:bg-[#ff4655]/20 hover:border-[#ff4655]'
-                  }`}
+                  className={`px-4 py-2 rounded-lg border transition-colors ${page === totalPages
+                    ? 'border-white/5 text-gray-600 cursor-not-allowed'
+                    : 'border-[#ff4655]/60 text-white bg-[#ff4655]/10 hover:bg-[#ff4655]/20 hover:border-[#ff4655]'
+                    }`}
                 >
                   下一页
                 </button>

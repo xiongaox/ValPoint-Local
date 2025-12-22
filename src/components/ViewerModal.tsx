@@ -11,10 +11,9 @@ const ViewerModal = ({
   getMapDisplayName,
   getMapEnglishName,
   isGuest,
-  libraryMode,
-  handleCopyShared,
-  isSavingShared,
-}) => {
+  handleCopyShared = undefined,
+  isSavingShared = false,
+}: any) => {
   const [authorInfo, setAuthorInfo] = useState<{ name: string; avatar: string; uid?: string } | null>(null);
   const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
 
@@ -114,7 +113,7 @@ const ViewerModal = ({
                   <Icon name="Play" size={14} /> 精准空降
                 </a>
               )}
-              {libraryMode !== 'shared' && !isGuest && (
+              {!handleCopyShared && !isGuest && (
                 <button
                   type="button"
                   onClick={() => handleEditStart(viewingLineup)}
@@ -124,7 +123,7 @@ const ViewerModal = ({
                   <Icon name="Pencil" size={14} /> 编辑
                 </button>
               )}
-              {libraryMode === 'shared' && (
+              {handleCopyShared && (
                 <button
                   type="button"
                   onClick={() => handleCopyShared(viewingLineup)}

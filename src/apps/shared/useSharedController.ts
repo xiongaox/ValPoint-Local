@@ -84,8 +84,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
     const { getMapDisplayName, getMapEnglishName, getMapUrl, getMapCoverUrl } = useMapInfo({
         selectedMap,
         selectedSide,
-        activeTab: 'view',
-        sharedLineup: selectedLineup,
     });
 
     // 初始化默认地图（使用列表第一个）

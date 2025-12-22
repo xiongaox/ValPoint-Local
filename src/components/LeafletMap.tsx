@@ -26,7 +26,7 @@ type Props = {
   selectedAbilityIndex: number | null;
   onViewLineup?: (id: string) => void;
   isFlipped: boolean;
-  sharedLineup: any;
+  sharedLineup?: any;
 };
 
 const LeafletMap: React.FC<Props> = ({

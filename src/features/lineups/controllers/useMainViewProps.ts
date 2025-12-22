@@ -29,7 +29,6 @@ type Params = {
   setPlacingType: React.Dispatch<React.SetStateAction<'agent' | 'skill' | null>>;
   onViewLineup: (id: string) => void;
   isFlipped: boolean;
-  sharedLineup: SharedLineup | null;
   isActionMenuOpen: boolean;
   onToggleActions: () => void;
   onImageBedConfig: () => void;
@@ -37,8 +36,6 @@ type Params = {
   onChangePassword: () => void;
   onClearLineups: () => void;
   pendingTransfers: number;
-  libraryMode: LibraryMode;
-  setLibraryMode: React.Dispatch<React.SetStateAction<LibraryMode>>;
   handleTabSwitch: (tab: ActiveTab) => void;
   togglePlacingType: (type: 'agent' | 'skill') => void;
   handleOpenEditor: () => void;
@@ -61,8 +58,6 @@ type Params = {
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
-  onOpenSharedFilter: () => void;
-  selectedSharedUserId: string | null;
 };
 
 export function buildMainViewProps(params: Params): React.ComponentProps<typeof MainView> {

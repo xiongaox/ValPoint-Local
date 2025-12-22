@@ -136,7 +136,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 getMapDisplayName={controller.getMapDisplayName}
                 getMapEnglishName={controller.getMapEnglishName}
                 isGuest={!user}
-                libraryMode="shared"
                 handleCopyShared={(lineup: any) => {
                     if (lineup) controller.handleDownload(lineup.id);
                 }}

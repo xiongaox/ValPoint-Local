@@ -39,7 +39,6 @@ type MapProps = {
   selectedAbilityIndex: number | null;
   onViewLineup: (id: string) => void;
   isFlipped: boolean;
-  sharedLineup: SharedLineup | null;
 };
 
 type QuickActionsProps = {
@@ -77,18 +76,13 @@ type RightProps = {
   setCustomUserIdInput: (v: string) => void;
   handleApplyCustomUserId: () => void;
   handleResetUserId: () => void;
-  libraryMode: LibraryMode;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
-  onOpenSharedFilter: () => void;
-  selectedSharedUserId: string | null;
 };
 
 type Props = {
   activeTab: ActiveTab;
-  libraryMode: LibraryMode;
-  setLibraryMode: React.Dispatch<React.SetStateAction<LibraryMode>>;
   clearSelection: () => void;
   left: LeftProps;
   map: MapProps;
@@ -96,7 +90,7 @@ type Props = {
   right: RightProps;
 };
 
-const MainView: React.FC<Props> = ({ activeTab, libraryMode, setLibraryMode, clearSelection, left, map, quickActions, right }) => {
+const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right }) => {
   return (
     <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
       <LeftPanel
@@ -132,7 +126,6 @@ const MainView: React.FC<Props> = ({ activeTab, libraryMode, setLibraryMode, cle
           selectedAbilityIndex={map.selectedAbilityIndex}
           onViewLineup={map.onViewLineup}
           isFlipped={map.isFlipped}
-          sharedLineup={map.sharedLineup}
         />
         <QuickActions
           isOpen={quickActions.isOpen}
@@ -143,17 +136,6 @@ const MainView: React.FC<Props> = ({ activeTab, libraryMode, setLibraryMode, cle
           onClearLineups={quickActions.onClearLineups}
           pendingTransfers={quickActions.pendingTransfers}
         />
-        {activeTab !== 'shared' && (
-          <LibrarySwitch
-            libraryMode={libraryMode}
-            onSwitch={(mode) => {
-              clearSelection();
-              setLibraryMode(mode);
-            }}
-            sharedDisabled={activeTab === 'create'}
-            disabledReason="创建模式仅支持个人库"
-          />
-        )}
       </div>
 
       <RightPanel
@@ -181,12 +163,9 @@ const MainView: React.FC<Props> = ({ activeTab, libraryMode, setLibraryMode, cle
         setCustomUserIdInput={right.setCustomUserIdInput}
         handleApplyCustomUserId={right.handleApplyCustomUserId}
         handleResetUserId={right.handleResetUserId}
-        libraryMode={right.libraryMode}
         pinnedLineupIds={right.pinnedLineupIds}
         onTogglePinLineup={right.onTogglePinLineup}
         pinnedLimit={right.pinnedLimit}
-        onOpenSharedFilter={right.onOpenSharedFilter}
-        selectedSharedUserId={right.selectedSharedUserId}
       />
     </div>
   );

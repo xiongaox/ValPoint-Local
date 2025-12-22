@@ -61,11 +61,6 @@ type Props = {
   onClearConfirm: () => void;
   onClearAgentConfirm: () => void;
   onClearModalClose: () => void;
-  isSharedFilterOpen: boolean;
-  sharedContributors: string[];
-  selectedSharedUserId: string | null;
-  onSelectSharedUser: (userId: string | null) => void;
-  onSharedFilterClose: () => void;
   isChangePasswordOpen: boolean;
   isChangingPassword: boolean;
   onChangePasswordSubmit: (oldPassword: string, newPassword: string, confirmPassword: string) => void;
@@ -94,9 +89,6 @@ type Props = {
   setViewingImage: (val: LightboxImage | null) => void;
   getMapEnglishName: (name: string) => string;
   isGuest: boolean;
-  libraryMode: 'personal' | 'shared';
-  handleCopyShared: (lineup?: SharedLineup | null) => void;
-  isSavingShared: boolean;
   // lightbox
   viewingImage: LightboxImage | null;
   // changelog
@@ -143,11 +135,6 @@ const AppModals: React.FC<Props> = ({
   onClearConfirm,
   onClearAgentConfirm,
   onClearModalClose,
-  isSharedFilterOpen,
-  sharedContributors,
-  selectedSharedUserId,
-  onSelectSharedUser,
-  onSharedFilterClose,
   isChangePasswordOpen: _isChangePasswordOpen,
   isChangingPassword,
   onChangePasswordSubmit,
@@ -174,9 +161,6 @@ const AppModals: React.FC<Props> = ({
   setViewingImage,
   getMapEnglishName,
   isGuest,
-  libraryMode,
-  handleCopyShared,
-  isSavingShared,
   viewingImage,
   isChangelogOpen,
   onChangelogClose,
@@ -233,14 +217,6 @@ const AppModals: React.FC<Props> = ({
         onClearSelectedAgent={onClearAgentConfirm}
       />
 
-      <SharedFilterModal
-        isOpen={isSharedFilterOpen}
-        contributors={sharedContributors}
-        selectedUserId={selectedSharedUserId}
-        onSelect={onSelectSharedUser}
-        onClose={onSharedFilterClose}
-      />
-
       <ImageBedConfigModal isOpen={isImageConfigOpen} config={imageBedConfig} onClose={onImageConfigClose} onSave={onImageConfigSave} />
       <AdvancedSettingsDrawer
         isOpen={isImageProcessingOpen}
@@ -274,9 +250,6 @@ const AppModals: React.FC<Props> = ({
         getMapDisplayName={getMapDisplayName}
         getMapEnglishName={getMapEnglishName}
         isGuest={isGuest}
-        libraryMode={libraryMode}
-        handleCopyShared={handleCopyShared}
-        isSavingShared={isSavingShared}
       />
 
       <Lightbox viewingImage={viewingImage} setViewingImage={setViewingImage} />

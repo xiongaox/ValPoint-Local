@@ -11,11 +11,8 @@ export function useAppState() {
   const [selectedLineupId, setSelectedLineupId] = useState<string | null>(null);
   const [viewingLineup, setViewingLineup] = useState<BaseLineup | null>(null);
   const [editingLineupId, setEditingLineupId] = useState<string | null>(null);
-  const [sharedLineup, setSharedLineup] = useState<SharedLineup | null>(null);
-  const [libraryMode, setLibraryMode] = useState<LibraryMode>('personal');
   const [newLineupData, setNewLineupData] = useState<NewLineupForm>(createEmptyLineup());
   const [placingType, setPlacingType] = useState<'agent' | 'skill' | null>(null);
-  const [sharedFilterUserId, setSharedFilterUserId] = useState<string | null>(null);
 
   return {
     activeTab,
@@ -32,15 +29,9 @@ export function useAppState() {
     setViewingLineup,
     editingLineupId,
     setEditingLineupId,
-    sharedLineup,
-    setSharedLineup,
-    libraryMode,
-    setLibraryMode,
     newLineupData,
     setNewLineupData,
     placingType,
     setPlacingType,
-    sharedFilterUserId,
-    setSharedFilterUserId,
   };
 }

@@ -53,11 +53,6 @@ type Params = {
   setIsClearConfirmOpen: (v: boolean) => void;
   selectedAgentName: string | null;
   selectedAgentIcon: string | null;
-  isSharedFilterOpen: boolean;
-  setIsSharedFilterOpen: (v: boolean) => void;
-  sharedContributors: string[];
-  selectedSharedUserId: string | null;
-  onSelectSharedUser: (userId: string | null) => void;
   isChangePasswordOpen: boolean;
   setIsChangePasswordOpen: (v: boolean) => void;
   isChangingPassword: boolean;
@@ -88,9 +83,6 @@ type Params = {
   setViewingImage: (v: LightboxImage | null) => void;
   getMapEnglishName: (name: string) => string;
   isGuest: boolean;
-  libraryMode: LibraryMode;
-  onSaveShared: (lineup?: SharedLineup | null) => void;
-  isSavingShared: boolean;
   viewingImage: LightboxImage | null;
   isChangelogOpen: boolean;
   setIsChangelogOpen: (v: boolean) => void;
@@ -152,23 +144,23 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     onClearModalClose: () => {
       params.setIsClearConfirmOpen(false);
     },
-    isSharedFilterOpen: params.isSharedFilterOpen,
-    sharedContributors: params.sharedContributors,
-    selectedSharedUserId: params.selectedSharedUserId,
-    onSelectSharedUser: params.onSelectSharedUser,
-    onSharedFilterClose: () => params.setIsSharedFilterOpen(false),
+    isSharedFilterOpen: false,
+    sharedContributors: [],
+    selectedSharedUserId: null,
+    onSelectSharedUser: () => { },
+    onSharedFilterClose: () => { },
     isChangePasswordOpen: params.isChangePasswordOpen,
     isChangingPassword: params.isChangingPassword,
     onChangePasswordSubmit: params.onChangePasswordSubmit,
     setIsChangePasswordOpen: params.setIsChangePasswordOpen,
     isImageConfigOpen: params.isImageConfigOpen,
     imageBedConfig: params.imageBedConfig,
-  onImageConfigClose: () => params.setIsImageConfigOpen(false),
-  onImageConfigSave: params.onImageConfigSave,
-  isImageProcessingOpen: params.isImageProcessingOpen,
-  imageProcessingSettings: params.imageProcessingSettings,
-  onImageProcessingClose: () => params.setIsImageProcessingOpen(false),
-  onImageProcessingSave: params.onImageProcessingSave,
+    onImageConfigClose: () => params.setIsImageConfigOpen(false),
+    onImageConfigSave: params.onImageConfigSave,
+    isImageProcessingOpen: params.isImageProcessingOpen,
+    imageProcessingSettings: params.imageProcessingSettings,
+    onImageProcessingClose: () => params.setIsImageProcessingOpen(false),
+    onImageProcessingSave: params.onImageProcessingSave,
     isEditorOpen: params.isEditorOpen,
     editingLineupId: params.editingLineupId,
     newLineupData: params.newLineupData,
@@ -186,9 +178,9 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     setViewingImage: params.setViewingImage,
     getMapEnglishName: params.getMapEnglishName,
     isGuest: params.isGuest,
-    libraryMode: params.libraryMode,
-    handleCopyShared: params.onSaveShared,
-    isSavingShared: params.isSavingShared,
+    libraryMode: 'personal',
+    handleCopyShared: () => { },
+    isSavingShared: false,
     viewingImage: params.viewingImage,
     isChangelogOpen: params.isChangelogOpen,
     onChangelogClose: () => params.setIsChangelogOpen(false),

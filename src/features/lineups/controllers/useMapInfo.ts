@@ -8,11 +8,9 @@ type MapSide = 'all' | 'attack' | 'defense';
 type MapInfoParams = {
   selectedMap: MapOption | null;
   selectedSide: MapSide;
-  activeTab: ActiveTab;
-  sharedLineup: SharedLineup | null;
 };
 
-export function useMapInfo({ selectedMap, selectedSide, activeTab, sharedLineup }: MapInfoParams) {
+export function useMapInfo({ selectedMap, selectedSide }: MapInfoParams) {
   const mapNameZhToEn = useMemo<Record<string, string>>(() => {
     const reverse: Record<string, string> = {};
     Object.entries(MAP_TRANSLATIONS).forEach(([en, zh]) => {
@@ -27,11 +25,6 @@ export function useMapInfo({ selectedMap, selectedSide, activeTab, sharedLineup 
     Object.keys(MAP_TRANSLATIONS).find((key) => MAP_TRANSLATIONS[key] === displayName) || displayName;
 
   const getMapUrl = (): string | null => {
-    if (activeTab === 'shared' && sharedLineup) {
-      const enName = getMapEnglishName(sharedLineup.mapName);
-      const config = (CUSTOM_MAP_URLS as Record<string, { attack: string; defense: string }>)[enName];
-      if (config) return sharedLineup.side === 'defense' ? config.defense : config.attack;
-    }
     if (!selectedMap) return null;
     const config = (CUSTOM_MAP_URLS as Record<string, { attack: string; defense: string }>)[selectedMap.displayName];
     if (config) return selectedSide === 'defense' ? config.defense : config.attack;
