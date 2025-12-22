@@ -1,7 +1,7 @@
 import React from 'react';
 import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
-import LibrarySwitch from '../../components/LibrarySwitch';
+
 import LeftPanel from '../../components/LeftPanel';
 import RightPanel from '../../components/RightPanel';
 import { BaseLineup, SharedLineup, AgentOption, MapOption, NewLineupForm, LibraryMode } from '../../types/lineup';

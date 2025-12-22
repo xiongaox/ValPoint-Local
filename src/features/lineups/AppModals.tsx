@@ -4,7 +4,7 @@ import PreviewModal from '../../components/PreviewModal';
 import AlertModal from '../../components/AlertModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import ClearLineupsModal from '../../components/ClearLineupsModal';
-import SharedFilterModal from '../../components/SharedFilterModal';
+
 import ImageBedConfigModal from '../../components/ImageBedConfigModal';
 import AdvancedSettingsDrawer from '../../components/AdvancedSettingsDrawer';
 import EditorModal from '../../components/EditorModal';

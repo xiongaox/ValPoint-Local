@@ -63,8 +63,7 @@ type Params = {
 export function buildMainViewProps(params: Params): React.ComponentProps<typeof MainView> {
   return {
     activeTab: params.activeTab,
-    libraryMode: params.libraryMode,
-    setLibraryMode: params.setLibraryMode,
+
     clearSelection: () => {
       params.setSelectedLineupId(null);
       params.setViewingLineup(null);
@@ -100,7 +99,7 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       selectedAbilityIndex: params.selectedAbilityIndex,
       onViewLineup: params.onViewLineup,
       isFlipped: params.isFlipped,
-      sharedLineup: params.sharedLineup,
+
     },
     quickActions: {
       isOpen: params.isActionMenuOpen,
@@ -136,12 +135,9 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       setCustomUserIdInput: params.setCustomUserIdInput,
       handleApplyCustomUserId: params.handleApplyCustomUserId,
       handleResetUserId: params.handleResetUserId,
-      libraryMode: params.libraryMode,
       pinnedLineupIds: params.pinnedLineupIds,
       onTogglePinLineup: params.onTogglePinLineup,
       pinnedLimit: params.pinnedLimit,
-      onOpenSharedFilter: params.onOpenSharedFilter,
-      selectedSharedUserId: params.selectedSharedUserId,
     },
   };
 }

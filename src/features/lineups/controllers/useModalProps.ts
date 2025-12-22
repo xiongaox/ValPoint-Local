@@ -144,11 +144,7 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     onClearModalClose: () => {
       params.setIsClearConfirmOpen(false);
     },
-    isSharedFilterOpen: false,
-    sharedContributors: [],
-    selectedSharedUserId: null,
-    onSelectSharedUser: () => { },
-    onSharedFilterClose: () => { },
+
     isChangePasswordOpen: params.isChangePasswordOpen,
     isChangingPassword: params.isChangingPassword,
     onChangePasswordSubmit: params.onChangePasswordSubmit,
@@ -178,9 +174,7 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     setViewingImage: params.setViewingImage,
     getMapEnglishName: params.getMapEnglishName,
     isGuest: params.isGuest,
-    libraryMode: 'personal',
-    handleCopyShared: () => { },
-    isSavingShared: false,
+
     viewingImage: params.viewingImage,
     isChangelogOpen: params.isChangelogOpen,
     onChangelogClose: () => params.setIsChangelogOpen(false),

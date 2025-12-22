@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import UserApp from './apps/user/UserApp';
 import './styles/fonts.css';
 import './index.css';
 import 'leaflet/dist/leaflet.css';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <UserApp />
   </React.StrictMode>,
 );
