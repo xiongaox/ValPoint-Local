@@ -4,6 +4,8 @@ import LeafletMap from '../../components/LeafletMap';
 import LeftPanel from '../../components/LeftPanel';
 import SharedRightPanel from './SharedRightPanel';
 import MapPickerModal from '../../components/MapPickerModal';
+import ViewerModal from '../../components/ViewerModal';
+import SharedFilterModal from '../../components/SharedFilterModal';
 import Icon from '../../components/Icon';
 import { useSharedController } from './useSharedController';
 
@@ -58,7 +60,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                     selectedAgent={controller.selectedAgent}
                     selectedAbilityIndex={controller.selectedAbilityIndex}
                     onViewLineup={controller.handleViewLineup}
-                    isFlipped={false}
+                    isFlipped={controller.selectedSide === 'defense'}
                     sharedLineup={controller.selectedLineup}
                 />
 
@@ -124,8 +126,32 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 setIsMapModalOpen={controller.setIsMapModalOpen}
                 getMapDisplayName={controller.getMapDisplayName}
             />
+
+            {/* 点位详情弹窗 */}
+            <ViewerModal
+                viewingLineup={controller.viewingLineup}
+                onClose={controller.handleViewerClose}
+                handleEditStart={() => { }}
+                setViewingImage={setViewingImage}
+                getMapDisplayName={controller.getMapDisplayName}
+                getMapEnglishName={controller.getMapEnglishName}
+                isGuest={!user}
+                libraryMode="shared"
+                handleCopyShared={() => { }}
+                isSavingShared={false}
+            />
+
+            {/* 共享者筛选弹窗 */}
+            <SharedFilterModal
+                isOpen={controller.isFilterModalOpen}
+                contributors={controller.contributors}
+                selectedUserId={controller.selectedSharedUserId}
+                onSelect={controller.setSelectedSharedUserId}
+                onClose={() => controller.setIsFilterModalOpen(false)}
+            />
         </div>
     );
 }
 
 export default SharedMainView;
+

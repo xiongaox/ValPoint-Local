@@ -69,6 +69,11 @@ const LeafletMap: React.FC<Props> = ({
     return pos;
   };
 
+  // 当 lineups 变化或 selectedLineupId 清除时，重置悬停状态
+  useEffect(() => {
+    setHoveredLineupId(null);
+  }, [lineups, selectedLineupId]);
+
   useEffect(() => {
     if (!mapRef.current) return;
     if (mapInstance.current) {
@@ -130,12 +135,10 @@ const LeafletMap: React.FC<Props> = ({
 
   const createIcon = (type: 'agent' | 'skill', imgUrl?: string) => {
     const content = imgUrl
-      ? `<div class="marker-icon-wrapper border-white"><img src="${imgUrl}" class="marker-img ${
-          type === 'skill' ? 'marker-img-skill' : ''
-        }"/></div>`
-      : `<div class="marker-icon-wrapper bg-[#ff4655] text-white font-bold text-xs flex items-center justify-center">${
-          type === 'agent' ? 'A' : 'S'
-        }</div>`;
+      ? `<div class="marker-icon-wrapper border-white"><img src="${imgUrl}" class="marker-img ${type === 'skill' ? 'marker-img-skill' : ''
+      }"/></div>`
+      : `<div class="marker-icon-wrapper bg-[#ff4655] text-white font-bold text-xs flex items-center justify-center">${type === 'agent' ? 'A' : 'S'
+      }</div>`;
     return L.divIcon({ className: `custom-marker`, html: content, iconSize: [32, 32], iconAnchor: [16, 16] });
   };
 

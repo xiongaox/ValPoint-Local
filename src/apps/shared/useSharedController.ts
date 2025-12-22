@@ -34,6 +34,10 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
     const [isLoading, setIsLoading] = useState(true);
     const [lineups, setLineups] = useState<BaseLineup[]>([]);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+    // 点位详情弹窗
+    const [viewingLineup, setViewingLineup] = useState<BaseLineup | null>(null);
+    // 共享者筛选
+    const [selectedSharedUserId, setSelectedSharedUserId] = useState<string | null>(null);
 
     // 新增点位数据（用于地图交互，但共享库不允许创建）
     const [newLineupData, setNewLineupData] = useState<NewLineupForm>({
@@ -107,7 +111,7 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         loadLineups();
     }, [loadLineups]);
 
-    // 手动过滤点位
+    // 手动过滤点位（包括共享者筛选）
     const filteredLineups = useMemo(() => {
         if (!selectedMap) return [];
         const mapKey = selectedMap.displayName;
@@ -119,9 +123,17 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
             const sideMatch = selectedSide === 'all' || l.side === selectedSide;
             const abilityMatch = selectedAbilityIndex === null || l.abilityIndex === selectedAbilityIndex;
             const searchMatch = !searchQuery || l.title.toLowerCase().includes(searchQuery.toLowerCase());
-            return mapMatch && agentMatch && sideMatch && abilityMatch && searchMatch;
+            // 共享者筛选
+            const userMatch = !selectedSharedUserId || l.userId === selectedSharedUserId;
+            return mapMatch && agentMatch && sideMatch && abilityMatch && searchMatch && userMatch;
         });
-    }, [lineups, selectedMap, selectedAgent, selectedSide, selectedAbilityIndex, searchQuery, mapNameZhToEn]);
+    }, [lineups, selectedMap, selectedAgent, selectedSide, selectedAbilityIndex, searchQuery, selectedSharedUserId, mapNameZhToEn]);
+
+    // 获取所有共享者列表
+    const contributors = useMemo(() => {
+        const userIds = lineups.map((l) => l.userId).filter(Boolean) as string[];
+        return Array.from(new Set(userIds));
+    }, [lineups]);
 
     // 计算每个特工的点位数量
     const agentCounts = useMemo(() => {
@@ -137,14 +149,14 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         return counts;
     }, [lineups, selectedMap, mapNameZhToEn]);
 
-    // 获取地图 URL
+    // 获取地图 URL（需要依赖 selectedSide 以便攻防切换时更新）
     const mapIcon = useMemo(() => {
         return getMapUrl();
-    }, [getMapUrl]);
+    }, [getMapUrl, selectedSide]);
 
     const mapCover = useMemo(() => {
         return getMapCoverUrl();
-    }, [getMapCoverUrl]);
+    }, [getMapCoverUrl, selectedSide]);
 
     // 选择地图
     const handleSelectMap = useCallback((map: MapOption) => {
@@ -154,9 +166,19 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         setIsMapModalOpen(false);
     }, []);
 
-    // 查看点位详情
+    // 查看点位详情（打开弹窗）
     const handleViewLineup = useCallback((id: string) => {
         setSelectedLineupId(id);
+        const lineup = lineups.find((l) => l.id === id);
+        if (lineup) {
+            setViewingLineup(lineup);
+        }
+    }, [lineups]);
+
+    // 关闭点位详情弹窗（同时清除选中状态）
+    const handleViewerClose = useCallback(() => {
+        setViewingLineup(null);
+        setSelectedLineupId(null);  // 清除选中，消除蚂蚁线连接
     }, []);
 
     // 下载点位 - 需要登录
@@ -214,6 +236,14 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         selectedLineup,
         handleViewLineup,
         handleDownload,
+        // 点位详情弹窗
+        viewingLineup,
+        setViewingLineup,
+        handleViewerClose,
+        // 共享者筛选
+        contributors,
+        selectedSharedUserId,
+        setSelectedSharedUserId,
 
         // 地图交互（只读模式）
         newLineupData,
