@@ -1,8 +1,16 @@
-// @ts-nocheck
 import React from 'react';
 import Icon from './Icon';
 
-const AlertModal = ({ message, onClose, actionLabel, onAction, secondaryLabel, onSecondary }) => {
+type AlertModalProps = {
+  message: string | null;
+  onClose?: () => void;
+  actionLabel?: string | null;
+  onAction?: (() => void) | null;
+  secondaryLabel?: string | null;
+  onSecondary?: (() => void) | null;
+};
+
+const AlertModal: React.FC<AlertModalProps> = ({ message, onClose, actionLabel, onAction, secondaryLabel, onSecondary }) => {
   if (!message) return null;
   const handlePrimary = () => {
     if (onAction) {

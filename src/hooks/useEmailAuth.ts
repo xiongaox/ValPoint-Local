@@ -1,0 +1,125 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../supabaseClient';
+import { User } from '@supabase/supabase-js';
+import { validateEmail } from '../lib/emailValidator';
+
+// 开发环境绕过邮箱
+const DEV_BYPASS_EMAIL = import.meta.env.VITE_DEV_BYPASS_EMAIL;
+
+interface UseEmailAuthResult {
+    user: User | null;
+    isLoading: boolean;
+    error: string | null;
+    signInWithEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
+    signOut: () => Promise<void>;
+}
+
+/**
+ * Supabase 邮箱认证 Hook
+ * 使用 Magic Link 方式登录
+ */
+export function useEmailAuth(): UseEmailAuthResult {
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // 初始化时检查会话
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                setUser(session?.user ?? null);
+            } catch (err) {
+                console.error('获取会话失败:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkSession();
+
+        // 监听认证状态变化
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (_event, session) => {
+                setUser(session?.user ?? null);
+                setIsLoading(false);
+            }
+        );
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, []);
+
+    // 发送 Magic Link 登录
+    const signInWithEmail = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
+        setError(null);
+
+        // 开发环境绕过验证
+        if (DEV_BYPASS_EMAIL && email === DEV_BYPASS_EMAIL) {
+            // 使用密码登录方式绕过（需要在 Supabase 配置该测试账户）
+            const { error } = await supabase.auth.signInWithPassword({
+                email: DEV_BYPASS_EMAIL,
+                password: 'dev_test_password_123',
+            });
+
+            if (error) {
+                // 如果密码登录失败，尝试创建账户
+                const { error: signUpError } = await supabase.auth.signUp({
+                    email: DEV_BYPASS_EMAIL,
+                    password: 'dev_test_password_123',
+                });
+                if (signUpError) {
+                    setError(signUpError.message);
+                    return { success: false, error: signUpError.message };
+                }
+            }
+            return { success: true };
+        }
+
+        // 验证邮箱
+        const validation = validateEmail(email);
+        if (!validation.isValid) {
+            setError(validation.error || '邮箱验证失败');
+            return { success: false, error: validation.error };
+        }
+
+        try {
+            const { error } = await supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    emailRedirectTo: window.location.origin + '/shared.html',
+                },
+            });
+
+            if (error) {
+                setError(error.message);
+                return { success: false, error: error.message };
+            }
+
+            return { success: true };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : '登录失败';
+            setError(message);
+            return { success: false, error: message };
+        }
+    }, []);
+
+    // 退出登录
+    const signOut = useCallback(async () => {
+        try {
+            await supabase.auth.signOut();
+            setUser(null);
+        } catch (err) {
+            console.error('退出登录失败:', err);
+        }
+    }, []);
+
+    return {
+        user,
+        isLoading,
+        error,
+        signInWithEmail,
+        signOut,
+    };
+}
