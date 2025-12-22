@@ -4,6 +4,7 @@ import { useValorantData } from '../../hooks/useValorantData';
 import { useMapInfo } from '../../features/lineups/controllers/useMapInfo';
 import { fetchSharedList } from '../../services/shared';
 import { BaseLineup, SharedLineup, AgentOption, MapOption, NewLineupForm } from '../../types/lineup';
+import { downloadLineupBundle } from '../../lib/lineupDownload';
 import { MAP_TRANSLATIONS } from '../../constants/maps';
 
 
@@ -38,6 +39,8 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
     const [viewingLineup, setViewingLineup] = useState<BaseLineup | null>(null);
     // 共享者筛选
     const [selectedSharedUserId, setSelectedSharedUserId] = useState<string | null>(null);
+    // 下载状态
+    const [isDownloading, setIsDownloading] = useState(false);
 
     // 新增点位数据（用于地图交互，但共享库不允许创建）
     const [newLineupData, setNewLineupData] = useState<NewLineupForm>({
@@ -188,7 +191,7 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         setSelectedLineupId(null);  // 清除选中，消除蚂蚁线连接
     }, []);
 
-    // 下载点位 - 需要登录
+    // 下载点位 - 需要登录，下载 ZIP 包
     const handleDownload = useCallback(async (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
 
@@ -199,13 +202,35 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
             return;
         }
 
-        // TODO: 实现下载功能和日志记录
-        setAlertMessage('下载功能即将上线');
-    }, [user, setAlertMessage, onRequestLogin]);
+        const target = lineups.find((l) => l.id === id);
+        if (!target) return;
+
+        if (isDownloading) return;
+
+        try {
+            setIsDownloading(true);
+            setAlertMessage('正在打包点位数据，请稍候...');
+
+            const result = await downloadLineupBundle(target);
+
+            if (result.failedImages.length > 0) {
+                setAlertMessage('部分图片下载失败，但数据包已生成');
+            } else {
+                setAlertMessage('打包下载成功');
+            }
+        } catch (err) {
+            console.error('下载失败', err);
+            setAlertMessage('打包下载失败，请稍后重试');
+        } finally {
+            setIsDownloading(false);
+        }
+    }, [lineups, setAlertMessage, user, onRequestLogin, isDownloading]);
 
     return {
+        // ...
         // 状态
         isLoading,
+        isDownloading,
         user,
 
         // 地图

@@ -137,8 +137,10 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 getMapEnglishName={controller.getMapEnglishName}
                 isGuest={!user}
                 libraryMode="shared"
-                handleCopyShared={() => { }}
-                isSavingShared={false}
+                handleCopyShared={(lineup: any) => {
+                    if (lineup) controller.handleDownload(lineup.id);
+                }}
+                isSavingShared={controller.isDownloading}
             />
 
             {/* 共享者筛选弹窗 */}
