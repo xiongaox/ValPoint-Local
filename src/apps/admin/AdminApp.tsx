@@ -7,8 +7,9 @@ import UsersPage from './pages/UsersPage';
 import DownloadLogsPage from './pages/DownloadLogsPage';
 import LineupUploadPage from './pages/LineupUploadPage';
 import SettingsPage from './pages/SettingsPage';
+import LineupReviewPage from './pages/LineupReviewPage';
 
-export type AdminPage = 'dashboard' | 'users' | 'logs' | 'upload' | 'settings';
+export type AdminPage = 'dashboard' | 'users' | 'logs' | 'upload' | 'review' | 'settings';
 
 /**
  * 后台管理应用根组件
@@ -26,6 +27,8 @@ function AdminApp() {
                 return <DownloadLogsPage />;
             case 'upload':
                 return <LineupUploadPage />;
+            case 'review':
+                return <LineupReviewPage />;
             case 'settings':
                 return <SettingsPage />;
             default:

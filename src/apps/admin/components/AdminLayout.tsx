@@ -14,6 +14,7 @@ const NAV_ITEMS: { id: AdminPage; label: string; icon: IconName }[] = [
     { id: 'users', label: '用户管理', icon: 'Users' },
     { id: 'logs', label: '下载日志', icon: 'FileText' },
     { id: 'upload', label: '上传点位', icon: 'Upload' },
+    { id: 'review', label: '审核投稿', icon: 'ClipboardCheck' },
     { id: 'settings', label: '系统设置', icon: 'Settings' },
 ];
 

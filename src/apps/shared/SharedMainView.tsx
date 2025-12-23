@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import LeafletMap from '../../components/LeafletMap';
 import LeftPanel from '../../components/LeftPanel';
@@ -8,7 +8,9 @@ import ViewerModal from '../../components/ViewerModal';
 import SharedFilterModal from '../../components/SharedFilterModal';
 import Icon from '../../components/Icon';
 import LibrarySwitchButton from '../../components/LibrarySwitchButton';
+import SubmitLineupModal from './SubmitLineupModal';
 import { useSharedController } from './useSharedController';
+import { getSystemSettings } from '../../lib/systemSettings';
 
 interface SharedMainViewProps {
     user: User | null; // 可选，未登录也可以浏览
@@ -24,6 +26,33 @@ interface SharedMainViewProps {
  */
 function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onRequestLogin }: SharedMainViewProps) {
     const controller = useSharedController({ user, setAlertMessage, setViewingImage, onRequestLogin });
+    const [activeTab, setActiveTab] = useState<'view' | 'submit' | 'pending'>('view');
+    const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+    const [submissionEnabled, setSubmissionEnabled] = useState(false);
+
+    // 加载投稿开关状态
+    useEffect(() => {
+        async function loadSubmissionStatus() {
+            const settings = await getSystemSettings();
+            if (settings) {
+                setSubmissionEnabled(settings.submission_enabled ?? false);
+            }
+        }
+        loadSubmissionStatus();
+    }, []);
+
+    // 当切换到投稿Tab时，打开投稿弹窗
+    useEffect(() => {
+        if (activeTab === 'submit') {
+            setIsSubmitModalOpen(true);
+        }
+    }, [activeTab]);
+
+    // 关闭投稿弹窗时，切回查看Tab
+    const handleSubmitModalClose = () => {
+        setIsSubmitModalOpen(false);
+        setActiveTab('view');
+    };
 
     return (
         <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
@@ -111,6 +140,8 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
 
             {/* 右侧面板 - 与个人库共享模式一致 */}
             <SharedRightPanel
+                activeTab={activeTab}
+                onTabSwitch={setActiveTab}
                 isLoading={controller.isLoading}
                 searchQuery={controller.searchQuery}
                 setSearchQuery={controller.setSearchQuery}
@@ -122,6 +153,8 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 handleDownload={controller.handleDownload}
                 getMapDisplayName={controller.getMapDisplayName}
                 onOpenFilter={() => controller.setIsFilterModalOpen(true)}
+                userId={user?.id}
+                submissionEnabled={submissionEnabled}
             />
 
             {/* 地图选择弹窗 */}
@@ -156,6 +189,19 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 selectedUserId={controller.selectedSharedUserId}
                 onSelect={controller.setSelectedSharedUserId}
                 onClose={() => controller.setIsFilterModalOpen(false)}
+            />
+
+            {/* 投稿弹窗 */}
+            <SubmitLineupModal
+                isOpen={isSubmitModalOpen}
+                onClose={handleSubmitModalClose}
+                userId={user?.id || null}
+                userEmail={user?.email}
+                setAlertMessage={setAlertMessage}
+                onSuccess={() => {
+                    // 投稿成功后可刷新列表或跳转到待审Tab
+                    setActiveTab('pending');
+                }}
             />
         </div>
     );
