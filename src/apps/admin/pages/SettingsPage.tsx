@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/Icon';
+import { getSystemSettings, updateSystemSettings } from '../../../lib/systemSettings';
 
 interface Settings {
     dailyDownloadLimit: number;
     enableEmailVerification: boolean;
     enableDownloadLogs: boolean;
     maintenanceMode: boolean;
+}
+
+interface LibraryUrls {
+    personalLibraryUrl: string;
+    sharedLibraryUrl: string;
 }
 
 /**
@@ -18,15 +24,52 @@ function SettingsPage() {
         enableDownloadLogs: true,
         maintenanceMode: false,
     });
+    const [libraryUrls, setLibraryUrls] = useState<LibraryUrls>({
+        personalLibraryUrl: '',
+        sharedLibraryUrl: '',
+    });
     const [isSaving, setIsSaving] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // 从 Supabase 加载域名配置
+    useEffect(() => {
+        async function loadSettings() {
+            setIsLoading(true);
+            const settings = await getSystemSettings();
+            if (settings) {
+                setLibraryUrls({
+                    personalLibraryUrl: settings.personal_library_url || '',
+                    sharedLibraryUrl: settings.shared_library_url || '',
+                });
+            }
+            setIsLoading(false);
+        }
+        loadSettings();
+    }, []);
 
     const handleSave = async () => {
         setIsSaving(true);
-        // TODO: 保存到 Supabase
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // 保存域名配置到 Supabase
+        const result = await updateSystemSettings({
+            personal_library_url: libraryUrls.personalLibraryUrl,
+            shared_library_url: libraryUrls.sharedLibraryUrl,
+        });
+
+        if (result.success) {
+            alert('设置已保存');
+        } else {
+            alert('保存失败: ' + (result.error || '未知错误'));
+        }
         setIsSaving(false);
-        alert('设置已保存');
     };
+
+    if (isLoading) {
+        return (
+            <div className="max-w-2xl flex items-center justify-center py-20">
+                <div className="w-8 h-8 border-2 border-[#ff4655] border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-2xl space-y-6">
@@ -132,6 +175,50 @@ function SettingsPage() {
                                     }`}
                             />
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* 域名配置 */}
+            <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6">
+                <h3 className="text-lg font-semibold mb-4">库切换域名</h3>
+                <p className="text-xs text-gray-500 mb-4">
+                    配置后，用户可以在个人库和共享库之间通过按钮快速切换
+                </p>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm text-gray-400 mb-2">
+                            个人库域名
+                        </label>
+                        <input
+                            type="url"
+                            value={libraryUrls.personalLibraryUrl}
+                            onChange={(e) =>
+                                setLibraryUrls((prev) => ({
+                                    ...prev,
+                                    personalLibraryUrl: e.target.value,
+                                }))
+                            }
+                            placeholder="https://personal.example.com"
+                            className="w-full px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm text-gray-400 mb-2">
+                            共享库域名
+                        </label>
+                        <input
+                            type="url"
+                            value={libraryUrls.sharedLibraryUrl}
+                            onChange={(e) =>
+                                setLibraryUrls((prev) => ({
+                                    ...prev,
+                                    sharedLibraryUrl: e.target.value,
+                                }))
+                            }
+                            placeholder="https://shared.example.com"
+                            className="w-full px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
+                        />
                     </div>
                 </div>
             </div>

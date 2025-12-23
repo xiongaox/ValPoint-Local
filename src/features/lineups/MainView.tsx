@@ -1,6 +1,7 @@
 import React from 'react';
 import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
+import LibrarySwitchButton from '../../components/LibrarySwitchButton';
 
 import LeftPanel from '../../components/LeftPanel';
 import RightPanel from '../../components/RightPanel';
@@ -136,6 +137,10 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           onClearLineups={quickActions.onClearLineups}
           pendingTransfers={quickActions.pendingTransfers}
         />
+        {/* 库切换按钮 */}
+        <div className="absolute top-3 left-3 z-10">
+          <LibrarySwitchButton currentLibrary="personal" />
+        </div>
       </div>
 
       <RightPanel
