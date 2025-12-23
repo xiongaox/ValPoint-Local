@@ -75,18 +75,18 @@ function SharedRightPanel({
                 {submissionEnabled && (
                     <>
                         <button
-                            onClick={() => onTabSwitch?.('submit')}
-                            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${activeTab === 'submit' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            onClick={() => onTabSwitch?.('pending')}
+                            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${activeTab === 'pending' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
-                            <Icon name="Send" size={18} /> 投稿点位
+                            <Icon name="Clock" size={18} /> 待审点位
                         </button>
                         <button
-                            onClick={() => onTabSwitch?.('pending')}
+                            onClick={() => onTabSwitch?.('submit')}
                             className="py-4 px-4 flex items-center justify-center border-l border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                            title="待审点位"
+                            title="投稿点位"
                         >
-                            <Icon name="Clock" size={18} />
+                            <Icon name="Send" size={18} />
                         </button>
                     </>
                 )}

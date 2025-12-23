@@ -89,9 +89,10 @@ type Props = {
   map: MapProps;
   quickActions: QuickActionsProps;
   right: RightProps;
+  hideSharedButton?: boolean;
 };
 
-const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right }) => {
+const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton }) => {
   return (
     <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
       <LeftPanel
@@ -139,7 +140,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
         />
         {/* 库切换按钮 */}
         <div className="absolute top-3 left-3 z-10">
-          <LibrarySwitchButton currentLibrary="personal" />
+          <LibrarySwitchButton currentLibrary="personal" hideSharedButton={hideSharedButton} />
         </div>
       </div>
 

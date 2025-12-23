@@ -29,6 +29,7 @@ const normalizeSettings = (settings: StoredImageProcessingSettings): ImageProces
     enablePngConversion,
     pngConvertFormat,
     jpegQuality: clampQuality(settings.jpegQuality ?? defaultImageProcessingSettings.jpegQuality),
+    hideSharedButton: settings.hideSharedButton ?? defaultImageProcessingSettings.hideSharedButton,
   };
 };
 

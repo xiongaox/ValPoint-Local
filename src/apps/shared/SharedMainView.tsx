@@ -41,6 +41,9 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
         loadSubmissionStatus();
     }, []);
 
+    // 记录打开投稿弹窗前的Tab
+    const [previousTab, setPreviousTab] = useState<'view' | 'pending'>('view');
+
     // 当切换到投稿Tab时，打开投稿弹窗
     useEffect(() => {
         if (activeTab === 'submit') {
@@ -48,10 +51,18 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
         }
     }, [activeTab]);
 
-    // 关闭投稿弹窗时，切回查看Tab
+    // 关闭投稿弹窗时，恢复到之前的Tab
     const handleSubmitModalClose = () => {
         setIsSubmitModalOpen(false);
-        setActiveTab('view');
+        setActiveTab(previousTab);
+    };
+
+    // 打开投稿弹窗时记录当前Tab
+    const handleOpenSubmit = () => {
+        if (activeTab !== 'submit') {
+            setPreviousTab(activeTab as 'view' | 'pending');
+        }
+        setActiveTab('submit');
     };
 
     return (
@@ -141,7 +152,13 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
             {/* 右侧面板 - 与个人库共享模式一致 */}
             <SharedRightPanel
                 activeTab={activeTab}
-                onTabSwitch={setActiveTab}
+                onTabSwitch={(tab) => {
+                    if (tab === 'submit') {
+                        handleOpenSubmit();
+                    } else {
+                        setActiveTab(tab);
+                    }
+                }}
                 isLoading={controller.isLoading}
                 searchQuery={controller.searchQuery}
                 setSearchQuery={controller.setSearchQuery}

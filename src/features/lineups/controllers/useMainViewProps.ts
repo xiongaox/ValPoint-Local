@@ -59,6 +59,7 @@ type Params = {
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
+  hideSharedButton?: boolean;
 };
 
 export function buildMainViewProps(params: Params): React.ComponentProps<typeof MainView> {
@@ -140,5 +141,6 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       onTogglePinLineup: params.onTogglePinLineup,
       pinnedLimit: params.pinnedLimit,
     },
+    hideSharedButton: params.hideSharedButton,
   };
 }

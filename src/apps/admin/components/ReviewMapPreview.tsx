@@ -114,7 +114,7 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
                     />
                 )}
                 {/* 悬浮顶部栏 - 毛玻璃效果 */}
-                <div className="absolute top-0 left-0 right-0 px-4 py-3 flex items-center justify-between bg-black/30 backdrop-blur-lg border-b border-white/10 z-10">
+                <div className="absolute top-0 left-0 right-0 px-4 py-3 flex items-center justify-between bg-black/20 backdrop-blur-lg border-b border-white/10 z-10">
                     <h3 className="font-semibold">地图预览</h3>
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-400">

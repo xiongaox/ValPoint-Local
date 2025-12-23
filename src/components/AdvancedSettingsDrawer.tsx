@@ -80,14 +80,12 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <button
                   onClick={() => setLocalSettings((prev) => ({ ...prev, enablePngConversion: !prev.enablePngConversion }))}
-                  className={`relative w-14 h-8 rounded-full border transition-colors flex items-center px-1 flex-shrink-0 ${
-                    localSettings.enablePngConversion ? 'bg-[#ff4655] border-[#ff7884]' : 'bg-[#1c2430] border-white/10'
-                  }`}
+                  className={`relative w-14 h-8 rounded-full border transition-colors flex items-center px-1 flex-shrink-0 ${localSettings.enablePngConversion ? 'bg-[#ff4655] border-[#ff7884]' : 'bg-[#1c2430] border-white/10'
+                    }`}
                 >
                   <div
-                    className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-150 ${
-                      localSettings.enablePngConversion ? 'translate-x-6' : 'translate-x-0'
-                    }`}
+                    className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-150 ${localSettings.enablePngConversion ? 'translate-x-6' : 'translate-x-0'
+                      }`}
                   />
                 </button>
               </div>
@@ -103,21 +101,19 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setLocalSettings((prev) => ({ ...prev, pngConvertFormat: 'jpeg' }))}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-colors ${
-                        localSettings.pngConvertFormat === 'jpeg'
-                          ? 'bg-[#ff4655]/20 border-[#ff7884] text-white'
-                          : 'border-white/10 text-gray-400 hover:text-white hover:border-[#ff4655]/50'
-                      }`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-colors ${localSettings.pngConvertFormat === 'jpeg'
+                        ? 'bg-[#ff4655]/20 border-[#ff7884] text-white'
+                        : 'border-white/10 text-gray-400 hover:text-white hover:border-[#ff4655]/50'
+                        }`}
                     >
                       JPG
                     </button>
                     <button
                       onClick={() => setLocalSettings((prev) => ({ ...prev, pngConvertFormat: 'webp' }))}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-colors ${
-                        localSettings.pngConvertFormat === 'webp'
-                          ? 'bg-[#ff4655]/20 border-[#ff7884] text-white'
-                          : 'border-white/10 text-gray-400 hover:text-white hover:border-[#ff4655]/50'
-                      }`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-colors ${localSettings.pngConvertFormat === 'webp'
+                        ? 'bg-[#ff4655]/20 border-[#ff7884] text-white'
+                        : 'border-white/10 text-gray-400 hover:text-white hover:border-[#ff4655]/50'
+                        }`}
                     >
                       WebP
                     </button>
@@ -153,6 +149,31 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
             )}
           </div>
 
+          {/* 隐藏共享库按钮 */}
+          <div className="bg-[#0f1923] border border-white/10 rounded-xl p-5 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Icon name="EyeOff" size={18} className="text-[#ff4655]" />
+                  <div className="text-sm font-bold text-white">隐藏库切换按钮</div>
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">开启后，地图左上角的个人库/共享库切换按钮将完全隐藏。</p>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <button
+                  onClick={() => setLocalSettings((prev) => ({ ...prev, hideSharedButton: !prev.hideSharedButton }))}
+                  className={`relative w-14 h-8 rounded-full border transition-colors flex items-center px-1 flex-shrink-0 ${localSettings.hideSharedButton ? 'bg-[#ff4655] border-[#ff7884]' : 'bg-[#1c2430] border-white/10'
+                    }`}
+                >
+                  <div
+                    className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-150 ${localSettings.hideSharedButton ? 'translate-x-6' : 'translate-x-0'
+                      }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-[#0f1923] border border-white/10 rounded-xl p-5 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1">
@@ -164,14 +185,12 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
               </div>
               <button
                 onClick={() => setShowPasswordPanel((v) => !v)}
-                className={`relative w-14 h-8 rounded-full border transition-colors flex items-center px-1 flex-shrink-0 ${
-                  showPasswordPanel ? 'bg-[#ff4655] border-[#ff7884]' : 'bg-[#1c2430] border-white/10'
-                }`}
+                className={`relative w-14 h-8 rounded-full border transition-colors flex items-center px-1 flex-shrink-0 ${showPasswordPanel ? 'bg-[#ff4655] border-[#ff7884]' : 'bg-[#1c2430] border-white/10'
+                  }`}
               >
                 <div
-                  className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-150 ${
-                    showPasswordPanel ? 'translate-x-6' : 'translate-x-0'
-                  }`}
+                  className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-150 ${showPasswordPanel ? 'translate-x-6' : 'translate-x-0'
+                    }`}
                 />
               </button>
             </div>

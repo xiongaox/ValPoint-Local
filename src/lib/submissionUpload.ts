@@ -242,3 +242,116 @@ export const getUserSubmissions = async (userId: string): Promise<LineupSubmissi
 
     return data || [];
 };
+
+/**
+ * 删除单个投稿记录（只允许删除 approved 或 rejected 状态的）
+ */
+export const deleteSubmission = async (submissionId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
+    // 先查询验证状态
+    const { data: submission, error: fetchError } = await supabase
+        .from('lineup_submissions')
+        .select('status, submitter_id')
+        .eq('id', submissionId)
+        .single();
+
+    if (fetchError || !submission) {
+        return { success: false, error: '找不到该投稿记录' };
+    }
+
+    if (submission.submitter_id !== userId) {
+        return { success: false, error: '无权删除他人的投稿' };
+    }
+
+    if (submission.status === 'pending') {
+        return { success: false, error: '审核中的投稿不能删除，请先取消审核' };
+    }
+
+    const { error } = await supabase
+        .from('lineup_submissions')
+        .delete()
+        .eq('id', submissionId);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    return { success: true };
+};
+
+/**
+ * 取消审核中的投稿（将状态改为 rejected 并标记为用户取消）
+ */
+export const cancelSubmission = async (submissionId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
+    const { data: submission, error: fetchError } = await supabase
+        .from('lineup_submissions')
+        .select('status, submitter_id')
+        .eq('id', submissionId)
+        .single();
+
+    if (fetchError || !submission) {
+        return { success: false, error: '找不到该投稿记录' };
+    }
+
+    if (submission.submitter_id !== userId) {
+        return { success: false, error: '无权取消他人的投稿' };
+    }
+
+    if (submission.status !== 'pending') {
+        return { success: false, error: '只能取消审核中的投稿' };
+    }
+
+    const { error } = await supabase
+        .from('lineup_submissions')
+        .update({ status: 'rejected', reject_reason: '用户主动取消' })
+        .eq('id', submissionId);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    return { success: true };
+};
+
+/**
+ * 按状态批量删除投稿
+ */
+export const deleteSubmissionsByStatus = async (
+    userId: string,
+    statusFilter: 'all' | 'approved' | 'rejected'
+): Promise<{ success: boolean; deletedCount: number; error?: string }> => {
+    // 先查询要删除的记录数
+    let countQuery = supabase
+        .from('lineup_submissions')
+        .select('id', { count: 'exact', head: true })
+        .eq('submitter_id', userId)
+        .neq('status', 'pending');
+
+    if (statusFilter === 'approved') {
+        countQuery = countQuery.eq('status', 'approved');
+    } else if (statusFilter === 'rejected') {
+        countQuery = countQuery.eq('status', 'rejected');
+    }
+
+    const { count } = await countQuery;
+
+    // 执行删除
+    let deleteQuery = supabase
+        .from('lineup_submissions')
+        .delete()
+        .eq('submitter_id', userId)
+        .neq('status', 'pending');
+
+    if (statusFilter === 'approved') {
+        deleteQuery = deleteQuery.eq('status', 'approved');
+    } else if (statusFilter === 'rejected') {
+        deleteQuery = deleteQuery.eq('status', 'rejected');
+    }
+
+    const { error } = await deleteQuery;
+
+    if (error) {
+        return { success: false, deletedCount: 0, error: error.message };
+    }
+
+    return { success: true, deletedCount: count || 0 };
+};

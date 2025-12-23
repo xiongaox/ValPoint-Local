@@ -32,6 +32,7 @@ const EditorModal = ({
   const [isPastingSourceLink, setIsPastingSourceLink] = useState(false);
   const [isFetchingAuthor, setIsFetchingAuthor] = useState(false);
   const fetchTimeoutRef = useRef(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   // 自动获取作者信息（防抖）
   useEffect(() => {
@@ -205,6 +206,31 @@ const EditorModal = ({
     setNewLineupData({ ...newLineupData, [`${fieldKey}Img`]: '' });
   };
 
+  // 本地文件上传
+  const handleLocalUpload = async (fieldKey: string, file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setAlertMessage?.('请选择图片文件');
+      return;
+    }
+
+    if (!imageBedConfig?.provider) {
+      setAlertMessage?.('请先配置图床');
+      return;
+    }
+
+    try {
+      setUploadingField(fieldKey);
+      const fileForUpload = await prepareClipboardImage(file, file.name, imageProcessingSettings);
+      const result = await uploadToOss(fileForUpload, imageBedConfig);
+      setNewLineupData({ ...newLineupData, [fieldKey + 'Img']: result.url });
+    } catch (e) {
+      console.error('[EditorModal] local upload error:', e);
+      setAlertMessage?.(`上传失败: ${e?.message || '未知错误'}`);
+    } finally {
+      setUploadingField(null);
+    }
+  };
+
   const toggleField = (field) => {
     if (!field.toggleKey) return;
     const enabled = newLineupData[field.toggleKey];
@@ -256,8 +282,8 @@ const EditorModal = ({
                   type="button"
                   onClick={() => setSelectedSide('attack')}
                   className={`flex-1 justify-center flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${selectedSide === 'attack'
-                      ? 'bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] text-white shadow-lg shadow-red-900/30'
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    ? 'bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] text-white shadow-lg shadow-red-900/30'
+                    : 'text-gray-300 hover:text-white hover:bg-white/5'
                     }`}
                 >
                   <Icon name="Sword" size={16} /> 进攻 (ATK)
@@ -266,8 +292,8 @@ const EditorModal = ({
                   type="button"
                   onClick={() => setSelectedSide('defense')}
                   className={`flex-1 justify-center flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${selectedSide === 'defense'
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30'
-                      : 'text-gray-300 hover:text-white hover:bg-white/5'
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30'
+                    : 'text-gray-300 hover:text-white hover:bg-white/5'
                     }`}
                 >
                   <Icon name="Shield" size={16} /> 防守 (DEF)
@@ -421,25 +447,47 @@ const EditorModal = ({
                   </div>
                   <div className="flex flex-col gap-3">
                     {!showLinkInput && (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleClipboardUpload(field.k)}
-                          disabled={uploadingField === field.k}
-                          className="h-10 flex-1 px-3 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                          <Icon name="ClipboardCheck" size={14} />
-                          {uploadingField === field.k ? '上传中...' : '剪贴板上传'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleClearImage(field.k)}
-                          className="h-10 flex-1 px-3 py-2 rounded-lg border border-[#2a323d] bg-[#0f1923] text-xs text-gray-200 hover:border-red-500/60 hover:text-red-200 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Icon name="Eraser" size={14} />
-                          清除预览图
-                        </button>
-                      </div>
+                      <>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          ref={(el) => { fileInputRefs.current[field.k] = el; }}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleLocalUpload(field.k, file);
+                            e.target.value = ''; // 重置以便重复选择同一文件
+                          }}
+                          className="hidden"
+                        />
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleClipboardUpload(field.k)}
+                            disabled={uploadingField === field.k}
+                            className="h-10 flex-1 px-2 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            <Icon name="ClipboardCheck" size={14} />
+                            {uploadingField === field.k ? '上传中' : '剪贴板'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRefs.current[field.k]?.click()}
+                            disabled={uploadingField === field.k}
+                            className="h-10 flex-1 px-2 py-2 rounded-lg text-xs font-semibold border border-[#2a323d] bg-[#0f1923] text-gray-200 hover:border-[#ff4655]/60 hover:text-white transition-colors flex items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            <Icon name="FolderOpen" size={14} />
+                            本地
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleClearImage(field.k)}
+                            className="h-10 flex-1 px-2 py-2 rounded-lg border border-[#2a323d] bg-[#0f1923] text-xs text-gray-200 hover:border-red-500/60 hover:text-red-200 transition-colors flex items-center justify-center gap-1"
+                          >
+                            <Icon name="Eraser" size={14} />
+                            清除
+                          </button>
+                        </div>
+                      </>
                     )}
 
                     {showLinkInput && (

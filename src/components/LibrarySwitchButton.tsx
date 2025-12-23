@@ -4,6 +4,8 @@ import { getSystemSettings } from '../lib/systemSettings';
 interface LibrarySwitchButtonProps {
     /** 当前库类型（用于高亮显示） */
     currentLibrary: 'personal' | 'shared';
+    /** 是否隐藏共享库按钮 */
+    hideSharedButton?: boolean;
 }
 
 /**
@@ -15,7 +17,7 @@ interface LibrarySwitchButtonProps {
  * - 单个按钮：74×36px，圆角 8px
  * - 按钮间距：0
  */
-const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrary }) => {
+const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrary, hideSharedButton = false }) => {
     const [personalUrl, setPersonalUrl] = useState<string>('');
     const [sharedUrl, setSharedUrl] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
@@ -76,6 +78,11 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
                 <div style={{ ...buttonBaseStyle, color: '#6b7280' }}>加载中...</div>
             </div>
         );
+    }
+
+    // 如果隐藏共享库按钮且当前是个人库，则不显示切换按钮
+    if (hideSharedButton && currentLibrary === 'personal') {
+        return null;
     }
 
     return (

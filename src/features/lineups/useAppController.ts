@@ -345,6 +345,7 @@ export function useAppController() {
     pinnedLineupIds,
     onTogglePinLineup: togglePinnedLineup,
     pinnedLimit: DEFAULT_PINNED_COUNT,
+    hideSharedButton: imageProcessingSettings.hideSharedButton,
   });
 
   const modalProps = buildModalProps({

@@ -82,7 +82,7 @@ export function useEditorController({
     setNewLineupData(createEmptyLineup());
     setPlacingType(null);
     setActiveTab('view');
-    setSelectedSide('all');
+    // 保持当前阵营，不强制跳转到 'all'
     setSelectedAbilityIndex(null);
     setSelectedLineupId(null);
     setViewingLineup(null);
@@ -199,7 +199,7 @@ export function useEditorController({
       setIsEditorOpen(false);
       setEditingLineupId(null);
       setNewLineupData(createEmptyLineup());
-      setSelectedSide('all');
+      // 保持当前阵营，不强制跳转到 'all'
       setSelectedAbilityIndex(null);
       setSelectedLineupId(null);
       setViewingLineup(null);
