@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/fonts.css';
 import '../../index.css';
 import 'leaflet/dist/leaflet.css';
@@ -7,17 +7,46 @@ import SharedLoginPage from './SharedLoginPage';
 import SharedMainView from './SharedMainView';
 import Lightbox from '../../components/Lightbox';
 import AlertModal from '../../components/AlertModal';
+import ResetPasswordModal from './ResetPasswordModal';
 import { LightboxImage } from '../../types/ui';
+import { supabase } from '../../supabaseClient';
 
 /**
  * 共享库应用根组件
  * 开放浏览，下载时需要登录
  */
 function SharedApp() {
-    const { user, isLoading, signOut, signInWithEmail } = useEmailAuth();
+    const { user, isLoading, signOut } = useEmailAuth();
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
     const [viewingImage, setViewingImage] = useState<LightboxImage | null>(null);
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+
+    // 监听密码重置事件
+    useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'PASSWORD_RECOVERY') {
+                // 用户通过重置链接登录，进入 recovery 模式
+                setIsRecoveryMode(true);
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, []);
+
+    // 处理重置密码完成或取消
+    const handleRecoveryComplete = () => {
+        setIsRecoveryMode(false);
+    };
+
+    const handleRecoveryCancel = async () => {
+        // 如果用户取消重置密码，强制登出
+        await signOut();
+        setIsRecoveryMode(false);
+        setAlertMessage('密码重置已取消，请重新登录');
+    };
 
     // 认证加载中（短暂等待）
     if (isLoading) {
@@ -27,6 +56,24 @@ function SharedApp() {
                     <div className="w-12 h-12 border-4 border-[#ff4655] border-t-transparent rounded-full animate-spin" />
                     <span className="text-gray-400 text-sm">加载中...</span>
                 </div>
+            </div>
+        );
+    }
+
+    // 密码重置模式 - 必须完成重置才能继续
+    if (isRecoveryMode && user) {
+        return (
+            <div className="flex h-screen w-screen bg-[#0f1923] items-center justify-center">
+                <ResetPasswordModal
+                    isOpen={true}
+                    onClose={handleRecoveryComplete}
+                    onCancel={handleRecoveryCancel}
+                    setAlertMessage={setAlertMessage}
+                />
+                <AlertModal
+                    message={alertMessage}
+                    onClose={() => setAlertMessage(null)}
+                />
             </div>
         );
     }
@@ -70,3 +117,5 @@ function SharedApp() {
 }
 
 export default SharedApp;
+
+

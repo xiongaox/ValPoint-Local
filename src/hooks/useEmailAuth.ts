@@ -11,12 +11,16 @@ interface UseEmailAuthResult {
     isLoading: boolean;
     error: string | null;
     signInWithEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
+    signInWithPassword: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    signUpWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+    verifyOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
     signOut: () => Promise<void>;
 }
 
 /**
  * Supabase 邮箱认证 Hook
- * 使用 Magic Link 方式登录
+ * 支持密码登录、注册、忘记密码
  */
 export function useEmailAuth(): UseEmailAuthResult {
     const [user, setUser] = useState<User | null>(null);
@@ -51,20 +55,123 @@ export function useEmailAuth(): UseEmailAuthResult {
         };
     }, []);
 
-    // 发送 Magic Link 登录
+    // 邮箱密码注册
+    const signUpWithEmail = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+        setError(null);
+
+        // 验证邮箱
+        const validation = validateEmail(email);
+        if (!validation.isValid) {
+            setError(validation.error || '邮箱格式不正确');
+            return { success: false, error: validation.error };
+        }
+
+        if (password.length < 6) {
+            const errMsg = '密码至少需要6位';
+            setError(errMsg);
+            return { success: false, error: errMsg };
+        }
+
+        try {
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    emailRedirectTo: window.location.origin + '/shared.html',
+                },
+            });
+
+            if (error) {
+                setError(error.message);
+                return { success: false, error: error.message };
+            }
+
+            return { success: true };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : '注册失败';
+            setError(message);
+            return { success: false, error: message };
+        }
+    }, []);
+
+    // 邮箱密码登录
+    const signInWithPassword = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+        setError(null);
+
+        // 验证邮箱
+        const validation = validateEmail(email);
+        if (!validation.isValid) {
+            setError(validation.error || '邮箱格式不正确');
+            return { success: false, error: validation.error };
+        }
+
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                // 友好化错误信息
+                let friendlyError = error.message;
+                if (error.message.includes('Invalid login credentials')) {
+                    friendlyError = '邮箱或密码错误';
+                } else if (error.message.includes('Email not confirmed')) {
+                    friendlyError = '请先验证邮箱';
+                }
+                setError(friendlyError);
+                return { success: false, error: friendlyError };
+            }
+
+            return { success: true };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : '登录失败';
+            setError(message);
+            return { success: false, error: message };
+        }
+    }, []);
+
+    // 发送密码重置邮件
+    const resetPassword = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
+        setError(null);
+
+        // 验证邮箱
+        const validation = validateEmail(email);
+        if (!validation.isValid) {
+            setError(validation.error || '邮箱格式不正确');
+            return { success: false, error: validation.error };
+        }
+
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/shared.html',
+            });
+
+            if (error) {
+                setError(error.message);
+                return { success: false, error: error.message };
+            }
+
+            return { success: true };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : '发送重置邮件失败';
+            setError(message);
+            return { success: false, error: message };
+        }
+    }, []);
+
+    // 发送 Magic Link 登录（保留作为备用）
     const signInWithEmail = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
         // 开发环境绕过验证
         if (DEV_BYPASS_EMAIL && email === DEV_BYPASS_EMAIL) {
-            // 使用密码登录方式绕过（需要在 Supabase 配置该测试账户）
             const { error } = await supabase.auth.signInWithPassword({
                 email: DEV_BYPASS_EMAIL,
                 password: 'dev_test_password_123',
             });
 
             if (error) {
-                // 如果密码登录失败，尝试创建账户
                 const { error: signUpError } = await supabase.auth.signUp({
                     email: DEV_BYPASS_EMAIL,
                     password: 'dev_test_password_123',
@@ -105,6 +212,36 @@ export function useEmailAuth(): UseEmailAuthResult {
         }
     }, []);
 
+    // 验证 OTP 验证码
+    const verifyOtp = useCallback(async (email: string, token: string): Promise<{ success: boolean; error?: string }> => {
+        setError(null);
+
+        try {
+            const { error } = await supabase.auth.verifyOtp({
+                email,
+                token,
+                type: 'email',
+            });
+
+            if (error) {
+                let friendlyError = error.message;
+                if (error.message.includes('Token has expired')) {
+                    friendlyError = '验证码已过期，请重新获取';
+                } else if (error.message.includes('Invalid')) {
+                    friendlyError = '验证码错误';
+                }
+                setError(friendlyError);
+                return { success: false, error: friendlyError };
+            }
+
+            return { success: true };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : '验证失败';
+            setError(message);
+            return { success: false, error: message };
+        }
+    }, []);
+
     // 退出登录
     const signOut = useCallback(async () => {
         try {
@@ -120,6 +257,11 @@ export function useEmailAuth(): UseEmailAuthResult {
         isLoading,
         error,
         signInWithEmail,
+        signInWithPassword,
+        signUpWithEmail,
+        resetPassword,
+        verifyOtp,
         signOut,
     };
 }
+
