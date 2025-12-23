@@ -12,9 +12,10 @@ interface UseEmailAuthResult {
     error: string | null;
     signInWithEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
     signInWithPassword: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-    signUpWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    signUpWithEmail: (email: string, password: string, data?: object) => Promise<{ success: boolean; error?: string }>;
     resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
     verifyOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
+    updateProfile: (data: { nickname?: string; avatar?: string }) => Promise<{ success: boolean; error?: string }>;
     signOut: () => Promise<void>;
 }
 
@@ -56,7 +57,7 @@ export function useEmailAuth(): UseEmailAuthResult {
     }, []);
 
     // 邮箱密码注册
-    const signUpWithEmail = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const signUpWithEmail = useCallback(async (email: string, password: string, data?: object): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
         // 验证邮箱
@@ -78,6 +79,7 @@ export function useEmailAuth(): UseEmailAuthResult {
                 password,
                 options: {
                     emailRedirectTo: window.location.origin + '/shared.html',
+                    data: data,
                 },
             });
 
@@ -242,7 +244,28 @@ export function useEmailAuth(): UseEmailAuthResult {
         }
     }, []);
 
-    // 退出登录
+    // 更新用户资料
+    const updateProfile = useCallback(async (data: { nickname?: string; avatar?: string }): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const { error } = await supabase.auth.updateUser({
+                data: data
+            });
+
+            if (error) {
+                return { success: false, error: error.message };
+            }
+
+            // 更新本地 user 状态
+            const { data: { session } } = await supabase.auth.getSession();
+            setUser(session?.user ?? null);
+
+            return { success: true };
+        } catch (err) {
+            const message = err instanceof Error ? err.message : '更新资料失败';
+            return { success: false, error: message };
+        }
+    }, []);
+
     const signOut = useCallback(async () => {
         try {
             await supabase.auth.signOut();
@@ -261,6 +284,7 @@ export function useEmailAuth(): UseEmailAuthResult {
         signUpWithEmail,
         resetPassword,
         verifyOtp,
+        updateProfile,
         signOut,
     };
 }

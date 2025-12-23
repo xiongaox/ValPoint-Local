@@ -126,13 +126,32 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         }
 
         setIsSubmitting(true);
-        const result = await signUpWithEmail(email, password);
-        setIsSubmitting(false);
+        try {
+            // 生成随机 ID：8位 大写字母+数字
+            const generateId = () => {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let res = '';
+                for (let i = 0; i < 8; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+                return res;
+            };
+            const customId = generateId();
 
-        if (result.success) {
-            setMode('register-sent');
-        } else {
-            setValidationError(result.error || '注册失败');
+            // 注册并附带元数据
+            const result = await signUpWithEmail(email, password, {
+                nickname: customId,
+                custom_id: customId,
+                avatar: '' // 默认空头像，需在个人信息里随机
+            });
+
+            if (result.success) {
+                setMode('register-sent');
+            } else {
+                setValidationError(result.error || '注册失败');
+            }
+        } catch (err) {
+            setValidationError('发生未知错误');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
