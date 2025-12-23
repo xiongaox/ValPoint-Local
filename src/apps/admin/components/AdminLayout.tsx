@@ -15,6 +15,7 @@ const NAV_ITEMS: { id: AdminPage; label: string; icon: IconName }[] = [
     { id: 'logs', label: '下载日志', icon: 'FileText' },
     { id: 'upload', label: '上传点位', icon: 'Upload' },
     { id: 'review', label: '审核投稿', icon: 'ClipboardCheck' },
+    { id: 'shared', label: '共享库管理', icon: 'Share2' },
     { id: 'settings', label: '系统设置', icon: 'Settings' },
 ];
 

@@ -31,6 +31,8 @@ export interface LineupSubmission {
     // 图片链接 (存储在 Supabase Storage)
     stand_img?: string;
     stand_desc?: string;
+    stand2_img?: string;
+    stand2_desc?: string;
     aim_img?: string;
     aim_desc?: string;
     aim2_img?: string;

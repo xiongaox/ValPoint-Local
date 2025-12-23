@@ -2,10 +2,11 @@
  * 审核服务
  * 管理待审投稿的获取、审核通过/拒绝逻辑
  */
-import { supabase } from '../supabaseClient';
+import { supabase, shareSupabase } from '../supabaseClient';
 import { LineupSubmission } from '../types/submission';
 import { ImageBedConfig } from '../types/imageBed';
 import { transferImage } from './imageBed';
+import { TABLE } from '../services/tables';
 
 /** 获取所有待审投稿 */
 export async function getPendingSubmissions(): Promise<LineupSubmission[]> {
@@ -37,7 +38,7 @@ export async function getAllSubmissions(): Promise<LineupSubmission[]> {
 }
 
 /** 图片字段映射 */
-const IMAGE_FIELDS = ['stand_img', 'aim_img', 'aim2_img', 'land_img'] as const;
+const IMAGE_FIELDS = ['stand_img', 'stand2_img', 'aim_img', 'aim2_img', 'land_img'] as const;
 
 /**
  * 迁移图片到官方图床
@@ -82,8 +83,13 @@ export async function approveSubmission(
         // 1. 迁移图片到官方 OSS
         const migratedUrls = await migrateImagesToOss(submission, ossConfig);
 
-        // 2. 创建 shared_lineups 记录
+        // 2. 创建 valorant_shared 记录
+        // 生成唯一的 share_id
+        const shareId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+
         const sharedLineup = {
+            share_id: shareId,
+            source_id: submission.id,
             title: submission.title,
             map_name: submission.map_name,
             agent_name: submission.agent_name,
@@ -93,9 +99,10 @@ export async function approveSubmission(
             ability_index: submission.ability_index,
             agent_pos: submission.agent_pos,
             skill_pos: submission.skill_pos,
-            description: submission.description,
             stand_img: migratedUrls.stand_img || submission.stand_img,
             stand_desc: submission.stand_desc,
+            stand2_img: migratedUrls.stand2_img || submission.stand2_img,
+            stand2_desc: submission.stand2_desc,
             aim_img: migratedUrls.aim_img || submission.aim_img,
             aim_desc: submission.aim_desc,
             aim2_img: migratedUrls.aim2_img || submission.aim2_img,
@@ -103,14 +110,11 @@ export async function approveSubmission(
             land_img: migratedUrls.land_img || submission.land_img,
             land_desc: submission.land_desc,
             source_link: submission.source_link,
-            author_name: submission.author_name,
-            author_avatar: submission.author_avatar,
-            author_uid: submission.author_uid,
-            user_id: submission.submitter_id,
+            user_id: submission.submitter_email || `user_${submission.submitter_id.substring(0, 8)}`,
         };
 
-        const { error: insertError } = await supabase
-            .from('shared_lineups')
+        const { error: insertError } = await shareSupabase
+            .from(TABLE.shared)
             .insert(sharedLineup);
 
         if (insertError) {
@@ -192,4 +196,47 @@ export async function deleteSubmissionImages(submission: LineupSubmission): Prom
     } catch (error) {
         console.error('删除临时文件失败:', error);
     }
+}
+
+/** 共享库点位类型 */
+export interface SharedLineup {
+    share_id: string;
+    source_id?: string;
+    id?: string;
+    user_id?: string;
+    title: string;
+    map_name: string;
+    agent_name: string;
+    agent_icon?: string;
+    skill_icon?: string;
+    side: string;
+    created_at: string;
+    updated_at: string;
+}
+
+/** 获取共享库所有点位 */
+export async function getSharedLineups(): Promise<SharedLineup[]> {
+    const { data, error } = await shareSupabase
+        .from(TABLE.shared)
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('获取共享库点位失败:', error);
+        return [];
+    }
+    return data || [];
+}
+
+/** 删除共享库点位 */
+export async function deleteSharedLineup(shareId: string): Promise<{ success: boolean; error?: string }> {
+    const { error } = await shareSupabase
+        .from(TABLE.shared)
+        .delete()
+        .eq('share_id', shareId);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+    return { success: true };
 }

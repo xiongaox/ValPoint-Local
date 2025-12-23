@@ -188,6 +188,8 @@ export const submitLineup = async (
             description: jsonPayload.description,
             stand_img: imageUrls.stand_img,
             stand_desc: jsonPayload.stand_desc,
+            stand2_img: imageUrls.stand2_img,
+            stand2_desc: jsonPayload.stand2_desc,
             aim_img: imageUrls.aim_img,
             aim_desc: jsonPayload.aim_desc,
             aim2_img: imageUrls.aim2_img,

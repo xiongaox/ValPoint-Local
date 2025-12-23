@@ -8,8 +8,9 @@ import DownloadLogsPage from './pages/DownloadLogsPage';
 import LineupUploadPage from './pages/LineupUploadPage';
 import SettingsPage from './pages/SettingsPage';
 import LineupReviewPage from './pages/LineupReviewPage';
+import SharedManagePage from './pages/SharedManagePage';
 
-export type AdminPage = 'dashboard' | 'users' | 'logs' | 'upload' | 'review' | 'settings';
+export type AdminPage = 'dashboard' | 'users' | 'logs' | 'upload' | 'review' | 'shared' | 'settings';
 
 /**
  * 后台管理应用根组件
@@ -29,6 +30,8 @@ function AdminApp() {
                 return <LineupUploadPage />;
             case 'review':
                 return <LineupReviewPage />;
+            case 'shared':
+                return <SharedManagePage />;
             case 'settings':
                 return <SettingsPage />;
             default:
