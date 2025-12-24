@@ -73,7 +73,7 @@ const SharedManagePage: React.FC = () => {
 
         if (result.success) {
             setMessage({ type: 'success', text: '删除成功' });
-            setLineups((prev) => prev.filter((l) => l.share_id !== shareId));
+            setLineups((prev) => prev.filter((l) => l.id !== shareId));
         } else {
             setMessage({ type: 'error', text: `删除失败: ${result.error}` });
         }
@@ -269,10 +269,12 @@ const SharedManagePage: React.FC = () => {
                         </thead>
                         <tbody>
                             {filteredLineups.map((item) => (
-                                <tr key={item.share_id} className="border-b border-white/5 hover:bg-white/5">
+                                <tr key={item.id} className="border-b border-white/5 hover:bg-white/5">
                                     <td className="p-4">
                                         <div className="font-medium text-white truncate max-w-[200px]">{item.title}</div>
-                                        <div className="text-xs text-gray-500 font-mono">{item.share_id}</div>
+                                        <div className="text-xs text-gray-500 font-mono" title={item.id}>
+                                            {item.id.substring(0, 8)}...
+                                        </div>
                                     </td>
                                     <td className="p-4 text-gray-300">{MAP_TRANSLATIONS[item.map_name] || item.map_name}</td>
                                     <td className="p-4">
@@ -301,7 +303,7 @@ const SharedManagePage: React.FC = () => {
                                     </td>
                                     <td className="p-4 text-center">
                                         <button
-                                            onClick={() => setDeleteConfirm(item.share_id)}
+                                            onClick={() => setDeleteConfirm(item.id)}
                                             className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                             title="删除"
                                         >

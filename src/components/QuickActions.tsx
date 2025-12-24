@@ -57,7 +57,7 @@ const QuickActions: React.FC<Props> = ({
           )}
 
           {isOpen && (
-            <div className="absolute bottom-14 right-0 bg-[#11161c] border border-white/15 rounded-2xl shadow-2xl p-3 w-44 space-y-2 backdrop-blur" style={{ bottom: isAdmin && onSyncToShared ? '6.5rem' : '3.5rem' }}>
+            <div className="absolute bottom-14 right-0 bg-[#11161c] border border-white/15 rounded-2xl shadow-2xl p-3 w-44 space-y-2 backdrop-blur">
               <div className="text-[11px] text-gray-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
                 <Icon name="Settings" size={12} /> 快捷功能
               </div>

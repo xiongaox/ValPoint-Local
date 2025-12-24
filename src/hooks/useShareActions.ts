@@ -13,11 +13,9 @@ type ImageSources = Partial<Record<ImageFieldKey, string | null | undefined>>;
 
 const imageFields: ImageFieldKey[] = ['standImg', 'stand2Img', 'aimImg', 'aim2Img', 'landImg'];
 
-const toShortShareId = (uuid: string) => {
+const toShortId = (uuid: string) => {
   if (!uuid) return '';
-  const parts = uuid.split('-');
-  if (parts.length === 5) return `${parts[3]}-${parts[4]}`;
-  return uuid;
+  return uuid.substring(0, 8); // Use first 8 chars for display
 };
 
 type Params = {
@@ -151,7 +149,7 @@ export const useShareActions = ({
         return;
       }
       if (lineup.clonedFrom) {
-        const originalShareId = toShortShareId(lineup.clonedFrom);
+        const originalShareId = toShortId(lineup.clonedFrom);
         setAlertActionLabel('复制原分享ID');
         setAlertAction(() => () => {
           const textArea = document.createElement('textarea');
@@ -176,9 +174,9 @@ export const useShareActions = ({
       }
       setAlertActionLabel(null);
       setAlertAction(null);
-      const shareId = toShortShareId(id);
+      const shareId = toShortId(id);
       const payload = {
-        share_id: shareId,
+        id: id,  // 使用原始 ID 作为主键
         source_id: id,
         ...{
           title: lineup.title,

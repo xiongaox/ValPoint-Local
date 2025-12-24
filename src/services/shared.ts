@@ -3,20 +3,21 @@ import { TABLE } from './tables';
 import { normalizeLineup } from './normalize';
 import { BaseLineup, SharedLineup } from '../types/lineup';
 
-export async function fetchSharedByShareId(shareId: string, mapNameZhToEn: Record<string, string>): Promise<SharedLineup | null> {
+export async function fetchSharedById(id: string, mapNameZhToEn: Record<string, string>): Promise<SharedLineup | null> {
   const { data: sharedData, error: sharedError } = await shareSupabase
     .from(TABLE.shared)
     .select('*')
-    .eq('share_id', shareId)
+    .eq('id', id)
     .single();
   if (!sharedError && sharedData) {
     const normalized = normalizeLineup(sharedData, mapNameZhToEn);
-    return { ...normalized, id: sharedData.source_id || sharedData.id || shareId, shareId: sharedData.share_id || shareId };
+    return { ...normalized, id: sharedData.id, sourceId: sharedData.source_id };
   }
-  const { data: legacyData, error: legacyError } = await supabase.from(TABLE.lineups).select('*').eq('id', shareId).single();
+  // 兼容旧逻辑：如果 id 查不到，尝试查旧表 (migration phase fallback)
+  const { data: legacyData, error: legacyError } = await supabase.from(TABLE.lineups).select('*').eq('id', id).single();
   if (!legacyError && legacyData) {
     const normalized = normalizeLineup(legacyData, mapNameZhToEn);
-    return { ...normalized, id: legacyData.id, shareId: shareId };
+    return { ...normalized, id: legacyData.id };
   }
   return null;
 }
@@ -28,6 +29,7 @@ export async function fetchSharedList(mapNameZhToEn: Record<string, string>): Pr
 }
 
 export async function upsertShared(payload: any) {
-  const { error } = await shareSupabase.from(TABLE.shared).upsert(payload, { onConflict: 'share_id' });
+  // 使用 id 作为冲突检测键
+  const { error } = await shareSupabase.from(TABLE.shared).upsert(payload, { onConflict: 'id' });
   if (error) throw error;
 }

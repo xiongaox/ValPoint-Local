@@ -38,7 +38,6 @@ export type BaseLineup = {
 };
 
 export type SharedLineup = BaseLineup & {
-  shareId?: string;
   sourceId?: string | null;
 };
 

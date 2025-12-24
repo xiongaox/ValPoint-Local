@@ -27,20 +27,13 @@ export interface SyncResult {
 }
 
 /**
- * 生成 12 位 share_id
- */
-const generateShareId = (): string => {
-    return crypto.randomUUID().replace(/-/g, '').substring(0, 12);
-};
-
-/**
  * 检查点位是否已同步到共享库
  * 通过 source_id 字段判断
  */
 const checkIfSynced = async (sourceId: string): Promise<boolean> => {
     const { data } = await shareSupabase
         .from(TABLE.shared)
-        .select('share_id')
+        .select('id')
         .eq('source_id', sourceId)
         .limit(1);
 
@@ -129,8 +122,8 @@ export const syncLineupsToShared = async (
 
             // 构建共享库记录
             const sharedLineup = {
-                share_id: generateShareId(),
-                source_id: lineup.id,  // 记录来源，用于去重
+                id: lineup.id,  // 使用 id 作为主键 (原 share_id)
+                source_id: lineup.id, // source_id 也存为 id，可用于追溯
                 title: lineup.title,
                 map_name: lineup.map_name,
                 agent_name: lineup.agent_name,

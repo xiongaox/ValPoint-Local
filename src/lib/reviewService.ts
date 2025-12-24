@@ -84,11 +84,11 @@ export async function approveSubmission(
         const migratedUrls = await migrateImagesToOss(submission, ossConfig);
 
         // 2. 创建 valorant_shared 记录
-        // 生成唯一的 share_id
-        const shareId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+        // 生成 UUID 作为 id
+        const newId = crypto.randomUUID();
 
         const sharedLineup = {
-            share_id: shareId,
+            id: newId,
             source_id: submission.id,
             title: submission.title,
             map_name: submission.map_name,
@@ -135,9 +135,6 @@ export async function approveSubmission(
             return { success: false, error: `更新投稿状态失败: ${updateError.message}` };
         }
 
-        // 4. 删除临时文件（可选，后续可以用定时任务清理）
-        // await deleteSubmissionImages(submission);
-
         return { success: true };
     } catch (error) {
         const message = error instanceof Error ? error.message : '审核失败';
@@ -147,8 +144,7 @@ export async function approveSubmission(
 
 /**
  * 审核拒绝
- * 1. 更新投稿状态并记录拒绝理由
- * 2. 删除 Supabase Storage 临时文件
+ * ... (unchanged)
  */
 export async function rejectSubmission(
     submissionId: string,
@@ -170,9 +166,6 @@ export async function rejectSubmission(
             return { success: false, error: error.message };
         }
 
-        // 可选：删除临时文件
-        // await deleteSubmissionImages(submission);
-
         return { success: true };
     } catch (error) {
         const message = error instanceof Error ? error.message : '拒绝失败';
@@ -181,7 +174,8 @@ export async function rejectSubmission(
 }
 
 /**
- * 删除投稿的临时图片（从 Supabase Storage）
+ * 删除投稿的临时图片
+ * ... (unchanged)
  */
 export async function deleteSubmissionImages(submission: LineupSubmission): Promise<void> {
     const bucket = 'submissions';
@@ -200,9 +194,8 @@ export async function deleteSubmissionImages(submission: LineupSubmission): Prom
 
 /** 共享库点位类型 */
 export interface SharedLineup {
-    share_id: string;
+    id: string; // 使用 id
     source_id?: string;
-    id?: string;
     user_id?: string;
     title: string;
     map_name: string;
@@ -229,11 +222,11 @@ export async function getSharedLineups(): Promise<SharedLineup[]> {
 }
 
 /** 删除共享库点位 */
-export async function deleteSharedLineup(shareId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteSharedLineup(id: string): Promise<{ success: boolean; error?: string }> {
     const { error } = await shareSupabase
         .from(TABLE.shared)
         .delete()
-        .eq('share_id', shareId);
+        .eq('id', id);
 
     if (error) {
         return { success: false, error: error.message };

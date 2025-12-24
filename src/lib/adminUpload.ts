@@ -27,7 +27,7 @@ export interface AdminUploadProgress {
 /** 上传结果 */
 export interface AdminUploadResult {
     success: boolean;
-    shareId?: string;
+    id?: string;
     errorMessage?: string;
 }
 
@@ -153,10 +153,10 @@ export const adminUploadLineup = async (
         onProgress?.({ status: 'saving', current: uploadedCount, total: totalImages });
 
         // 3. 直接写入 valorant_shared 表
-        const shareId = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
+        const newId = crypto.randomUUID();
 
         const sharedLineup = {
-            share_id: shareId,
+            id: newId,
             title: jsonPayload.title || '未命名点位',
             map_name: jsonPayload.map_name,
             agent_name: jsonPayload.agent_name,
@@ -190,7 +190,7 @@ export const adminUploadLineup = async (
 
         return {
             success: true,
-            shareId,
+            id: newId,
         };
     } catch (error) {
         const message = error instanceof Error ? error.message : '上传失败';
