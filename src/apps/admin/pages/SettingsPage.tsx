@@ -3,6 +3,11 @@ import Icon from '../../../components/Icon';
 import { getSystemSettings, updateSystemSettings } from '../../../lib/systemSettings';
 import { ImageBedConfig, ImageBedProvider } from '../../../types/imageBed';
 import { imageBedProviderDefinitions, imageBedProviderMap, defaultImageBedConfig } from '../../../lib/imageBed';
+import { getAdminList, addAdmin, removeAdmin, AdminUser } from '../../../lib/adminService';
+
+interface SettingsPageProps {
+    isSuperAdmin: boolean;
+}
 
 interface Settings {
     dailyDownloadLimit: number;
@@ -16,20 +21,21 @@ interface LibraryUrls {
 }
 
 // Tab 配置
-type SettingsTab = 'imageBed' | 'submission' | 'download' | 'features' | 'domain';
+type SettingsTab = 'imageBed' | 'submission' | 'download' | 'features' | 'domain' | 'admins';
 
-const TABS: { id: SettingsTab; label: string; icon: 'Cloud' | 'Send' | 'Download' | 'ToggleLeft' | 'Globe' }[] = [
+const TABS: { id: SettingsTab; label: string; icon: 'Cloud' | 'Send' | 'Download' | 'ToggleLeft' | 'Globe' | 'Shield'; superAdminOnly?: boolean }[] = [
     { id: 'imageBed', label: '官方图床', icon: 'Cloud' },
     { id: 'submission', label: '投稿设置', icon: 'Send' },
     { id: 'download', label: '下载限制', icon: 'Download' },
     { id: 'features', label: '功能开关', icon: 'ToggleLeft' },
     { id: 'domain', label: '域名配置', icon: 'Globe' },
+    { id: 'admins', label: '管理员', icon: 'Shield', superAdminOnly: true },
 ];
 
 /**
  * 系统设置页面 - Tab 布局
  */
-function SettingsPage() {
+function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
     const [activeTab, setActiveTab] = useState<SettingsTab>('imageBed');
     const [settings, setSettings] = useState<Settings>({
         dailyDownloadLimit: 5,
@@ -44,6 +50,13 @@ function SettingsPage() {
     const [ossConfig, setOssConfig] = useState<ImageBedConfig>(defaultImageBedConfig);
     const [submissionEnabled, setSubmissionEnabled] = useState(false);
     const [dailySubmissionLimit, setDailySubmissionLimit] = useState(10);
+
+    // 管理员管理
+    const [adminList, setAdminList] = useState<AdminUser[]>([]);
+    const [newAdminEmail, setNewAdminEmail] = useState('');
+    const [newAdminNickname, setNewAdminNickname] = useState('');
+    const [isAddingAdmin, setIsAddingAdmin] = useState(false);
+    const [removingAdminId, setRemovingAdminId] = useState<string | null>(null);
 
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +100,42 @@ function SettingsPage() {
         }
         loadSettings();
     }, []);
+
+    // 加载管理员列表
+    useEffect(() => {
+        if (isSuperAdmin) {
+            getAdminList().then(setAdminList);
+        }
+    }, [isSuperAdmin]);
+
+    // 添加管理员
+    const handleAddAdmin = async () => {
+        if (!newAdminEmail.trim()) return;
+        setIsAddingAdmin(true);
+        const result = await addAdmin(newAdminEmail.trim(), newAdminNickname.trim() || undefined);
+        if (result.success) {
+            setNewAdminEmail('');
+            setNewAdminNickname('');
+            const list = await getAdminList();
+            setAdminList(list);
+        } else {
+            alert(result.error || '添加失败');
+        }
+        setIsAddingAdmin(false);
+    };
+
+    // 移除管理员
+    const handleRemoveAdmin = async (adminId: string) => {
+        if (!confirm('确定要移除该管理员吗？')) return;
+        setRemovingAdminId(adminId);
+        const result = await removeAdmin(adminId);
+        if (result.success) {
+            setAdminList((prev) => prev.filter((a) => a.id !== adminId));
+        } else {
+            alert(result.error || '移除失败');
+        }
+        setRemovingAdminId(null);
+    };
 
     // 更新图床配置字段
     const updateOssField = (key: keyof ImageBedConfig, value: string | boolean) => {
@@ -362,16 +411,109 @@ function SettingsPage() {
                     </div>
                 );
 
+            case 'admins':
+                return (
+                    <div className="space-y-6">
+                        {/* 添加管理员 */}
+                        <div className="bg-[#0f1923] rounded-xl p-4 border border-white/10">
+                            <h4 className="text-white font-medium mb-4">添加管理员</h4>
+                            <div className="flex gap-3">
+                                <input
+                                    type="email"
+                                    value={newAdminEmail}
+                                    onChange={(e) => setNewAdminEmail(e.target.value)}
+                                    placeholder="管理员邮箱"
+                                    className="flex-1 px-3 py-2 bg-[#1f2326] border border-white/10 rounded-lg text-white text-sm focus:border-[#ff4655] outline-none"
+                                />
+                                <input
+                                    type="text"
+                                    value={newAdminNickname}
+                                    onChange={(e) => setNewAdminNickname(e.target.value)}
+                                    placeholder="昵称(可选)"
+                                    className="w-32 px-3 py-2 bg-[#1f2326] border border-white/10 rounded-lg text-white text-sm focus:border-[#ff4655] outline-none"
+                                />
+                                <button
+                                    onClick={handleAddAdmin}
+                                    disabled={isAddingAdmin || !newAdminEmail.trim()}
+                                    className="px-4 py-2 bg-[#ff4655] hover:bg-[#ff5a67] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    {isAddingAdmin ? (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Icon name="UserPlus" size={16} />
+                                    )}
+                                    添加
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                输入邮箱添加管理员，该用户登录后即可访问后台
+                            </p>
+                        </div>
+
+                        {/* 管理员列表 */}
+                        <div className="bg-[#0f1923] rounded-xl border border-white/10 overflow-hidden">
+                            <div className="px-4 py-3 border-b border-white/10">
+                                <h4 className="text-white font-medium">管理员列表</h4>
+                            </div>
+                            <div className="divide-y divide-white/5">
+                                {adminList.map((admin) => (
+                                    <div key={admin.id} className="flex items-center justify-between px-4 py-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${admin.role === 'super_admin'
+                                                    ? 'bg-amber-500/20 text-amber-400'
+                                                    : 'bg-blue-500/20 text-blue-400'
+                                                }`}>
+                                                <Icon name={admin.role === 'super_admin' ? 'Crown' : 'Shield'} size={16} />
+                                            </div>
+                                            <div>
+                                                <div className="text-sm text-white flex items-center gap-2">
+                                                    {admin.nickname || admin.email.split('@')[0]}
+                                                    {admin.role === 'super_admin' && (
+                                                        <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded">超级管理员</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-xs text-gray-500">{admin.email}</div>
+                                            </div>
+                                        </div>
+                                        {admin.role !== 'super_admin' && (
+                                            <button
+                                                onClick={() => handleRemoveAdmin(admin.id)}
+                                                disabled={removingAdminId === admin.id}
+                                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                                                title="移除管理员"
+                                            >
+                                                {removingAdminId === admin.id ? (
+                                                    <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                                                ) : (
+                                                    <Icon name="UserMinus" size={16} />
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                                {adminList.length === 0 && (
+                                    <div className="py-8 text-center text-gray-500 text-sm">
+                                        暂无管理员
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+
             default:
                 return null;
         }
     };
 
+    // 过滤标签页（超级管理员才能看到管理员标签）
+    const visibleTabs = TABS.filter((tab) => !tab.superAdminOnly || isSuperAdmin);
+
     return (
         <div className="max-w-4xl mx-auto">
             {/* Tab 栏 */}
             <div className="flex items-center gap-1 mb-6 bg-[#1f2326] rounded-xl p-1 border border-white/10">
-                {TABS.map((tab) => (
+                {visibleTabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}

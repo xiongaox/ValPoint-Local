@@ -409,7 +409,7 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                         value={email}
                         onChange={(e) => { setEmail(e.target.value); setValidationError(null); }}
                         placeholder="your@email.com"
-                        className={`w-full px-4 py-3 bg-[#0f1923] border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors ${validationError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/10 focus:ring-[#ff4655]/50 focus:border-[#ff4655]'
+                        className={`w-full px-4 py-3 bg-[#0f1923] border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors ${validationError ? 'border-red-500 focus:ring-red-500/50' : 'border-white/[0.08] focus:ring-[#ff4655]/50 focus:border-[#ff4655]'
                             }`}
                         disabled={isSubmitting}
                         autoFocus
@@ -426,7 +426,7 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                                 value={password}
                                 onChange={(e) => { setPassword(e.target.value); setValidationError(null); }}
                                 placeholder={isRegister ? '至少6位' : '输入密码'}
-                                className="w-full px-4 py-3 pr-12 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50 focus:border-[#ff4655] transition-colors"
+                                className="w-full px-4 py-3 pr-12 bg-[#0f1923] border border-white/[0.08] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50 focus:border-[#ff4655] transition-colors"
                                 disabled={isSubmitting}
                             />
                             <button
@@ -450,7 +450,7 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                                 value={confirmPassword}
                                 onChange={(e) => { setConfirmPassword(e.target.value); setValidationError(null); }}
                                 placeholder="再次输入密码"
-                                className="w-full px-4 py-3 pr-12 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50 focus:border-[#ff4655] transition-colors"
+                                className="w-full px-4 py-3 pr-12 bg-[#0f1923] border border-white/[0.08] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50 focus:border-[#ff4655] transition-colors"
                                 disabled={isSubmitting}
                             />
                             <button
@@ -543,6 +543,11 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     -webkit-box-shadow: 0 0 0 30px #0f1923 inset !important;
                     -webkit-text-fill-color: white !important;
                     caret-color: white !important;
+                    border-color: rgba(255, 255, 255, 0.15) !important;
+                }
+                /* 已输入内容但失焦的输入框边框降低亮度 */
+                input:not(:focus):not(:placeholder-shown) {
+                    border-color: rgba(255, 255, 255, 0.15) !important;
                 }
             `}</style>
 
