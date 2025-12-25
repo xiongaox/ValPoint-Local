@@ -144,6 +144,19 @@ const LeafletMap: React.FC<Props> = ({
     map.fitBounds(bounds);
   }, [mapIcon]);
 
+  // 当切换攻防视角时，强制刷新地图尺寸，避免地图缩小到左上角
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map) return;
+    // 延迟执行以确保 DOM 已更新
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+      const bounds: any = [[0, 0], [1000, 1000]];
+      map.fitBounds(bounds);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [isFlipped]);
+
   const createIcon = (type: 'agent' | 'skill', imgUrl?: string) => {
     const content = imgUrl
       ? `<div class="marker-icon-wrapper border-white"><img src="${imgUrl}" class="marker-img ${type === 'skill' ? 'marker-img-skill' : ''

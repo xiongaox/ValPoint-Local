@@ -190,6 +190,19 @@ CREATE TRIGGER tr_valorant_shared_updated_at BEFORE UPDATE ON public.valorant_sh
 CREATE TRIGGER tr_lineup_submissions_updated_at BEFORE UPDATE ON public.lineup_submissions FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
 CREATE TRIGGER tr_system_settings_updated_at BEFORE UPDATE ON public.system_settings FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
 
+-- 用户每日下载记录表
+CREATE TABLE IF NOT EXISTS public.user_daily_downloads (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    download_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    download_count INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, download_date)
+);
+
+CREATE TRIGGER tr_user_daily_downloads_updated_at BEFORE UPDATE ON public.user_daily_downloads FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
 -- 6. RLS 安全策略 (Row Level Security)
 
 -- 启用 RLS
