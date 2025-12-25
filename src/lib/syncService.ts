@@ -91,7 +91,7 @@ export const syncLineupsToShared = async (
         let userDisplayId = userId.substring(0, 8).toUpperCase(); // 默认使用 UUID 前 8 位
         try {
             const { data: userData } = await supabase
-                .from(TABLE.users)
+                .from('user_profiles')
                 .select('custom_id, nickname')
                 .eq('id', userId)
                 .single();

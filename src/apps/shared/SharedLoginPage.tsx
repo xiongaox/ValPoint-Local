@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../../components/Icon';
 import { useEmailAuth } from '../../hooks/useEmailAuth';
 import { validateEmail } from '../../lib/emailValidator';
+import { generateShortId } from '../../lib/shortId';
 
 interface SharedLoginPageProps {
     setAlertMessage: (msg: string | null) => void;
@@ -127,14 +128,8 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
 
         setIsSubmitting(true);
         try {
-            // 生成随机 ID：8位 大写字母+数字
-            const generateId = () => {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                let res = '';
-                for (let i = 0; i < 8; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
-                return res;
-            };
-            const customId = generateId();
+            // 使用新的 ID 生成器（排除易混淆字符 I, 1, O, 0）
+            const customId = generateShortId();
 
             // 注册并附带元数据
             const result = await signUpWithEmail(email, password, {

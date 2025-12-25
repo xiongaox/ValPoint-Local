@@ -22,11 +22,6 @@ type Props = {
   getMapDisplayName: (name: string) => string;
   onOpenImportModal: () => void;
   userId: string | null;
-  userMode: 'login' | 'guest';
-  customUserIdInput: string;
-  setCustomUserIdInput: (v: string) => void;
-  handleApplyCustomUserId: () => void;
-  handleResetUserId: () => void;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
@@ -52,11 +47,6 @@ const RightPanel: React.FC<Props> = ({
   getMapDisplayName,
   onOpenImportModal,
   userId,
-  userMode,
-  customUserIdInput,
-  setCustomUserIdInput,
-  handleApplyCustomUserId,
-  handleResetUserId,
   pinnedLineupIds,
   onTogglePinLineup,
   pinnedLimit,
@@ -91,7 +81,7 @@ const RightPanel: React.FC<Props> = ({
         >
           <Icon name="Search" size={18} /> 查看点位
         </button>
-        {userMode === 'login' && (
+        {userId && (
           <button
             onClick={() => handleTabSwitch('create')}
             className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${activeTab === 'create' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
@@ -100,7 +90,7 @@ const RightPanel: React.FC<Props> = ({
             <Icon name="Plus" size={18} /> 新增点位
           </button>
         )}
-        {userMode === 'login' && (
+        {userId && (
           <button
             onClick={onOpenImportModal}
             className="py-4 px-4 flex items-center justify-center border-l border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
@@ -112,42 +102,6 @@ const RightPanel: React.FC<Props> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
-        <div className="bg-[#0f1923] border border-white/10 rounded-lg p-4 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-[12px] font-bold text-[#ff4655] uppercase tracking-wider">自定义 ID（跨设备共享）</div>
-            {userId && (
-              <div className="flex items-center gap-2 text-[11px] text-gray-400 truncate max-w-[200px]" title={`当前 ID：${userId}`}>
-                <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] uppercase">{userMode === 'guest' ? '游客' : '登录'}</span>
-                <span className="truncate">当前：{userId}</span>
-              </div>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={customUserIdInput}
-              onChange={(e) => setCustomUserIdInput(e.target.value)}
-              placeholder="例如 TEAM1234"
-              className="flex-1 bg-black/30 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:border-[#ff4655] outline-none transition-colors"
-            />
-            <button
-              onClick={handleApplyCustomUserId}
-              className="px-3 py-2 rounded-lg bg-[#ff4655] text-white text-sm font-bold hover:bg-[#d93a49] transition-colors whitespace-nowrap"
-            >
-              验证用户
-            </button>
-          </div>
-          <div className="flex items-center justify-between text-[11px] text-gray-500">
-            <span>用同一 ID 在不同设备访问即可看到同步数据</span>
-            <button
-              onClick={handleResetUserId}
-              className="text-blue-400 hover:text-blue-200 transition-colors underline"
-              title="生成一个新的随机 ID"
-            >
-              随机 ID
-            </button>
-          </div>
-        </div>
 
         {activeTab === 'create' ? (
           <div className="space-y-6 animate-in fade-in">
@@ -237,12 +191,8 @@ const RightPanel: React.FC<Props> = ({
               </div>
               <button
                 onClick={handleClearAll}
-                disabled={userMode === 'guest'}
-                className={`h-12 px-3 whitespace-nowrap font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-wider group transition-colors ${userMode === 'guest'
-                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed border border-white/10 shadow-none'
-                  : 'bg-[#ff4655] hover:bg-[#d93a49] text-white shadow-lg shadow-red-900/20'
-                  }`}
-                title={userMode === 'guest' ? '游客模式仅可查看' : '清空当前 ID 的全部点位'}
+                className="h-12 px-3 whitespace-nowrap font-bold rounded-lg flex items-center justify-center gap-2 uppercase tracking-wider group transition-colors bg-[#ff4655] hover:bg-[#d93a49] text-white shadow-lg shadow-red-900/20"
+                title="清空当前 ID 的全部点位"
               >
                 <Icon name="Trash2" size={16} className="group-hover:scale-110 transition-transform" />
                 清空点位
@@ -335,7 +285,7 @@ const RightPanel: React.FC<Props> = ({
                             >
                               <Icon name="Download" size={14} />
                             </button>
-                            {userMode === 'login' && (
+                            {userId && (
                               <button
                                 onClick={(e) => handleRequestDelete(l.id, e)}
                                 className="text-gray-600 hover:text-red-500 p-1 rounded hover:bg-white/5 transition-colors"

@@ -1,4 +1,5 @@
 import React from 'react';
+import { User } from '@supabase/supabase-js';
 import MainView from '../MainView';
 import { ActiveTab } from '../../../types/app';
 import { AgentOption, BaseLineup, LibraryMode, MapOption, NewLineupForm, SharedLineup } from '../../../types/lineup';
@@ -53,16 +54,14 @@ type Params = {
   setSelectedLineupId: React.Dispatch<React.SetStateAction<string | null>>;
   setViewingLineup: React.Dispatch<React.SetStateAction<BaseLineup | null>>;
   userId: string | null;
-  userMode: 'login' | 'guest';
-  customUserIdInput: string;
-  setCustomUserIdInput: (v: string) => void;
-  handleApplyCustomUserId: () => void;
-  handleResetUserId: () => void;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
   hideSharedButton?: boolean;
   onBatchDownload: () => void;
+  user: User | null;
+  onSignOut: () => void;
+  onOpenProfile: () => void;
 };
 
 export function buildMainViewProps(params: Params): React.ComponentProps<typeof MainView> {
@@ -115,6 +114,7 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       onClearLineups: params.onClearLineups,
       onSyncToShared: params.onSyncToShared,
       onBatchDownload: params.onBatchDownload,
+      onProfile: params.onOpenProfile,
       isAdmin: params.isAdmin,
       pendingTransfers: params.pendingTransfers,
     },
@@ -138,15 +138,13 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       getMapDisplayName: params.getMapDisplayName,
       onOpenImportModal: () => params.setIsImportModalOpen(true),
       userId: params.userId,
-      userMode: params.userMode,
-      customUserIdInput: params.customUserIdInput,
-      setCustomUserIdInput: params.setCustomUserIdInput,
-      handleApplyCustomUserId: params.handleApplyCustomUserId,
-      handleResetUserId: params.handleResetUserId,
       pinnedLineupIds: params.pinnedLineupIds,
       onTogglePinLineup: params.onTogglePinLineup,
       pinnedLimit: params.pinnedLimit,
     },
     hideSharedButton: params.hideSharedButton,
+    user: params.user,
+    onSignOut: params.onSignOut,
+    onOpenProfile: params.onOpenProfile,
   };
 }

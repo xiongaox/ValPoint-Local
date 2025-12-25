@@ -1,7 +1,9 @@
 import React from 'react';
+import { User } from '@supabase/supabase-js';
 import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
 import LibrarySwitchButton from '../../components/LibrarySwitchButton';
+import CompactUserCard from '../../components/CompactUserCard';
 
 import LeftPanel from '../../components/LeftPanel';
 import RightPanel from '../../components/RightPanel';
@@ -51,6 +53,7 @@ type QuickActionsProps = {
   onClearLineups: () => void;
   onSyncToShared?: () => void;
   onBatchDownload?: () => void;
+  onProfile?: () => void;
   isAdmin?: boolean;
   pendingTransfers: number;
 };
@@ -75,11 +78,6 @@ type RightProps = {
   getMapDisplayName: (name: string) => string;
   onOpenImportModal: () => void;
   userId: string | null;
-  userMode: 'login' | 'guest';
-  customUserIdInput: string;
-  setCustomUserIdInput: (v: string) => void;
-  handleApplyCustomUserId: () => void;
-  handleResetUserId: () => void;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
@@ -93,9 +91,12 @@ type Props = {
   quickActions: QuickActionsProps;
   right: RightProps;
   hideSharedButton?: boolean;
+  user: User | null;
+  onSignOut: () => void;
+  onOpenProfile: () => void;
 };
 
-const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton }) => {
+const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton, user, onSignOut, onOpenProfile }) => {
   return (
     <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
       <LeftPanel
@@ -141,12 +142,18 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           onClearLineups={quickActions.onClearLineups}
           onSyncToShared={quickActions.onSyncToShared}
           onBatchDownload={quickActions.onBatchDownload}
+          onProfile={quickActions.onProfile}
           isAdmin={quickActions.isAdmin}
           pendingTransfers={quickActions.pendingTransfers}
         />
-        {/* 库切换按钮 */}
-        <div className="absolute top-3 left-3 z-10">
+        {/* 左上角：库切换 + 用户卡片 */}
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-3">
           <LibrarySwitchButton currentLibrary="personal" hideSharedButton={hideSharedButton} />
+          <CompactUserCard
+            user={user}
+            onSignOut={onSignOut}
+            onRequestLogin={onOpenProfile}
+          />
         </div>
       </div>
 
@@ -170,11 +177,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
         getMapDisplayName={right.getMapDisplayName}
         onOpenImportModal={right.onOpenImportModal}
         userId={right.userId}
-        userMode={right.userMode}
-        customUserIdInput={right.customUserIdInput}
-        setCustomUserIdInput={right.setCustomUserIdInput}
-        handleApplyCustomUserId={right.handleApplyCustomUserId}
-        handleResetUserId={right.handleResetUserId}
         pinnedLineupIds={right.pinnedLineupIds}
         onTogglePinLineup={right.onTogglePinLineup}
         pinnedLimit={right.pinnedLimit}

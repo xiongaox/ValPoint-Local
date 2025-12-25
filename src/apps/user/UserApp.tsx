@@ -6,13 +6,17 @@ import MainView from '../../features/lineups/MainView';
 import AppModals from '../../features/lineups/AppModals';
 import { useAppController } from '../../features/lineups/useAppController';
 import SyncToSharedModal from '../shared/SyncToSharedModal';
+import SharedLoginPage from '../shared/SharedLoginPage';
+import UserProfileModal from '../shared/components/UserProfileModal';
+import { useEmailAuth } from '../../hooks/useEmailAuth';
 
 /**
  * 个人库应用根组件
- * 保持与原 App.tsx 相同的功能
+ * 使用 Supabase Auth 统一认证
  */
 function UserApp() {
-    const { mainViewProps, modalProps } = useAppController();
+    const { user, isLoading } = useEmailAuth();
+    const { mainViewProps, modalProps, isProfileModalOpen, setIsProfileModalOpen } = useAppController();
 
     // 同步弹窗状态
     const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
@@ -42,6 +46,20 @@ function UserApp() {
         }
     }, [alertMessage]);
 
+    // 加载中状态
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-[#0f1923] flex items-center justify-center">
+                <div className="w-12 h-12 border-4 border-[#ff4655] border-t-transparent rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    // 未登录时显示登录页面
+    if (!user) {
+        return <SharedLoginPage setAlertMessage={setAlertMessage} />;
+    }
+
     // 扩展 quickActions props - 按钮对所有人可见
     const extendedMainViewProps = {
         ...mainViewProps,
@@ -56,8 +74,8 @@ function UserApp() {
     const currentMap = mainViewProps?.left?.selectedMap;
     const currentAgent = mainViewProps?.left?.selectedAgent;
 
-    // 获取个人库用户 ID
-    const personalUserId = mainViewProps?.right?.userId || '';
+    // 获取个人库用户 ID（使用 Supabase User UUID）
+    const personalUserId = user.id;
 
     // 获取地图封面 URL
     const mapCover = mainViewProps?.map?.mapCover;
@@ -79,6 +97,13 @@ function UserApp() {
                 setAlertMessage={(msg) => setAlertMessage(msg)}
                 verifiedAdminEmail={verifiedAdminEmail}
                 setVerifiedAdminEmail={setVerifiedAdminEmail}
+            />
+
+            {/* 个人信息弹窗 */}
+            <UserProfileModal
+                isOpen={isProfileModalOpen}
+                onClose={() => setIsProfileModalOpen(false)}
+                setAlertMessage={(msg) => setAlertMessage(msg)}
             />
 
             {/* Alert 提示 - 5秒后渐隐消失 */}

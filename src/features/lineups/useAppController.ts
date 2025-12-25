@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
+import { useEmailAuth } from '../../hooks/useEmailAuth';
 import { useLineups } from '../../hooks/useLineups';
 import { useLineupActions } from '../../hooks/useLineupActions';
 import { useValorantData } from '../../hooks/useValorantData';
@@ -19,7 +19,6 @@ import { buildMainViewProps } from './controllers/useMainViewProps';
 import { buildModalProps } from './controllers/useModalProps';
 import { buildUiProps } from './controllers/useUiProps';
 import { useAppState } from './controllers/useAppState';
-import { fetchUserApi, upsertUserApi } from '../../services/users';
 
 const DEFAULT_PINNED_COUNT = 8;
 
@@ -51,27 +50,29 @@ export function useAppController() {
     selectedMap,
     selectedSide,
   });
-  const {
-    userId,
-    userMode,
-    isGuest,
-    isAuthModalOpen,
-    setIsAuthModalOpen,
-    pendingUserId,
-    setPendingUserId,
-    customUserIdInput,
-    setCustomUserIdInput,
-    passwordInput,
-    setPasswordInput,
-    isAuthLoading,
-    targetUserId,
-    handleApplyCustomUserId,
-    handleResetUserId,
-    handleConfirmUserAuth,
-  } = useAuth({
-    onAuthSuccess: async () => { },
-    setAlertMessage: modal.setAlertMessage,
-  });
+  // 使用 Supabase Auth 进行认证
+  const { user, signOut } = useEmailAuth();
+  // 将 Supabase UUID 作为用户 ID
+  const userId = user?.id || null;
+  // 个人信息弹窗状态
+  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
+  // 统一使用登录模式，不再支持游客模式
+  const userMode = 'login' as const;
+  const isGuest = false;
+  // 旧认证弹窗相关状态（保留以兼容现有 UI）
+  const isAuthModalOpen = false;
+  const setIsAuthModalOpen = () => { };
+  const pendingUserId = '';
+  const setPendingUserId = () => { };
+  const customUserIdInput = user?.user_metadata?.custom_id || '';
+  const setCustomUserIdInput = () => { };
+  const passwordInput = '';
+  const setPasswordInput = () => { };
+  const isAuthLoading = false;
+  const targetUserId = userId || '';
+  const handleApplyCustomUserId = () => { };
+  const handleResetUserId = () => { };
+  const handleConfirmUserAuth = async () => { };
   const { lineups, setLineups, fetchLineups } = useLineups(mapNameZhToEn);
   const { pinnedLineupIds, togglePinnedLineup, orderedLineups } = usePinnedLineups({
     userId,
@@ -256,55 +257,12 @@ export function useAppController() {
     }
   }, [selectedMap, selectedAgent, allMapLineups, handleDownload, modal]);
 
+  // 使用 Supabase Auth 后，密码修改通过登录页面的"忘记密码"功能完成
   const handleChangePasswordSubmit = useCallback(
-    async (oldPassword: string, newPassword: string, confirmPassword: string) => {
-      if (!userId) {
-        modal.setAlertMessage('请先创建或登录一个 ID');
-        return;
-      }
-      if (!oldPassword) {
-        modal.setAlertMessage('请填写原密码');
-        return;
-      }
-      if (!newPassword) {
-        modal.setAlertMessage('请填写新密码');
-        return;
-      }
-      if (newPassword !== confirmPassword) {
-        modal.setAlertMessage('两次输入的新密码不一致');
-        return;
-      }
-      setIsChangingPassword(true);
-      try {
-        const { data, error } = await fetchUserApi(userId);
-        if (error) throw error;
-        const existing = data?.[0];
-        if (!existing) {
-          modal.setAlertMessage('未找到该 ID 的账号信息');
-          return;
-        }
-        if ((existing.password || '') !== oldPassword) {
-          modal.setAlertMessage('原密码不正确');
-          return;
-        }
-        const now = new Date().toISOString();
-        const { error: upsertError } = await upsertUserApi({
-          user_id: userId,
-          password: newPassword,
-          created_at: existing.created_at || now,
-          updated_at: now,
-        });
-        if (upsertError) throw upsertError;
-        setIsImageProcessingOpen(false);
-        modal.setAlertMessage('密码已更新，请使用新密码登录');
-      } catch (e) {
-        console.error(e);
-        modal.setAlertMessage('修改密码失败，请稍后再试');
-      } finally {
-        setIsChangingPassword(false);
-      }
+    async (_oldPassword: string, _newPassword: string, _confirmPassword: string) => {
+      modal.setAlertMessage('请通过登录页面的"忘记密码"功能重置密码');
     },
-    [userId, modal, setIsImageProcessingOpen],
+    [modal],
   );
 
   const togglePlacingType = (type: 'agent' | 'skill') => {
@@ -373,16 +331,14 @@ export function useAppController() {
     setSelectedLineupId,
     setViewingLineup,
     userId,
-    userMode,
-    customUserIdInput,
-    setCustomUserIdInput,
-    handleApplyCustomUserId,
-    handleResetUserId,
     pinnedLineupIds,
     onTogglePinLineup: togglePinnedLineup,
     pinnedLimit: DEFAULT_PINNED_COUNT,
     hideSharedButton: imageProcessingSettings.hideSharedButton,
     onBatchDownload: () => modal.setIsBatchDownloadModalOpen(true),
+    user,
+    onSignOut: signOut,
+    onOpenProfile: () => setIsProfileModalOpen(true),
   });
 
   const modalProps = buildModalProps({
@@ -488,5 +444,7 @@ export function useAppController() {
     activeTab,
     mainViewProps,
     modalProps,
+    isProfileModalOpen,
+    setIsProfileModalOpen,
   };
 }
