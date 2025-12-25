@@ -83,7 +83,7 @@ export function useAppController() {
   const { user, signOut } = useEmailAuth();
   // 将 Supabase UUID 作为用户 ID
   const userId = user?.id || null;
-  const { profile, loading: profileLoading } = useUserProfile();
+  const { profile, isLoading: profileLoading } = useUserProfile();
 
   // Debug log for profile permissions
   if (profile) {

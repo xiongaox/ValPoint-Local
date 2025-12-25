@@ -215,10 +215,9 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
             {/* 修改密码弹窗 */}
             <ChangePasswordModal
                 isOpen={isChangePasswordOpen}
-                userId={user?.email || null}
-                isSubmitting={isPasswordSubmitting}
+                isChangingPassword={isPasswordSubmitting}
                 onClose={() => setIsChangePasswordOpen(false)}
-                onSubmit={async (oldPwd, newPwd, confirmPwd) => {
+                onChangePasswordSubmit={async (oldPwd: string, newPwd: string, confirmPwd: string) => {
                     if (newPwd !== confirmPwd) {
                         setAlertMessage('两次输入的新密码不一致');
                         return;
