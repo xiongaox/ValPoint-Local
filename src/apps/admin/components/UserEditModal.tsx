@@ -10,16 +10,7 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
-
-// 头像列表（与 UserProfileModal 保持一致）
-const AGENT_AVATARS = [
-    'KO.png', '不死鸟.png', '壹决.png', '夜露.png', '奇乐.png',
-    '尚勃勒.png', '幻棱.png', '幽影.png', '捷风.png', '斯凯.png',
-    '星礈.png', '暮蝶.png', '海神.png', '炼狱.png', '猎枭.png',
-    '盖可.png', '禁灭.png', '维斯.png', '芮娜.png', '蝰蛇.png',
-    '贤者.png', '钛狐.png', '钢锁.png', '铁臂.png', '零.png',
-    '雷兹.png', '霓虹.png', '黑梦.png'
-];
+import { AGENT_AVATARS, getAvatarByEmail } from '../../../utils/avatarUtils';
 
 export interface UserProfile {
     id: string;
@@ -56,7 +47,8 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
     useEffect(() => {
         if (user) {
             setNickname(user.nickname || '');
-            setAvatar(user.avatar || '捷风.png');
+            // 使用用户邮箱生成确定性随机默认头像
+            setAvatar(user.avatar || getAvatarByEmail(user.email));
             setIsBanned(user.is_banned);
             setBanReason(user.ban_reason || '');
             setIsAvatarPickerOpen(false);

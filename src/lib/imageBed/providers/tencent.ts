@@ -7,9 +7,8 @@ import COS from 'cos-js-sdk-v5';
 import { ImageBedProviderDefinition, UploadOptions, TransferOptions, UploadResult } from '../types';
 import { ImageBedConfig } from '../../../types/imageBed';
 import {
-  trimSlashes,
   ensureHttps,
-  buildTimestampName,
+  buildSecureObjectKey,
   inferExtensionFromFile,
   downloadImageBlob,
 } from '../utils';
@@ -25,11 +24,9 @@ const createCosClient = (config: ImageBedConfig) => {
   });
 };
 
-const buildObjectKey = (basePath: string | undefined, extension: string) => {
-  const prefix = trimSlashes(basePath || '');
-  const fileName = `${buildTimestampName()}.${extension}`;
-  if (prefix) return `${prefix}/${fileName}`;
-  return fileName;
+/** 构建对象存储路径：使用 /{uuid} 格式 */
+const buildObjectKey = (basePath: string | undefined) => {
+  return buildSecureObjectKey(basePath);
 };
 
 const buildPublicUrl = (config: ImageBedConfig, objectKey: string) => {
@@ -116,8 +113,7 @@ const uploadBlobToCos = async (
   }
 
   const cos = createCosClient(config);
-  const extension = options.extensionHint || 'png';
-  const objectKey = buildObjectKey(config.path, extension);
+  const objectKey = buildObjectKey(config.path);
 
   // 构建完整的 bucket 名称（v5 格式）
   // 如果 bucket 已经包含 appId，则不再拼接

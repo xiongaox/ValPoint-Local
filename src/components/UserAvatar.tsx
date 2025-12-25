@@ -7,8 +7,9 @@
  * - 支持边框定制（颜色和是否显示）
  * - 在用户更新资料后通知所有 Avatar 组件实例同步刷新
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
+import { getAvatarByEmail } from '../utils/avatarUtils';
 
 interface UserAvatarProps {
     /** 用户邮箱 - 用于匹配用户 */
@@ -40,7 +41,9 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     bordered = true,
     borderColor = 'default'
 }) => {
-    const [avatar, setAvatar] = useState<string>('捷风.png');
+    // 使用邮箱生成确定性随机默认头像
+    const defaultAvatar = useMemo(() => getAvatarByEmail(email || ''), [email]);
+    const [avatar, setAvatar] = useState<string>(defaultAvatar);
     const [loading, setLoading] = useState(true);
     const [refreshKey, setRefreshKey] = useState(0);
 

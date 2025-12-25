@@ -11,6 +11,7 @@ import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useEmailAuth } from '../../../hooks/useEmailAuth';
+import { AGENT_AVATARS, getAvatarByUserId } from '../../../utils/avatarUtils';
 
 type Props = {
     isOpen: boolean;
@@ -18,21 +19,13 @@ type Props = {
     setAlertMessage: (msg: string | null) => void;
 };
 
-// 预定义的特工头像列表 (public/agents 下的文件名)
-const AGENT_AVATARS = [
-    'KO.png', '不死鸟.png', '壹决.png', '夜露.png', '奇乐.png',
-    '尚勃勒.png', '幻棱.png', '幽影.png', '捷风.png', '斯凯.png',
-    '星礈.png', '暮蝶.png', '海神.png', '炼狱.png', '猎枭.png',
-    '盖可.png', '禁灭.png', '维斯.png', '芮娜.png', '蝰蛇.png',
-    '贤者.png', '钛狐.png', '钢锁.png', '铁臂.png', '零.png',
-    '雷兹.png', '霓虹.png', '黑梦.png'
-];
-
 const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage }) => {
     const { user } = useEmailAuth();
     const { profile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
     const [nickname, setNickname] = useState('');
-    const [currentAvatar, setCurrentAvatar] = useState('捷风.png'); // 默认头像
+    // 使用用户 ID 生成确定性随机默认头像
+    const defaultAvatar = user?.id ? getAvatarByUserId(user.id) : '捷风.png';
+    const [currentAvatar, setCurrentAvatar] = useState(defaultAvatar);
     const [pendingId, setPendingId] = useState<string | null>(null); // 用于补填的 ID
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
@@ -49,7 +42,7 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
         if (isOpen && profile) {
             // 从 user_profiles 表读取数据
             setNickname(profile.nickname || '');
-            setCurrentAvatar(profile.avatar || '捷风.png');
+            setCurrentAvatar(profile.avatar || defaultAvatar);
             setIsAvatarPickerOpen(false);
 
             // 如果老用户没有 ID，生成一个待保存

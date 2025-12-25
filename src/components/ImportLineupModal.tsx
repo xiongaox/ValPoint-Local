@@ -18,6 +18,7 @@ type Props = {
     onClose: () => void;
     imageBedConfig: ImageBedConfig;
     userId: string | null;
+    lineups: BaseLineup[];
     onImportSuccess: (payload: LineupDbPayload) => Promise<BaseLineup>;
     onOpenImageConfig: () => void;
     setAlertMessage: (msg: string) => void;
@@ -37,6 +38,7 @@ const ImportLineupModal: React.FC<Props> = ({
     onClose,
     imageBedConfig,
     userId,
+    lineups,
     onImportSuccess,
     onOpenImageConfig,
     setAlertMessage,
@@ -111,7 +113,7 @@ const ImportLineupModal: React.FC<Props> = ({
             setProgress({ current: i + 1, total: validFiles.length, status: `正在导入: ${metadata?.title || file.name}` });
 
             try {
-                const result: ImportResult = await importLineupFromZip(file, imageBedConfig, userId);
+                const result: ImportResult = await importLineupFromZip(file, imageBedConfig, userId, lineups);
 
                 if (result.success && result.payload) {
                     await onImportSuccess(result.payload);

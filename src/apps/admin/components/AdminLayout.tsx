@@ -14,6 +14,7 @@ import { AdminPage } from '../AdminApp';
 import { supabase } from '../../../supabaseClient';
 import UserProfileModal from '../../shared/components/UserProfileModal';
 import { useUserProfile } from '../../../hooks/useUserProfile';
+import { getAvatarByEmail } from '../../../utils/avatarUtils';
 
 interface AdminLayoutProps {
     currentPage: AdminPage;
@@ -73,9 +74,9 @@ function AdminLayout({ currentPage, onPageChange, children }: AdminLayoutProps) 
         return profile.custom_id || profile.nickname || user?.email?.split('@')[0] || '管理员';
     };
 
-    // 获取用户头像 - 从 user_profiles 表读取
+    // 获取用户头像 - 从 user_profiles 表读取，无则使用随机默认头像
     const getUserAvatar = () => {
-        return profile?.avatar || '捷风.png';
+        return profile?.avatar || getAvatarByEmail(user?.email || '');
     };
 
     // 打开个人信息编辑

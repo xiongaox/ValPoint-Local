@@ -37,6 +37,27 @@ export const buildTimestampName = () => {
   );
 };
 
+/**
+ * 生成 32 位 UUID（无连字符）
+ */
+export const generateUUID = (): string => {
+  return crypto.randomUUID().replace(/-/g, '');
+};
+
+/**
+ * 构建安全的对象存储路径：/{uuid}
+ * - uuid: 随机生成的 32 位十六进制字符串，不可预测
+ */
+export const buildSecureObjectKey = (basePath: string | undefined): string => {
+  const prefix = trimSlashes(basePath || '');
+  const fileName = generateUUID();
+
+  if (prefix) {
+    return `${prefix}/${fileName}`;
+  }
+  return fileName;
+};
+
 export const appendTimestamp = (url: string) => {
   const hasQuery = url.includes('?');
   return `${url}${hasQuery ? '&' : '?'}t=${Date.now()}`;

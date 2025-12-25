@@ -10,16 +10,14 @@ import {
   trimSlashes,
   ensureProcessParams,
   ensureHttps,
-  buildTimestampName,
+  buildSecureObjectKey,
   inferExtensionFromFile,
   downloadImageBlob,
 } from '../utils';
 
-const buildObjectKey = (basePath: string | undefined, extension: string) => {
-  const prefix = trimSlashes(basePath || '');
-  const fileName = `${buildTimestampName()}.${extension}`;
-  if (prefix) return `${prefix}/${fileName}`;
-  return fileName;
+/** 构建对象存储路径：使用 /{uuid} 格式 */
+const buildObjectKey = (basePath: string | undefined) => {
+  return buildSecureObjectKey(basePath);
 };
 
 const createOssClient = (config: ImageBedConfig) => {
@@ -84,8 +82,7 @@ const uploadBlobToOss = async (
   options: UploadOptions = {},
 ): Promise<UploadResult> => {
   const client = createOssClient(config);
-  const extension = options.extensionHint || 'png';
-  const objectKey = buildObjectKey(config.basePath || config.path, extension);
+  const objectKey = buildObjectKey(config.basePath || config.path);
   const result = await uploadWithRetry(client, objectKey, blob, options.onProgress);
   const finalKey = (result as any).name || objectKey;
   const url = buildPublicUrl(config, finalKey);

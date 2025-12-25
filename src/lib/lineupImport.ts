@@ -9,7 +9,8 @@
 import { unzipSync, strFromU8 } from 'fflate';
 import { uploadImage } from './imageBed';
 import { ImageBedConfig } from '../types/imageBed';
-import { LineupDbPayload, LineupPosition, LineupSide } from '../types/lineup';
+import { LineupDbPayload, LineupPosition, LineupSide, BaseLineup } from '../types/lineup';
+import { generateUniqueTitle } from '../features/lineups/lineupHelpers';
 
 type LineupImageField = 'stand_img' | 'stand2_img' | 'aim_img' | 'aim2_img' | 'land_img';
 
@@ -127,6 +128,7 @@ export const importLineupFromZip = async (
     zipFile: File,
     config: ImageBedConfig,
     userId: string,
+    existingLineups: BaseLineup[],
     onProgress?: (progress: ImportProgress) => void,
 ): Promise<ImportResult> => {
     const failedImages: LineupImageField[] = [];
@@ -192,8 +194,9 @@ export const importLineupFromZip = async (
         }
 
         // Build payload for database
+        const uniqueTitle = generateUniqueTitle(jsonPayload.title, existingLineups, jsonPayload.agent_name);
         const payload: LineupDbPayload = {
-            title: jsonPayload.title,
+            title: uniqueTitle,
             map_name: jsonPayload.map_name,
             agent_name: jsonPayload.agent_name,
             agent_icon: jsonPayload.agent_icon ?? null,

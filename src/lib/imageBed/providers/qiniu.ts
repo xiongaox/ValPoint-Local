@@ -8,9 +8,8 @@ import CryptoJS from 'crypto-js';
 import { ImageBedProviderDefinition, UploadOptions, TransferOptions, UploadResult } from '../types';
 import { ImageBedConfig } from '../../../types/imageBed';
 import {
-  trimSlashes,
   ensureHttps,
-  buildTimestampName,
+  buildSecureObjectKey,
   inferExtensionFromFile,
   downloadImageBlob,
 } from '../utils';
@@ -43,11 +42,9 @@ const generateUploadToken = (accessKey: string, secretKey: string, bucket: strin
   return `${accessKey}:${encodedSign}:${encodedPutPolicy}`;
 };
 
-const buildObjectKey = (basePath: string | undefined, extension: string) => {
-  const prefix = trimSlashes(basePath || '');
-  const fileName = `${buildTimestampName()}.${extension}`;
-  if (prefix) return `${prefix}/${fileName}`;
-  return fileName;
+/** 构建对象存储路径：使用 /{uuid} 格式 */
+const buildObjectKey = (basePath: string | undefined) => {
+  return buildSecureObjectKey(basePath);
 };
 
 const buildPublicUrl = (config: ImageBedConfig, objectKey: string) => {
@@ -93,8 +90,7 @@ const uploadBlobToQiniu = async (
     throw error;
   }
 
-  const extension = options.extensionHint || 'png';
-  const objectKey = buildObjectKey(config.path, extension);
+  const objectKey = buildObjectKey(config.path);
 
   console.log('[qiniu] generating upload token', { bucket, objectKey });
 

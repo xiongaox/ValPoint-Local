@@ -91,6 +91,7 @@ type Params = {
   setIsImportModalOpen: (v: boolean) => void;
   saveNewLineup: (payload: LineupDbPayload) => Promise<BaseLineup>;
   fetchLineups: (userId: string) => void;
+  lineups: BaseLineup[];
   // batch download
   isBatchDownloadModalOpen: boolean;
   onBatchDownloadClose: () => void;
@@ -194,6 +195,7 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     onImportSuccess: params.saveNewLineup,
     onOpenImageConfig: () => params.setIsImageConfigOpen(true),
     fetchLineups: params.fetchLineups,
+    lineups: params.lineups,
     isBatchDownloadModalOpen: params.isBatchDownloadModalOpen,
     onBatchDownloadClose: params.onBatchDownloadClose,
     handleBatchDownload: params.handleBatchDownload,

@@ -11,7 +11,7 @@ import { useCallback } from 'react';
 import { getAbilityIcon } from '../../../utils/abilityIcons';
 import { ActiveTab } from '../../../types/app';
 import { AgentOption, BaseLineup, LibraryMode, NewLineupForm, SharedLineup, LineupDbPayload } from '../../../types/lineup';
-import { createEmptyLineup, toDbPayload } from '../lineupHelpers';
+import { createEmptyLineup, toDbPayload, checkTitleExists } from '../lineupHelpers';
 
 type EditorParams = {
   isGuest: boolean;
@@ -156,6 +156,11 @@ export function useEditorController({
       return;
     }
     if (!newLineupData.title.trim()) return setAlertMessage('标题不能为空');
+
+    // 检查标题是否重名（同一特工范围内）
+    if (checkTitleExists(newLineupData.title, lineups, selectedAgent.displayName, editingLineupId)) {
+      return setAlertMessage('该特工下已有同名标题，请使用其他标题');
+    }
 
     const cleaned = {
       ...newLineupData,

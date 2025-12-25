@@ -446,6 +446,7 @@ export function useAppController() {
     setIsImportModalOpen: modal.setIsImportModalOpen,
     saveNewLineup,
     fetchLineups,
+    lineups,
     isBatchDownloadModalOpen: modal.isBatchDownloadModalOpen,
     onBatchDownloadClose: () => modal.setIsBatchDownloadModalOpen(false),
     handleBatchDownload,
