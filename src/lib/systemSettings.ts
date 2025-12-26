@@ -7,6 +7,7 @@
  */
 import { supabase } from '../supabaseClient';
 import { ImageBedConfig } from '../types/imageBed';
+import { AuthorLinks } from '../types/authorLinks';
 
 /** 系统设置类型 */
 export interface SystemSettings {
@@ -19,6 +20,8 @@ export interface SystemSettings {
     daily_submission_limit: number;
     // 下载限制
     daily_download_limit: number;
+    // 作者信息链接
+    author_links: AuthorLinks | null;
     // 时间戳
     created_at: string;
     updated_at: string;
@@ -71,6 +74,7 @@ export async function updateSystemSettings(
         | 'submission_enabled'
         | 'daily_submission_limit'
         | 'daily_download_limit'
+        | 'author_links'
     >>
 ): Promise<{ success: boolean; error?: string }> {
     const { error } = await supabase

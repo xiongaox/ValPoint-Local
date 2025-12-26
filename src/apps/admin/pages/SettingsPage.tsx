@@ -15,6 +15,7 @@ import { ImageBedConfig } from '../../../types/imageBed';
 import { defaultImageBedConfig, imageBedProviderMap } from '../../../lib/imageBed';
 import { getAdminList, addAdmin, removeAdmin, AdminUser } from '../../../lib/adminService';
 import ImageBedConfigForm from '../../../components/ImageBedConfigForm';
+import { AuthorLinks, defaultAuthorLinks } from '../../../types/authorLinks';
 
 interface SettingsPageProps {
     isSuperAdmin: boolean;
@@ -32,14 +33,15 @@ interface LibraryUrls {
 }
 
 // Tab 配置
-type SettingsTab = 'imageBed' | 'submission' | 'download' | 'features' | 'domain' | 'admins';
+type SettingsTab = 'imageBed' | 'submission' | 'download' | 'features' | 'domain' | 'authorInfo' | 'admins';
 
-const TABS: { id: SettingsTab; label: string; icon: 'Cloud' | 'Send' | 'Download' | 'ToggleLeft' | 'Globe' | 'Shield'; superAdminOnly?: boolean }[] = [
+const TABS: { id: SettingsTab; label: string; icon: 'Cloud' | 'Send' | 'Download' | 'ToggleLeft' | 'Globe' | 'Shield' | 'User'; superAdminOnly?: boolean }[] = [
     { id: 'imageBed', label: '官方图床', icon: 'Cloud' },
     { id: 'submission', label: '投稿设置', icon: 'Send' },
     { id: 'download', label: '下载限制', icon: 'Download' },
     { id: 'features', label: '功能开关', icon: 'ToggleLeft' },
     { id: 'domain', label: '域名配置', icon: 'Globe' },
+    { id: 'authorInfo', label: '作者信息', icon: 'User' },
     { id: 'admins', label: '管理员', icon: 'Shield', superAdminOnly: true },
 ];
 
@@ -61,6 +63,8 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
     const [ossConfig, setOssConfig] = useState<ImageBedConfig>(defaultImageBedConfig);
     const [submissionEnabled, setSubmissionEnabled] = useState(false);
     const [dailySubmissionLimit, setDailySubmissionLimit] = useState(10);
+    // 作者信息链接
+    const [authorLinks, setAuthorLinks] = useState<AuthorLinks>(defaultAuthorLinks);
 
     // 管理员管理
     const [adminList, setAdminList] = useState<AdminUser[]>([]);
@@ -97,6 +101,10 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                     ...prev,
                     dailyDownloadLimit: data.daily_download_limit ?? 50
                 }));
+                // 加载作者信息链接
+                if (data.author_links) {
+                    setAuthorLinks(data.author_links);
+                }
             }
             setIsLoading(false);
         }
@@ -154,6 +162,7 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
             submission_enabled: submissionEnabled,
             daily_submission_limit: dailySubmissionLimit,
             daily_download_limit: settings.dailyDownloadLimit,
+            author_links: authorLinks,
         });
 
         if (result.success) {
@@ -177,66 +186,79 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
         switch (activeTab) {
             case 'imageBed':
                 return (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div>
-                            <h4 className="text-white font-medium">官方图床配置</h4>
-                            <p className="text-xs text-gray-500 mt-1">审核通过的点位图片将迁移到此图床</p>
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="Cloud" size={18} className="text-[#ff4655]" />
+                                官方图床配置
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">审核通过的点位图片将迁移到此图床</p>
+                            <ImageBedConfigForm
+                                config={ossConfig}
+                                onChange={setOssConfig}
+                                showProviderSwitch={true}
+                                showCopyImport={true}
+                                showReset={true}
+                                onValidChange={setIsOssConfigValid}
+                                layout="full"
+                            />
                         </div>
-                        <ImageBedConfigForm
-                            config={ossConfig}
-                            onChange={setOssConfig}
-                            showProviderSwitch={true}
-                            showCopyImport={true}
-                            showReset={true}
-                            onValidChange={setIsOssConfigValid}
-                            layout="full"
-                        />
                     </div>
                 );
 
             case 'submission':
                 return (
                     <div className="space-y-6">
-                        {/* 投稿开关 */}
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <div className="text-sm text-white">开启投稿功能</div>
-                                <div className="text-xs text-gray-500">
-                                    {isOssConfigValid
-                                        ? '允许共享库用户投稿点位'
-                                        : '请先配置官方图床后再开启'}
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => isOssConfigValid && setSubmissionEnabled((prev) => !prev)}
-                                disabled={!isOssConfigValid}
-                                className={`relative w-12 h-6 rounded-full transition-colors ${!isOssConfigValid
-                                    ? 'bg-gray-700 cursor-not-allowed'
-                                    : submissionEnabled
-                                        ? 'bg-emerald-500'
-                                        : 'bg-gray-600'
-                                    }`}
-                            >
-                                <div
-                                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${submissionEnabled ? 'left-6' : 'left-0.5'
-                                        }`}
-                                />
-                            </button>
-                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="Send" size={18} className="text-[#ff4655]" />
+                                投稿设置
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">管理用户投稿点位的相关设置</p>
 
-                        {/* 每日投稿限制 */}
-                        <div className="pt-4 border-t border-white/10">
-                            <label className="block text-sm text-gray-400 mb-2">每日投稿次数限制</label>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="number"
-                                    value={dailySubmissionLimit}
-                                    onChange={(e) => setDailySubmissionLimit(parseInt(e.target.value) || 1)}
-                                    min={1}
-                                    max={50}
-                                    className="w-32 px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
-                                />
-                                <span className="text-sm text-gray-500">次/人/天</span>
+                            <div className="space-y-4">
+                                {/* 投稿开关 */}
+                                <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
+                                    <div>
+                                        <div className="text-sm text-white font-medium">开启投稿功能</div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {isOssConfigValid
+                                                ? '允许共享库用户投稿点位'
+                                                : '请先配置官方图床后再开启'}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => isOssConfigValid && setSubmissionEnabled((prev) => !prev)}
+                                        disabled={!isOssConfigValid}
+                                        className={`relative w-12 h-6 rounded-full transition-colors ${!isOssConfigValid
+                                            ? 'bg-gray-700 cursor-not-allowed'
+                                            : submissionEnabled
+                                                ? 'bg-emerald-500'
+                                                : 'bg-gray-600'
+                                            }`}
+                                    >
+                                        <div
+                                            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${submissionEnabled ? 'left-6' : 'left-0.5'
+                                                }`}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* 每日投稿限制 */}
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">每日投稿次数限制</label>
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="number"
+                                            value={dailySubmissionLimit}
+                                            onChange={(e) => setDailySubmissionLimit(parseInt(e.target.value) || 1)}
+                                            min={1}
+                                            max={50}
+                                            className="w-32 px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
+                                        />
+                                        <span className="text-sm text-gray-500">次/人/天</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -244,126 +266,146 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
 
             case 'download':
                 return (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         <div>
-                            <label className="block text-sm text-gray-400 mb-2">每日下载次数限制</label>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="number"
-                                    value={settings.dailyDownloadLimit}
-                                    onChange={(e) =>
-                                        setSettings((prev) => ({
-                                            ...prev,
-                                            dailyDownloadLimit: parseInt(e.target.value) || 0,
-                                        }))
-                                    }
-                                    min={1}
-                                    max={100}
-                                    className="w-32 px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
-                                />
-                                <span className="text-sm text-gray-500">次/人/天</span>
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="Download" size={18} className="text-[#ff4655]" />
+                                下载限制
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">控制用户每日下载点位的数量上限</p>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">每日下载次数限制</label>
+                                <div className="flex items-center gap-4">
+                                    <input
+                                        type="number"
+                                        value={settings.dailyDownloadLimit}
+                                        onChange={(e) =>
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                dailyDownloadLimit: parseInt(e.target.value) || 0,
+                                            }))
+                                        }
+                                        min={1}
+                                        max={100}
+                                        className="w-32 px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
+                                    />
+                                    <span className="text-sm text-gray-500">次/人/天</span>
+                                </div>
                             </div>
-                            <p className="mt-2 text-xs text-gray-500">
-                                每个用户每天最多可下载的点位数量
-                            </p>
                         </div>
                     </div>
                 );
 
             case 'features':
                 return (
-                    <div className="space-y-4">
-                        {/* 邮箱验证 */}
-                        <div className="flex items-center justify-between py-3 border-b border-white/5">
-                            <div>
-                                <div className="text-sm text-white">强制邮箱验证</div>
-                                <div className="text-xs text-gray-500">用户必须验证邮箱才能下载</div>
-                            </div>
-                            <button
-                                onClick={() =>
-                                    setSettings((prev) => ({
-                                        ...prev,
-                                        enableEmailVerification: !prev.enableEmailVerification,
-                                    }))
-                                }
-                                className={`relative w-12 h-6 rounded-full transition-colors ${settings.enableEmailVerification ? 'bg-[#ff4655]' : 'bg-gray-600'
-                                    }`}
-                            >
-                                <div
-                                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${settings.enableEmailVerification ? 'left-6' : 'left-0.5'
-                                        }`}
-                                />
-                            </button>
-                        </div>
+                    <div className="space-y-6">
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="Settings" size={18} className="text-[#ff4655]" />
+                                功能开关
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">管理系统各项功能的开启与关闭</p>
 
-                        {/* 下载日志 */}
-                        <div className="flex items-center justify-between py-3 border-b border-white/5">
-                            <div>
-                                <div className="text-sm text-white">记录下载日志</div>
-                                <div className="text-xs text-gray-500">记录用户的下载行为</div>
-                            </div>
-                            <button
-                                onClick={() =>
-                                    setSettings((prev) => ({
-                                        ...prev,
-                                        enableDownloadLogs: !prev.enableDownloadLogs,
-                                    }))
-                                }
-                                className={`relative w-12 h-6 rounded-full transition-colors ${settings.enableDownloadLogs ? 'bg-[#ff4655]' : 'bg-gray-600'
-                                    }`}
-                            >
-                                <div
-                                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${settings.enableDownloadLogs ? 'left-6' : 'left-0.5'
-                                        }`}
-                                />
-                            </button>
-                        </div>
+                            <div className="space-y-3">
+                                {/* 邮箱验证 */}
+                                <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
+                                    <div>
+                                        <div className="text-sm text-white font-medium">强制邮箱验证</div>
+                                        <div className="text-xs text-gray-500 mt-1">用户必须验证邮箱才能下载</div>
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                enableEmailVerification: !prev.enableEmailVerification,
+                                            }))
+                                        }
+                                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.enableEmailVerification ? 'bg-[#ff4655]' : 'bg-gray-600'
+                                            }`}
+                                    >
+                                        <div
+                                            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${settings.enableEmailVerification ? 'left-6' : 'left-0.5'
+                                                }`}
+                                        />
+                                    </button>
+                                </div>
 
-                        {/* 维护模式 */}
-                        <div className="flex items-center justify-between py-3">
-                            <div>
-                                <div className="text-sm text-white">维护模式</div>
-                                <div className="text-xs text-gray-500">开启后共享库暂停访问</div>
+                                {/* 下载日志 */}
+                                <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
+                                    <div>
+                                        <div className="text-sm text-white font-medium">记录下载日志</div>
+                                        <div className="text-xs text-gray-500 mt-1">记录用户的下载行为</div>
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                enableDownloadLogs: !prev.enableDownloadLogs,
+                                            }))
+                                        }
+                                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.enableDownloadLogs ? 'bg-[#ff4655]' : 'bg-gray-600'
+                                            }`}
+                                    >
+                                        <div
+                                            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${settings.enableDownloadLogs ? 'left-6' : 'left-0.5'
+                                                }`}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* 维护模式 */}
+                                <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
+                                    <div>
+                                        <div className="text-sm text-white font-medium">维护模式</div>
+                                        <div className="text-xs text-gray-500 mt-1">开启后共享库暂停访问</div>
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            setSettings((prev) => ({
+                                                ...prev,
+                                                maintenanceMode: !prev.maintenanceMode,
+                                            }))
+                                        }
+                                        className={`relative w-12 h-6 rounded-full transition-colors ${settings.maintenanceMode ? 'bg-orange-500' : 'bg-gray-600'
+                                            }`}
+                                    >
+                                        <div
+                                            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${settings.maintenanceMode ? 'left-6' : 'left-0.5'
+                                                }`}
+                                        />
+                                    </button>
+                                </div>
                             </div>
-                            <button
-                                onClick={() =>
-                                    setSettings((prev) => ({
-                                        ...prev,
-                                        maintenanceMode: !prev.maintenanceMode,
-                                    }))
-                                }
-                                className={`relative w-12 h-6 rounded-full transition-colors ${settings.maintenanceMode ? 'bg-orange-500' : 'bg-gray-600'
-                                    }`}
-                            >
-                                <div
-                                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${settings.maintenanceMode ? 'left-6' : 'left-0.5'
-                                        }`}
-                                />
-                            </button>
                         </div>
                     </div>
                 );
 
             case 'domain':
                 return (
-                    <div className="space-y-4">
-                        <p className="text-xs text-gray-500 mb-4">
-                            配置后，用户可以从个人库跳转到共享库
-                        </p>
+                    <div className="space-y-6">
                         <div>
-                            <label className="block text-sm text-gray-400 mb-2">共享库域名</label>
-                            <input
-                                type="url"
-                                value={libraryUrls.sharedLibraryUrl}
-                                onChange={(e) =>
-                                    setLibraryUrls((prev) => ({
-                                        ...prev,
-                                        sharedLibraryUrl: e.target.value,
-                                    }))
-                                }
-                                placeholder="https://shared.example.com"
-                                className="w-full px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
-                            />
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="Globe" size={18} className="text-[#ff4655]" />
+                                域名配置
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">配置后，用户可以从个人库跳转到共享库</p>
+
+                            <div>
+                                <label className="block text-sm text-gray-400 mb-2">共享库域名</label>
+                                <input
+                                    type="url"
+                                    value={libraryUrls.sharedLibraryUrl}
+                                    onChange={(e) =>
+                                        setLibraryUrls((prev) => ({
+                                            ...prev,
+                                            sharedLibraryUrl: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="https://shared.example.com"
+                                    className="w-full px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
+                                />
+                            </div>
                         </div>
                     </div>
                 );
@@ -371,6 +413,14 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
             case 'admins':
                 return (
                     <div className="space-y-6">
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="Users" size={18} className="text-[#ff4655]" />
+                                管理员管理
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">添加或移除系统管理员权限</p>
+                        </div>
+
                         {/* 添加管理员 */}
                         <div className="bg-[#0f1923] rounded-xl p-4 border border-white/10">
                             <h4 className="text-white font-medium mb-4">添加管理员</h4>
@@ -458,6 +508,80 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                     </div>
                 );
 
+            case 'authorInfo':
+                return (
+                    <div className="space-y-6">
+                        <div>
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="Link" size={18} className="text-[#ff4655]" />
+                                外部链接
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">GitHub 项目地址</label>
+                                    <input
+                                        type="url"
+                                        value={authorLinks.github_url}
+                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, github_url: e.target.value }))}
+                                        placeholder="https://github.com/username/repo"
+                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">使用教程地址</label>
+                                    <input
+                                        type="url"
+                                        value={authorLinks.tutorial_url}
+                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, tutorial_url: e.target.value }))}
+                                        placeholder="https://example.com/tutorial"
+                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-white/10">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Icon name="QrCode" size={18} className="text-[#ff4655]" />
+                                二维码配置
+                            </h3>
+                            <p className="text-xs text-gray-500 mb-4">填入二维码图片的 URL 地址</p>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">微信收款码</label>
+                                    <input
+                                        type="url"
+                                        value={authorLinks.donate_wechat_qr}
+                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, donate_wechat_qr: e.target.value }))}
+                                        placeholder="https://example.com/wechat-pay.jpg"
+                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">支付宝收款码</label>
+                                    <input
+                                        type="url"
+                                        value={authorLinks.donate_alipay_qr}
+                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, donate_alipay_qr: e.target.value }))}
+                                        placeholder="https://example.com/alipay.jpg"
+                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-2">微信联系二维码</label>
+                                    <input
+                                        type="url"
+                                        value={authorLinks.contact_wechat_qr}
+                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, contact_wechat_qr: e.target.value }))}
+                                        placeholder="https://example.com/wechat-contact.jpg"
+                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
             default:
                 return null;
         }
@@ -467,62 +591,65 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
     const visibleTabs = TABS.filter((tab) => !tab.superAdminOnly || isSuperAdmin);
 
     return (
-        <div className="max-w-4xl mx-auto">
-            {/* Tab 栏 */}
-            <div className="flex items-center gap-1 mb-6 bg-[#1f2326] rounded-xl p-1 border border-white/10">
+        <div className="w-full">
+            {/* Tab 栏 - 使用负边距抵消父容器padding */}
+            <div className="flex items-center mb-6 bg-[#1f2326] -mx-6 -mt-6">
                 {visibleTabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-4 rounded-lg text-base font-medium transition-all ${activeTab === tab.id
                             ? 'bg-[#ff4655] text-white'
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
-                        <Icon name={tab.icon} size={16} />
+                        <Icon name={tab.icon} size={20} />
                         {tab.label}
                     </button>
                 ))}
             </div>
 
-            {/* Tab 内容区域 */}
-            <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6 min-h-[300px]">
-                {renderTabContent()}
+            {/* 内容区域 - 保持原有宽度 */}
+            <div className="max-w-4xl mx-auto">
+                {/* Tab 内容区域 */}
+                <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6 min-h-[300px]">
+                    {renderTabContent()}
+                </div>
+
+                {/* 保存按钮 */}
+                <button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="w-full mt-6 py-3 bg-[#ff4655] hover:bg-[#ff5a67] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                    {isSaving ? (
+                        <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            保存中...
+                        </>
+                    ) : (
+                        <>
+                            <Icon name="Save" size={18} />
+                            保存设置
+                        </>
+                    )}
+                </button>
+
+                {/* 确认弹窗 */}
+                <AlertModal
+                    message={confirmState?.message ?? null}
+                    onClose={() => setConfirmState(null)}
+                    actionLabel="取消"
+                    secondaryLabel="确定"
+                    onSecondary={confirmState?.onConfirm}
+                />
+
+                {/* 消息弹窗 */}
+                <AlertModal
+                    message={alertMessage}
+                    onClose={() => setAlertMessage(null)}
+                />
             </div>
-
-            {/* 保存按钮 */}
-            <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="w-full mt-6 py-3 bg-[#ff4655] hover:bg-[#ff5a67] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-                {isSaving ? (
-                    <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        保存中...
-                    </>
-                ) : (
-                    <>
-                        <Icon name="Save" size={18} />
-                        保存设置
-                    </>
-                )}
-            </button>
-
-            {/* 确认弹窗 */}
-            <AlertModal
-                message={confirmState?.message ?? null}
-                onClose={() => setConfirmState(null)}
-                actionLabel="取消"
-                secondaryLabel="确定"
-                onSecondary={confirmState?.onConfirm}
-            />
-
-            {/* 消息弹窗 */}
-            <AlertModal
-                message={alertMessage}
-                onClose={() => setAlertMessage(null)}
-            />
         </div>
     );
 }

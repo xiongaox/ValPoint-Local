@@ -17,6 +17,7 @@ import SharedFilterModal from '../../components/SharedFilterModal';
 import SubmitLineupModal from './SubmitLineupModal';
 import { useSharedController } from './useSharedController';
 import { getSystemSettings } from '../../lib/systemSettings';
+import AuthorLinksBar from '../../components/AuthorLinksBar';
 
 // 引入新组件
 import SharedQuickActions from './components/SharedQuickActions';
@@ -122,6 +123,11 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                         onSignOut={onSignOut}
                         onRequestLogin={onRequestLogin}
                     />
+                </div>
+
+                {/* 作者信息快捷按钮 (右上角) */}
+                <div className="absolute top-3 right-3 z-10">
+                    <AuthorLinksBar />
                 </div>
 
                 {/* 快捷功能按钮 (仅登录可见) */}

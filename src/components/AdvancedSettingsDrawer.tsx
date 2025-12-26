@@ -82,6 +82,30 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
             </div>
           </div>
 
+          {/* 隐藏作者信息按钮 */}
+          <div className="bg-[#0f1923] border border-white/10 rounded-xl p-5 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <Icon name="EyeOff" size={18} className="text-[#ff4655]" />
+                  <div className="text-sm font-bold text-white">隐藏作者信息按钮</div>
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">开启后，地图右上角的项目地址、使用教程、打赏作者、联系作者按钮将完全隐藏。</p>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <button
+                  onClick={() => setLocalSettings((prev) => ({ ...prev, hideAuthorLinks: !prev.hideAuthorLinks }))}
+                  className={`relative w-14 h-8 rounded-full border transition-colors flex items-center px-1 flex-shrink-0 ${localSettings.hideAuthorLinks ? 'bg-[#ff4655] border-[#ff7884]' : 'bg-[#1c2430] border-white/10'
+                    }`}
+                >
+                  <div
+                    className={`w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-150 ${localSettings.hideAuthorLinks ? 'translate-x-6' : 'translate-x-0'
+                      }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
 
 
         </div>

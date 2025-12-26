@@ -1,0 +1,184 @@
+/**
+ * AuthorLinksBar - 作者信息快捷按钮栏
+ * 
+ * 显示在地图区域右上角，包含：
+ * - 项目地址 (GitHub)
+ * - 使用教程
+ * - 打赏作者 (微信/支付宝收款码)
+ * - 联系作者 (微信二维码)
+ */
+import React, { useState, useEffect } from 'react';
+import Icon from './Icon';
+import { AuthorLinks, defaultAuthorLinks } from '../types/authorLinks';
+import { getSystemSettings } from '../lib/systemSettings';
+
+type QRModalType = 'donate' | 'contact' | null;
+
+const AuthorLinksBar: React.FC = () => {
+    const [links, setLinks] = useState<AuthorLinks>(defaultAuthorLinks);
+    const [qrModal, setQrModal] = useState<QRModalType>(null);
+    const [donateTab, setDonateTab] = useState<'wechat' | 'alipay'>('wechat');
+
+    useEffect(() => {
+        const loadLinks = async () => {
+            const settings = await getSystemSettings();
+            if (settings?.author_links) {
+                setLinks(settings.author_links);
+            }
+        };
+        loadLinks();
+    }, []);
+
+    // 检查是否有任何链接配置
+    const hasAnyLink = links.github_url || links.tutorial_url || links.donate_wechat_qr || links.donate_alipay_qr || links.contact_wechat_qr;
+
+    if (!hasAnyLink) return null;
+
+    const buttonClass = "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all border backdrop-blur-md";
+    const defaultStyle = "bg-black/40 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white hover:border-white/20";
+
+    return (
+        <>
+            <div className="flex items-center gap-2">
+                {/* 项目地址 */}
+                {links.github_url && (
+                    <a
+                        href={links.github_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${buttonClass} bg-purple-500/20 border-purple-500/30 text-purple-400 hover:bg-purple-500/30 hover:border-purple-400/50`}
+                    >
+                        <Icon name="Github" size={14} />
+                        项目地址
+                    </a>
+                )}
+
+                {/* 使用教程 */}
+                {links.tutorial_url && (
+                    <a
+                        href={links.tutorial_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${buttonClass} bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-400/50`}
+                    >
+                        <Icon name="BookOpen" size={14} />
+                        使用教程
+                    </a>
+                )}
+
+                {/* 打赏作者 */}
+                {(links.donate_wechat_qr || links.donate_alipay_qr) && (
+                    <button
+                        onClick={() => setQrModal('donate')}
+                        className={`${buttonClass} bg-amber-500/20 border-amber-500/30 text-amber-400 hover:bg-amber-500/30 hover:border-amber-400/50`}
+                    >
+                        <Icon name="Heart" size={14} />
+                        打赏作者
+                    </button>
+                )}
+
+                {/* 联系作者 */}
+                {links.contact_wechat_qr && (
+                    <button
+                        onClick={() => setQrModal('contact')}
+                        className={`${buttonClass} bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 hover:border-emerald-400/50`}
+                    >
+                        <Icon name="MessageCircle" size={14} />
+                        联系作者
+                    </button>
+                )}
+            </div>
+
+            {/* 二维码弹窗 */}
+            {qrModal && (
+                <div
+                    className="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+                    onClick={(e) => e.target === e.currentTarget && setQrModal(null)}
+                >
+                    <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl overflow-hidden">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${qrModal === 'donate'
+                                    ? 'bg-amber-500/15 border border-amber-500/35 text-amber-400'
+                                    : 'bg-emerald-500/15 border border-emerald-500/35 text-emerald-400'
+                                    }`}>
+                                    <Icon name={qrModal === 'donate' ? 'Heart' : 'MessageCircle'} size={20} />
+                                </div>
+                                <h3 className="text-xl font-bold text-white">
+                                    {qrModal === 'donate' ? '打赏作者' : '联系作者'}
+                                </h3>
+                            </div>
+                            <button
+                                onClick={() => setQrModal(null)}
+                                className="p-2 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/30 transition-colors"
+                            >
+                                <Icon name="X" size={16} />
+                            </button>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-5 bg-[#181b1f]">
+                            {qrModal === 'donate' ? (
+                                <>
+                                    {/* 打赏 Tab 切换 */}
+                                    {links.donate_wechat_qr && links.donate_alipay_qr && (
+                                        <div className="flex items-center bg-[#0f131a] p-1 rounded-lg border border-white/10 mb-4">
+                                            <button
+                                                onClick={() => setDonateTab('wechat')}
+                                                className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold transition-all ${donateTab === 'wechat'
+                                                    ? 'bg-emerald-500 text-white shadow-md'
+                                                    : 'text-gray-400 hover:text-white'
+                                                    }`}
+                                            >
+                                                <Icon name="MessageCircle" size={14} />
+                                                微信
+                                            </button>
+                                            <button
+                                                onClick={() => setDonateTab('alipay')}
+                                                className={`flex-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-md text-sm font-semibold transition-all ${donateTab === 'alipay'
+                                                    ? 'bg-blue-500 text-white shadow-md'
+                                                    : 'text-gray-400 hover:text-white'
+                                                    }`}
+                                            >
+                                                <Icon name="Wallet" size={14} />
+                                                支付宝
+                                            </button>
+                                        </div>
+                                    )}
+                                    {/* 收款码图片 */}
+                                    <div className="flex justify-center">
+                                        <img
+                                            src={donateTab === 'wechat' ? links.donate_wechat_qr : links.donate_alipay_qr}
+                                            alt={donateTab === 'wechat' ? '微信收款码' : '支付宝收款码'}
+                                            className="max-w-[240px] rounded-lg border border-white/10"
+                                        />
+                                    </div>
+                                    <p className="text-center text-gray-400 text-sm mt-4">
+                                        感谢您的支持 ❤️
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    {/* 微信二维码 */}
+                                    <div className="flex justify-center">
+                                        <img
+                                            src={links.contact_wechat_qr}
+                                            alt="微信二维码"
+                                            className="max-w-[240px] rounded-lg border border-white/10"
+                                        />
+                                    </div>
+                                    <p className="text-center text-gray-400 text-sm mt-4">
+                                        扫码添加作者微信
+                                    </p>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
+export default AuthorLinksBar;

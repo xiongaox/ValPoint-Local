@@ -3,6 +3,7 @@ export type ImageProcessingSettings = {
   pngConvertFormat: 'jpeg' | 'webp';
   jpegQuality: number;
   hideSharedButton?: boolean;
+  hideAuthorLinks?: boolean;
 };
 
 export const defaultImageProcessingSettings: ImageProcessingSettings = {
@@ -10,4 +11,5 @@ export const defaultImageProcessingSettings: ImageProcessingSettings = {
   pngConvertFormat: 'webp',
   jpegQuality: 0.82,
   hideSharedButton: false,
+  hideAuthorLinks: false,
 };

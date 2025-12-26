@@ -383,6 +383,7 @@ export function useAppController() {
     onTogglePinLineup: togglePinnedLineup,
     pinnedLimit: DEFAULT_PINNED_COUNT,
     hideSharedButton: imageProcessingSettings.hideSharedButton,
+    hideAuthorLinks: imageProcessingSettings.hideAuthorLinks,
     onBatchDownload: () => modal.setIsBatchDownloadModalOpen(true),
     user,
     onSignOut: signOut,

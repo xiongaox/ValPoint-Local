@@ -60,6 +60,7 @@ type Params = {
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
   hideSharedButton?: boolean;
+  hideAuthorLinks?: boolean;
   onBatchDownload: () => void;
   onSubmitLineup?: (lineupId: string) => void;
   user: User | null;
@@ -152,6 +153,7 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       isAdmin: params.isAdmin,
     },
     hideSharedButton: params.hideSharedButton,
+    hideAuthorLinks: params.hideAuthorLinks,
     user: params.user,
     onSignOut: params.onSignOut,
     onOpenProfile: params.onOpenProfile,

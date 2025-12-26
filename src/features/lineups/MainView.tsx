@@ -12,6 +12,7 @@ import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
 import LibrarySwitchButton from '../../components/LibrarySwitchButton';
 import CompactUserCard from '../../components/CompactUserCard';
+import AuthorLinksBar from '../../components/AuthorLinksBar';
 
 import LeftPanel from '../../components/LeftPanel';
 import RightPanel from '../../components/RightPanel';
@@ -104,12 +105,13 @@ type Props = {
   quickActions: QuickActionsProps;
   right: RightProps;
   hideSharedButton?: boolean;
+  hideAuthorLinks?: boolean;
   user: User | null;
   onSignOut: () => void;
   onOpenProfile: () => void;
 };
 
-const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton, user, onSignOut, onOpenProfile }) => {
+const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton, hideAuthorLinks, user, onSignOut, onOpenProfile }) => {
   return (
     <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
       <LeftPanel
@@ -171,6 +173,12 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
             onRequestLogin={onOpenProfile}
           />
         </div>
+        {/* 作者信息快捷按钮 (右上角) */}
+        {!hideAuthorLinks && (
+          <div className="absolute top-3 right-3 z-10">
+            <AuthorLinksBar />
+          </div>
+        )}
       </div>
 
       <RightPanel
