@@ -1,0 +1,22 @@
+services:
+  valpoint:
+    image: xiongaox7806/valpoint-a:latest
+    restart: always
+    build:
+      context: .
+    ports:
+      - "3208:3208" # User App
+      - "3209:3209" # Shared App
+      - "3210:3210" # Admin App
+    environment:
+      - NODE_ENV=production
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_SUPABASE_SHARE_URL=${VITE_SUPABASE_SHARE_URL}
+      - VITE_SUPABASE_SHARE_ANON_KEY=${VITE_SUPABASE_SHARE_ANON_KEY}
+    networks:
+      - valpoint-net
+
+networks:
+  valpoint-net:
+    driver: bridge

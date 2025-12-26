@@ -7,10 +7,15 @@
  */
 import { createClient } from '@supabase/supabase-js';
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const shareUrl = import.meta.env.VITE_SUPABASE_SHARE_URL || url;
-const shareAnonKey = import.meta.env.VITE_SUPABASE_SHARE_ANON_KEY || anonKey;
+// 优先读取运行时注入的环境变量 (Docker)，否则读取构建时变量 (Dev/Local)
+const getEnv = (key: string) => {
+  return window.__ENV__?.[key] || import.meta.env[key];
+};
+
+const url = getEnv('VITE_SUPABASE_URL');
+const anonKey = getEnv('VITE_SUPABASE_ANON_KEY');
+const shareUrl = getEnv('VITE_SUPABASE_SHARE_URL') || url;
+const shareAnonKey = getEnv('VITE_SUPABASE_SHARE_ANON_KEY') || anonKey;
 
 if (!url || !anonKey) {
   throw new Error('请在环境变量中设置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY');
