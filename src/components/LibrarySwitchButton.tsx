@@ -29,12 +29,19 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
                 || import.meta.env.VITE_SHARED_LIBRARY_URL
                 || '';
 
+            const envPersonalUrl = (window as any).__ENV__?.VITE_PERSONAL_LIBRARY_URL
+                || import.meta.env.VITE_PERSONAL_LIBRARY_URL
+                || '';
+
             const settings = await getSystemSettings();
             if (settings) {
-                setPersonalUrl(settings.personal_library_url || '');
+                // 环境变量 > 数据库配置
+                setPersonalUrl(envPersonalUrl || settings.personal_library_url);
+
                 // 环境变量 > 数据库配置
                 setSharedUrl(envSharedUrl || settings.shared_library_url || '');
             } else {
+                setPersonalUrl(envPersonalUrl);
                 setSharedUrl(envSharedUrl);
             }
             setIsLoading(false);

@@ -8,9 +8,10 @@
  */
 import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/Icon';
+import { AdminInfo } from '../AdminApp';
 
 interface AdminLoginPageProps {
-    onLogin: (account: string) => void;
+    onLogin: (info: AdminInfo) => void;
     setAlertMessage: (msg: string | null) => void;
 }
 
@@ -82,25 +83,94 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
 
         setIsSubmitting(true);
 
-        // 从环境变量读取管理员凭据
-        const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
-            || import.meta.env.VITE_ADMIN_ACCOUNT;
-        const adminPassword = (window as any).__ENV__?.VITE_ADMIN_PASSWORD
-            || import.meta.env.VITE_ADMIN_PASSWORD;
+        try {
+            // 方式1: 环境变量账号（超级管理员后门）
+            const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
+                || import.meta.env.VITE_ADMIN_ACCOUNT;
+            const adminPassword = (window as any).__ENV__?.VITE_ADMIN_PASSWORD
+                || import.meta.env.VITE_ADMIN_PASSWORD;
 
-        // 调试信息（生产环境移除）
-        console.log('输入账号:', account);
-        console.log('环境变量账号:', adminAccount);
-        console.log('密码匹配:', password === adminPassword);
+            console.log('[Admin Login] 输入账号:', account.trim());
+            console.log('[Admin Login] 环境变量账号:', adminAccount);
+            console.log('[Admin Login] 环境变量匹配:', account.trim().toLowerCase() === adminAccount?.trim()?.toLowerCase());
 
-        // 验证账号密码
-        if (adminAccount && adminPassword
-            && account.trim().toLowerCase() === adminAccount.trim().toLowerCase()
-            && password === adminPassword) {
+            if (adminAccount && adminPassword
+                && account.trim().toLowerCase() === adminAccount.trim().toLowerCase()
+                && password === adminPassword) {
+                console.log('[Admin Login] ✓ 环境变量账号匹配成功');
+                setAlertMessage('环境变量管理员登录成功');
+                onLogin({
+                    account: adminAccount,
+                    isSuperAdmin: true,
+                    role: 'super_admin',
+                });
+                setIsSubmitting(false);
+                return;
+            }
+
+            console.log('[Admin Login] 环境变量不匹配，尝试 Supabase Auth...');
+
+            // 方式2: Supabase Auth 登录
+            const { supabase } = await import('../../../supabaseClient');
+
+            console.log('[Admin Login] 调用 signInWithPassword...');
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                email: account.trim(),
+                password: password,
+            });
+
+            console.log('[Admin Login] Auth 结果:', { authData: authData?.user?.id, authError });
+
+            if (authError) {
+                console.log('[Admin Login] ✗ Auth 失败:', authError.message);
+                setError('账号或密码错误');
+                setIsSubmitting(false);
+                return;
+            }
+
+            console.log('[Admin Login] ✓ Auth 成功，用户ID:', authData.user.id);
+
+            // 检查用户角色和获取完整 profile
+            console.log('[Admin Login] 查询 user_profiles...');
+            const { data: profile, error: profileError } = await supabase
+                .from('user_profiles')
+                .select('role, nickname, avatar')
+                .eq('id', authData.user.id)
+                .single();
+
+            console.log('[Admin Login] Profile 结果:', { profile, profileError });
+
+            if (profileError || !profile) {
+                console.log('[Admin Login] ✗ 获取用户信息失败:', profileError);
+                setError('获取用户信息失败');
+                await supabase.auth.signOut();
+                setIsSubmitting(false);
+                return;
+            }
+
+            console.log('[Admin Login] 用户角色:', profile.role);
+
+            if (profile.role !== 'admin' && profile.role !== 'super_admin') {
+                console.log('[Admin Login] ✗ 权限不足');
+                setError('您没有管理员权限');
+                await supabase.auth.signOut();
+                setIsSubmitting(false);
+                return;
+            }
+
+            console.log('[Admin Login] ✓ 登录成功!');
             setAlertMessage('登录成功');
-            onLogin(adminAccount);
-        } else {
-            setError('账号或密码错误');
+            onLogin({
+                account: account.trim(),
+                isSuperAdmin: profile.role === 'super_admin',
+                userId: authData.user.id,
+                nickname: profile.nickname || undefined,
+                avatar: profile.avatar || undefined,
+                role: profile.role,
+            });
+        } catch (err) {
+            console.error('[Admin Login] ✗ 异常:', err);
+            setError('登录失败，请稍后重试');
         }
 
         setIsSubmitting(false);

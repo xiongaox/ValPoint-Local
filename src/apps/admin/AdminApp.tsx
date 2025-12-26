@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import '../../styles/fonts.css';
 import '../../index.css';
+import { supabase } from '../../supabaseClient';
 import AdminLayout from './components/AdminLayout';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
@@ -21,10 +22,14 @@ import AdminLoginPage from './pages/AdminLoginPage';
 
 export type AdminPage = 'dashboard' | 'users' | 'logs' | 'upload' | 'review' | 'shared' | 'settings';
 
-/** 管理员信息（环境变量登录） */
-interface AdminInfo {
+/** 管理员信息 */
+export interface AdminInfo {
     account: string;
     isSuperAdmin: boolean;
+    userId?: string;
+    nickname?: string;
+    avatar?: string;
+    role?: 'user' | 'admin' | 'super_admin';
 }
 
 /**
@@ -32,20 +37,40 @@ interface AdminInfo {
  */
 function AdminApp() {
     const [currentPage, setCurrentPage] = useState<AdminPage>('dashboard');
-    const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(null);
+    const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(() => {
+        try {
+            const stored = localStorage.getItem('valpoint_admin_info');
+            return stored ? JSON.parse(stored) : null;
+        } catch (e) {
+            return null;
+        }
+    });
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
+    // 检查会话有效性 (仅针对 Supabase 用户)
+    React.useEffect(() => {
+        const checkSession = async () => {
+            if (adminInfo?.userId) {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    // 会话已过期
+                    handleLogout();
+                }
+            }
+        };
+        checkSession();
+    }, []);
+
     // 登录成功回调
-    const handleLogin = (account: string) => {
-        setAdminInfo({
-            account,
-            isSuperAdmin: true, // 环境变量登录的都是超级管理员
-        });
+    const handleLogin = (info: AdminInfo) => {
+        setAdminInfo(info);
+        localStorage.setItem('valpoint_admin_info', JSON.stringify(info));
     };
 
     // 退出登录
     const handleLogout = () => {
         setAdminInfo(null);
+        localStorage.removeItem('valpoint_admin_info');
     };
 
     const renderPage = () => {
@@ -80,7 +105,7 @@ function AdminApp() {
             currentPage={currentPage}
             onPageChange={setCurrentPage}
             onLogout={handleLogout}
-            adminAccount={adminInfo.account}
+            adminInfo={adminInfo}
         >
             {renderPage()}
         </AdminLayout>

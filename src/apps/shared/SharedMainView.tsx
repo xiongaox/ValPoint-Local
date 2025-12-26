@@ -20,6 +20,7 @@ import { getSystemSettings } from '../../lib/systemSettings';
 import AuthorLinksBar from '../../components/AuthorLinksBar';
 
 // 引入新组件
+import LibrarySwitchButton from '../../components/LibrarySwitchButton';
 import SharedQuickActions from './components/SharedQuickActions';
 import CompactUserCard from '../../components/CompactUserCard';
 import ChangePasswordModal from '../../components/ChangePasswordModal';
@@ -118,6 +119,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
 
                 {/* 用户信息卡片 (Compact Player Card) */}
                 <div className="absolute top-3 left-3 z-10 flex items-center gap-3">
+                    {user && <LibrarySwitchButton currentLibrary="shared" />}
                     <CompactUserCard
                         user={user}
                         onSignOut={onSignOut}

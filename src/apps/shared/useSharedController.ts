@@ -13,6 +13,7 @@ import { useMapInfo } from '../../features/lineups/controllers/useMapInfo';
 import { fetchSharedList } from '../../services/shared';
 import { BaseLineup, SharedLineup, AgentOption, MapOption, NewLineupForm } from '../../types/lineup';
 import { downloadLineupBundle } from '../../lib/lineupDownload';
+import { checkDailyDownloadLimit, incrementDownloadCount, logDownload } from '../../lib/downloadLimit';
 import { MAP_TRANSLATIONS } from '../../constants/maps';
 
 interface UseSharedControllerParams {
@@ -216,11 +217,29 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
 
         if (isDownloading) return;
 
+        // 检查下载限制
+        const { allowed, limit, remaining } = await checkDailyDownloadLimit(user.id);
+        if (!allowed) {
+            setAlertMessage(`今日下载次数已达上限 (${limit}次)，请明天再试`);
+            return;
+        }
+
         try {
             setIsDownloading(true);
             setAlertMessage('正在打包点位数据，请稍候...');
 
             const result = await downloadLineupBundle(target);
+
+            // 记录下载次数和日志
+            await incrementDownloadCount(user.id);
+            await logDownload({
+                userId: user.id,
+                userEmail: user.email || '',
+                lineupId: target.id,
+                lineupTitle: target.title,
+                mapName: target.mapName, // SharedLineup 使用 mapName
+                agentName: target.agentName, // SharedLineup 使用 agentName
+            });
 
             if (result.failedImages.length > 0) {
                 setAlertMessage('部分图片下载失败，但数据包已生成');

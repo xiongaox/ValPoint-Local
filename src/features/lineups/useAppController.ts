@@ -85,13 +85,7 @@ export function useAppController() {
   const userId = user?.id || null;
   const { profile, isLoading: profileLoading } = useUserProfile();
 
-  // Debug log for profile permissions
-  if (profile) {
-    console.log('[AppController] Current Profile:', {
-      role: profile.role,
-      can_batch: profile.can_batch_download
-    });
-  }
+
 
   // 个人信息弹窗状态
   const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);

@@ -93,3 +93,40 @@ export async function incrementDownloadCount(userId: string, count: number = 1):
         console.error('Failed to increment download count:', error);
     }
 }
+
+/**
+ * 下载日志参数
+ */
+export interface DownloadLogParams {
+    userId: string;
+    userEmail: string;
+    lineupId: string;
+    lineupTitle: string;
+    mapName: string;
+    agentName: string;
+    downloadCount?: number;
+}
+
+/**
+ * 记录下载日志
+ * @param params 下载日志参数
+ */
+export async function logDownload(params: DownloadLogParams): Promise<void> {
+    const { userId, userEmail, lineupId, lineupTitle, mapName, agentName, downloadCount = 1 } = params;
+
+    const { error } = await supabase
+        .from('download_logs')
+        .insert({
+            user_id: userId,
+            user_email: userEmail,
+            lineup_id: lineupId,
+            lineup_title: lineupTitle,
+            map_name: mapName,
+            agent_name: agentName,
+            download_count: downloadCount,
+        });
+
+    if (error) {
+        console.error('Failed to log download:', error);
+    }
+}

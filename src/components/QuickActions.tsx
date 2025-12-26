@@ -121,15 +121,29 @@ const QuickActions: React.FC<Props> = ({
             </>
           )}
 
-          {/* 主开关按钮 */}
-          <button
-            onClick={onToggle}
-            className={`w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg border border-white/10 transition-all duration-300 z-40 ${isOpen ? 'bg-[#2a2f38] rotate-90' : 'bg-[#ff4655] hover:bg-[#d93a49] shadow-red-900/40'
-              }`}
-            title="快捷功能"
-          >
-            <Icon name={isOpen ? 'X' : 'Menu'} size={22} />
-          </button>
+          {/* 底部按钮组 */}
+          <div className="flex items-center gap-3">
+            {/* 瞄点编辑器 - 展开时显示在主按钮左边 */}
+            {isOpen && (
+              <button
+                onClick={() => window.open('/reticle.html', '_blank')}
+                className="w-12 h-12 rounded-full bg-[#2a2f38] hover:bg-[#3a4048] text-white flex items-center justify-center shadow-lg border border-white/10 transition-all active:scale-95 animate-in slide-in-from-right-2 fade-in duration-200"
+                title="瞄点编辑器"
+              >
+                <Icon name="Crosshair" size={20} />
+              </button>
+            )}
+
+            {/* 主开关按钮 */}
+            <button
+              onClick={onToggle}
+              className={`w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg border border-white/10 transition-all duration-300 z-40 ${isOpen ? 'bg-[#2a2f38] rotate-90' : 'bg-[#ff4655] hover:bg-[#d93a49] shadow-red-900/40'
+                }`}
+              title="快捷功能"
+            >
+              <Icon name={isOpen ? 'X' : 'Menu'} size={22} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

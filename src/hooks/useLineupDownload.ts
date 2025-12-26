@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { BaseLineup } from '../types/lineup';
 import { downloadLineupBundle } from '../lib/lineupDownload';
 import { useEmailAuth } from './useEmailAuth';
-import { checkDailyDownloadLimit, incrementDownloadCount } from '../lib/downloadLimit';
+import { checkDailyDownloadLimit, incrementDownloadCount, logDownload } from '../lib/downloadLimit';
 
 type Params = {
   lineups: BaseLineup[];
@@ -36,9 +36,18 @@ export const useLineupDownload = ({ lineups, setAlertMessage }: Params) => {
         // 静默下载，不显示提示
         const { failedImages } = await downloadLineupBundle(lineup);
 
-        // 记录下载次数
+        // 记录下载次数和日志
         if (user) {
           await incrementDownloadCount(user.id);
+          // 记录详细下载日志
+          await logDownload({
+            userId: user.id,
+            userEmail: user.email || '',
+            lineupId: lineup.id,
+            lineupTitle: lineup.title,
+            mapName: lineup.mapName,
+            agentName: lineup.agentName,
+          });
         }
 
         if (failedImages.length > 0) {

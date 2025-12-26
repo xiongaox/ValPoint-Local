@@ -8,13 +8,15 @@
  */
 import React, { useState } from 'react';
 import Icon, { IconName } from '../../../components/Icon';
-import { AdminPage } from '../AdminApp';
+import { AdminPage, AdminInfo } from '../AdminApp';
+import UserProfileModal from '../../shared/components/UserProfileModal';
 
 interface AdminLayoutProps {
     currentPage: AdminPage;
     onPageChange: (page: AdminPage) => void;
     onLogout?: () => void;
-    adminAccount?: string;
+    adminInfo: AdminInfo;
+    setAlertMessage?: (msg: string | null) => void;
     children: React.ReactNode;
 }
 
@@ -33,131 +35,226 @@ const NAV_ITEMS: { id: AdminPage; label: string; icon: IconName }[] = [
  * 后台管理布局组件
  * 包含侧边导航栏和管理员信息
  */
-function AdminLayout({ currentPage, onPageChange, onLogout, adminAccount, children }: AdminLayoutProps) {
+function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertMessage, children }: AdminLayoutProps) {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [avatarError, setAvatarError] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
+
+    // 内部 alertMessage handler（如果父组件没提供）
+    const handleAlertMessage = setAlertMessage || (() => { });
 
     // 退出登录
-    const handleLogout = () => {
+    const handleLogout = async () => {
         setIsLoggingOut(true);
+        // 如果是 Supabase 登录，需要登出
+        if (adminInfo.userId) {
+            const { supabase } = await import('../../../supabaseClient');
+            await supabase.auth.signOut();
+        }
         onLogout?.();
         setIsLoggingOut(false);
         setShowUserMenu(false);
     };
 
+    // 是否显示头像图片
+    const showAvatarImage = adminInfo.avatar && !avatarError;
+
+    // 头像 URL（如果是文件名则添加 /agents/ 前缀）
+    const avatarSrc = adminInfo.avatar
+        ? (adminInfo.avatar.startsWith('http') ? adminInfo.avatar : `/agents/${adminInfo.avatar}`)
+        : null;
+
+    // 角色显示文本
+    const roleLabel = adminInfo.isSuperAdmin ? '超级管理员' : '管理员';
+
     return (
-        <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
-            {/* 侧边导航栏 */}
-            <div className="w-64 flex-shrink-0 flex flex-col bg-[#1f2326] border-r border-white/10">
-                {/* Logo */}
-                <div className="h-16 flex items-center px-6 border-b border-white/5">
-                    <img src="/brand-logo.svg" alt="VALPOINT" className="h-8" />
-                    <span className="ml-2 text-xs text-gray-500 font-mono">ADMIN</span>
-                </div>
+        <>
+            <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
+                {/* 侧边导航栏 */}
+                <div className="w-64 flex-shrink-0 flex flex-col bg-[#1f2326] border-r border-white/10">
+                    {/* Logo */}
+                    <div className="h-16 flex items-center px-6 border-b border-white/5">
+                        <img src="/brand-logo.svg" alt="VALPOINT" className="h-8" />
+                        <span className="ml-2 text-xs text-gray-500 font-mono">ADMIN</span>
+                    </div>
 
-                {/* 导航菜单 */}
-                <nav className="flex-1 p-4 space-y-1">
-                    {NAV_ITEMS.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => onPageChange(item.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${currentPage === item.id
-                                ? 'bg-[#ff4655] text-white'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                }`}
-                        >
-                            <Icon name={item.icon} size={18} />
-                            {item.label}
-                        </button>
-                    ))}
-                </nav>
+                    {/* 导航菜单 */}
+                    <nav className="flex-1 p-4 space-y-1">
+                        {NAV_ITEMS.map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => onPageChange(item.id)}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${currentPage === item.id
+                                    ? 'bg-[#ff4655] text-white'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                <Icon name={item.icon} size={18} />
+                                {item.label}
+                            </button>
+                        ))}
+                    </nav>
 
-                {/* 底部链接 */}
-                <div className="p-4 border-t border-white/5">
-                    <div className="flex flex-col gap-2 text-xs text-gray-500">
-                        <a
-                            href="/user.html"
-                            className="hover:text-white transition-colors"
-                        >
-                            → 返回个人库
-                        </a>
-                        <a
-                            href="/shared.html"
-                            className="hover:text-white transition-colors"
-                        >
-                            → 查看共享库
-                        </a>
+                    {/* 底部链接 */}
+                    <div className="p-4 border-t border-white/5">
+                        <div className="flex flex-col gap-2 text-xs text-gray-500">
+                            <a
+                                href="/user.html"
+                                className="hover:text-white transition-colors"
+                            >
+                                → 返回个人库
+                            </a>
+                            <a
+                                href="/shared.html"
+                                className="hover:text-white transition-colors"
+                            >
+                                → 查看共享库
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* 主内容区域 */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                {/* 顶部栏 */}
-                <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 bg-[#1f2326]">
-                    <h1 className="text-lg font-semibold">
-                        {NAV_ITEMS.find((item) => item.id === currentPage)?.label || '后台管理'}
-                    </h1>
+                {/* 主内容区域 */}
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* 顶部栏 */}
+                    <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 bg-[#1f2326]">
+                        <h1 className="text-lg font-semibold">
+                            {NAV_ITEMS.find((item) => item.id === currentPage)?.label || '后台管理'}
+                        </h1>
 
-                    {/* 用户信息区域 */}
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowUserMenu(!showUserMenu)}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
-                        >
-                            <div className="text-right">
-                                <div className="text-sm font-medium text-white">超级管理员</div>
-                                <div className="text-xs text-gray-500">{adminAccount || '环境变量登录'}</div>
-                            </div>
-                            <div className="w-9 h-9 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-full flex items-center justify-center">
-                                <Icon name="Shield" size={18} className="text-white" />
-                            </div>
-                            <Icon name="ChevronDown" size={16} className={`text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                        </button>
+                        {/* 用户信息区域 */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowUserMenu(!showUserMenu)}
+                                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
+                            >
+                                <div className="text-right">
+                                    <div className="text-sm font-medium text-white">{roleLabel}</div>
+                                    <div className="text-xs text-gray-500">{adminInfo.nickname || adminInfo.account}</div>
+                                </div>
+                                {/* 头像 */}
+                                {showAvatarImage ? (
+                                    <img
+                                        src={avatarSrc!}
+                                        alt="头像"
+                                        className="w-9 h-9 rounded-full object-cover border-2 border-[#ff4655]/50"
+                                        onError={() => setAvatarError(true)}
+                                    />
+                                ) : (
+                                    <div className="w-9 h-9 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-full flex items-center justify-center">
+                                        <Icon name="Shield" size={18} className="text-white" />
+                                    </div>
+                                )}
+                                <Icon name="ChevronDown" size={16} className={`text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                            </button>
 
-                        {/* 用户下拉菜单 */}
-                        {showUserMenu && (
-                            <>
-                                {/* 背景遮罩 */}
-                                <div
-                                    className="fixed inset-0 z-40"
-                                    onClick={() => setShowUserMenu(false)}
-                                />
-                                {/* 菜单 */}
-                                <div className="absolute right-0 top-full mt-2 w-48 bg-[#1f2326] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
-                                    <div className="p-2">
-                                        {/* 退出登录 */}
-                                        <button
-                                            onClick={handleLogout}
-                                            disabled={isLoggingOut}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
-                                        >
-                                            {isLoggingOut ? (
+                            {/* 用户下拉菜单 */}
+                            {showUserMenu && (
+                                <>
+                                    {/* 背景遮罩 */}
+                                    <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => setShowUserMenu(false)}
+                                    />
+                                    {/* 菜单 */}
+                                    <div className="absolute right-0 top-full mt-2 w-56 bg-[#1f2326] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
+                                        {/* 用户信息 */}
+                                        <div className="px-4 py-3 border-b border-white/10">
+                                            <div className="flex items-center gap-3">
+                                                {showAvatarImage ? (
+                                                    <img
+                                                        src={avatarSrc!}
+                                                        alt="头像"
+                                                        className="w-10 h-10 rounded-full object-cover"
+                                                        onError={() => setAvatarError(true)}
+                                                    />
+                                                ) : (
+                                                    <div className="w-10 h-10 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-full flex items-center justify-center">
+                                                        <Icon name="User" size={20} className="text-white" />
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <div className="text-sm font-medium text-white">{adminInfo.nickname || '未设置昵称'}</div>
+                                                    <div className="text-xs text-gray-500">{adminInfo.account}</div>
+                                                </div>
+                                            </div>
+                                            <div className="mt-2 flex items-center gap-2">
+                                                <span className={`text-xs px-2 py-0.5 rounded ${adminInfo.isSuperAdmin
+                                                    ? 'bg-amber-500/20 text-amber-400'
+                                                    : 'bg-blue-500/20 text-blue-400'
+                                                    }`}>
+                                                    {roleLabel}
+                                                </span>
+                                                {adminInfo.userId && (
+                                                    <span className="text-xs text-gray-600">Supabase 用户</span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div className="p-2 space-y-1">
+                                            {/* 个人资料 - 只对 Supabase 登录用户显示 */}
+                                            {adminInfo.userId && (
                                                 <>
-                                                    <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                                                    退出中...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Icon name="LogOut" size={16} />
-                                                    退出登录
+                                                    <button
+                                                        onClick={() => {
+                                                            setShowUserMenu(false);
+                                                            setShowProfileModal(true);
+                                                        }}
+                                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
+                                                    >
+                                                        <Icon name="User" size={16} />
+                                                        个人资料
+                                                    </button>
+                                                    {/* 分隔线 */}
+                                                    <div className="border-t border-white/10 my-1" />
                                                 </>
                                             )}
-                                        </button>
-                                    </div>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </header>
 
-                {/* 页面内容 */}
-                <main className="flex-1 overflow-auto p-6">
-                    {children}
-                </main>
+                                            {/* 退出登录 */}
+                                            <button
+                                                onClick={handleLogout}
+                                                disabled={isLoggingOut}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                                            >
+                                                {isLoggingOut ? (
+                                                    <>
+                                                        <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                                                        退出中...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Icon name="LogOut" size={16} />
+                                                        退出登录
+                                                    </>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </header>
+
+                    {/* 页面内容 */}
+                    <main className="flex-1 overflow-auto p-6">
+                        {children}
+                    </main>
+                </div>
             </div>
-        </div>
-    );
+
+            {/* 个人资料弹窗 */}
+            {
+                adminInfo.userId && (
+                    <UserProfileModal
+                        isOpen={showProfileModal}
+                        onClose={() => setShowProfileModal(false)}
+                        setAlertMessage={handleAlertMessage}
+                    />
+                )
+            }
+        </>);
 }
 
 export default AdminLayout;
+
