@@ -6,19 +6,15 @@
  * - 包含侧边栏折叠/展开逻辑
  * - 为所有管理页面提供响应式的容器
  */
-import React, { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
+import React, { useState } from 'react';
 import Icon, { IconName } from '../../../components/Icon';
-import UserAvatar from '../../../components/UserAvatar';
 import { AdminPage } from '../AdminApp';
-import { supabase } from '../../../supabaseClient';
-import UserProfileModal from '../../shared/components/UserProfileModal';
-import { useUserProfile } from '../../../hooks/useUserProfile';
-import { getAvatarByEmail } from '../../../utils/avatarUtils';
 
 interface AdminLayoutProps {
     currentPage: AdminPage;
     onPageChange: (page: AdminPage) => void;
+    onLogout?: () => void;
+    adminAccount?: string;
     children: React.ReactNode;
 }
 
@@ -35,54 +31,18 @@ const NAV_ITEMS: { id: AdminPage; label: string; icon: IconName }[] = [
 
 /**
  * 后台管理布局组件
- * 包含侧边导航栏和用户信息
+ * 包含侧边导航栏和管理员信息
  */
-function AdminLayout({ currentPage, onPageChange, children }: AdminLayoutProps) {
-    const [user, setUser] = useState<User | null>(null);
+function AdminLayout({ currentPage, onPageChange, onLogout, adminAccount, children }: AdminLayoutProps) {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const [showProfileModal, setShowProfileModal] = useState(false);
-    const [alertMessage, setAlertMessage] = useState<string | null>(null);
-
-    // 从 user_profiles 表获取用户业务数据
-    const { profile } = useUserProfile();
-
-    // 获取用户信息
-    useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            setUser(user);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
 
     // 退出登录
-    const handleLogout = async () => {
+    const handleLogout = () => {
         setIsLoggingOut(true);
-        await supabase.auth.signOut();
+        onLogout?.();
         setIsLoggingOut(false);
         setShowUserMenu(false);
-    };
-
-    // 获取用户显示名称 - 从 user_profiles 表读取
-    const getUserDisplayName = () => {
-        if (!profile) return '管理员';
-        return profile.custom_id || profile.nickname || user?.email?.split('@')[0] || '管理员';
-    };
-
-    // 获取用户头像 - 从 user_profiles 表读取，无则使用随机默认头像
-    const getUserAvatar = () => {
-        return profile?.avatar || getAvatarByEmail(user?.email || '');
-    };
-
-    // 打开个人信息编辑
-    const handleEditProfile = () => {
-        setShowUserMenu(false);
-        setShowProfileModal(true);
     };
 
     return (
@@ -146,11 +106,11 @@ function AdminLayout({ currentPage, onPageChange, children }: AdminLayoutProps) 
                             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
                         >
                             <div className="text-right">
-                                <div className="text-sm font-medium text-white">{getUserDisplayName()}</div>
-                                <div className="text-xs text-gray-500">{user?.email || '未登录'}</div>
+                                <div className="text-sm font-medium text-white">超级管理员</div>
+                                <div className="text-xs text-gray-500">{adminAccount || '环境变量登录'}</div>
                             </div>
-                            <div className="w-9 h-9">
-                                <UserAvatar email={user?.email || ''} size={36} borderColor="default" />
+                            <div className="w-9 h-9 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-full flex items-center justify-center">
+                                <Icon name="Shield" size={18} className="text-white" />
                             </div>
                             <Icon name="ChevronDown" size={16} className={`text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
                         </button>
@@ -164,33 +124,8 @@ function AdminLayout({ currentPage, onPageChange, children }: AdminLayoutProps) 
                                     onClick={() => setShowUserMenu(false)}
                                 />
                                 {/* 菜单 */}
-                                <div className="absolute right-0 top-full mt-2 w-64 bg-[#1f2326] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
-                                    {/* 用户信息头部 */}
-                                    <div className="p-4 border-b border-white/10">
-                                        <div className="flex items-center gap-3">
-                                            <UserAvatar email={user?.email || ''} size={56} borderColor="red" />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="font-bold text-white text-lg truncate">{getUserDisplayName()}</div>
-                                                <div className="text-xs text-gray-400 truncate">{user?.email}</div>
-                                                <div className="text-xs text-gray-500 mt-1">
-                                                    注册于 {user?.created_at ? new Date(user.created_at).toLocaleDateString('zh-CN') : '-'}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* 菜单项 */}
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-[#1f2326] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
                                     <div className="p-2">
-
-                                        {/* 编辑个人信息 */}
-                                        <button
-                                            onClick={handleEditProfile}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/5 rounded-lg transition-colors"
-                                        >
-                                            <Icon name="User" size={16} />
-                                            编辑个人信息
-                                        </button>
-
                                         {/* 退出登录 */}
                                         <button
                                             onClick={handleLogout}
@@ -221,20 +156,6 @@ function AdminLayout({ currentPage, onPageChange, children }: AdminLayoutProps) 
                     {children}
                 </main>
             </div>
-
-            {/* 个人信息弹窗 */}
-            <UserProfileModal
-                isOpen={showProfileModal}
-                onClose={() => setShowProfileModal(false)}
-                setAlertMessage={setAlertMessage}
-            />
-
-            {/* 提示消息 */}
-            {alertMessage && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1500] px-6 py-3 bg-emerald-500/90 text-white rounded-xl shadow-lg animate-in fade-in slide-in-from-bottom-4">
-                    {alertMessage}
-                </div>
-            )}
         </div>
     );
 }

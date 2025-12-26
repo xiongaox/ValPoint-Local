@@ -27,9 +27,10 @@ export interface AdminAccessResult {
 
 /**
  * 检查用户是否有管理员权限
- * 从 user_profiles.role 字段读取
+ * 从 user_profiles.role 字段读取，或通过环境变量配置超级管理员
  */
 export async function checkAdminAccess(userId: string): Promise<AdminAccessResult> {
+    // 先获取用户信息
     const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -41,6 +42,18 @@ export async function checkAdminAccess(userId: string): Promise<AdminAccessResul
             isAdmin: false,
             isSuperAdmin: false,
             adminInfo: null,
+        };
+    }
+
+    // 检查环境变量中的超级管理员账号
+    const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
+        || import.meta.env.VITE_ADMIN_ACCOUNT;
+
+    if (adminAccount && data.email?.toLowerCase() === adminAccount.toLowerCase()) {
+        return {
+            isAdmin: true,
+            isSuperAdmin: true,
+            adminInfo: { ...data, role: 'super_admin' } as AdminUser,
         };
     }
 

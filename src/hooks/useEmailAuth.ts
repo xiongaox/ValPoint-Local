@@ -108,6 +108,28 @@ export function useEmailAuth(): UseEmailAuthResult {
     const signInWithPassword = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
+        // 检查是否为环境变量配置的超级管理员
+        const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
+            || import.meta.env.VITE_ADMIN_ACCOUNT;
+        const adminPassword = (window as any).__ENV__?.VITE_ADMIN_PASSWORD
+            || import.meta.env.VITE_ADMIN_PASSWORD;
+
+        if (adminAccount && adminPassword
+            && email.toLowerCase() === adminAccount.toLowerCase()
+            && password === adminPassword) {
+            // 创建一个虚拟的超级管理员用户对象
+            const virtualUser = {
+                id: 'env-super-admin',
+                email: adminAccount,
+                user_metadata: {
+                    nickname: '超级管理员',
+                    role: 'super_admin',
+                },
+            } as unknown as User;
+            setUser(virtualUser);
+            return { success: true };
+        }
+
         // 验证邮箱
         const validation = validateEmail(email);
         if (!validation.isValid) {

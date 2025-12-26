@@ -3,11 +3,10 @@
  * 
  * 职责：
  * - 提供管理员登录检查与侧边栏导航控制
- * - 实现基于 React Router 的管理页面路由配置
- * - 提供全局弹窗管理器 (Global Modal Context/Host)
+ * - 实现基于环境变量的超级管理员认证
+ * - 使用 Supabase anon key 读取数据（无需真实登录态）
  */
-import React, { useState, useEffect, useRef } from 'react';
-import { User } from '@supabase/supabase-js';
+import React, { useState } from 'react';
 import '../../styles/fonts.css';
 import '../../index.css';
 import AdminLayout from './components/AdminLayout';
@@ -18,91 +17,35 @@ import LineupUploadPage from './pages/LineupUploadPage';
 import SettingsPage from './pages/SettingsPage';
 import LineupReviewPage from './pages/LineupReviewPage';
 import SharedManagePage from './pages/SharedManagePage';
-import SharedLoginPage from '../shared/SharedLoginPage';
-import AdminAccessDenied from './components/AdminAccessDenied';
-import { supabase } from '../../supabaseClient';
-import { checkAdminAccess, checkAdminAccessByEmail, AdminAccessResult } from '../../lib/adminService';
+import AdminLoginPage from './pages/AdminLoginPage';
 
 export type AdminPage = 'dashboard' | 'users' | 'logs' | 'upload' | 'review' | 'shared' | 'settings';
+
+/** 管理员信息（环境变量登录） */
+interface AdminInfo {
+    account: string;
+    isSuperAdmin: boolean;
+}
 
 /**
  * 后台管理应用根组件
  */
 function AdminApp() {
     const [currentPage, setCurrentPage] = useState<AdminPage>('dashboard');
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isCheckingAccess, setIsCheckingAccess] = useState(false);
+    const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(null);
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
-    const [adminAccess, setAdminAccess] = useState<AdminAccessResult | null>(null);
 
-    // 防止重复处理相同用户
-    const processedUserIdRef = useRef<string | null>(null);
-
-    // 监听用户登录状态
-    useEffect(() => {
-        // 获取当前用户
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            setUser(user);
-            if (!user) {
-                setIsLoading(false);
-            }
+    // 登录成功回调
+    const handleLogin = (account: string) => {
+        setAdminInfo({
+            account,
+            isSuperAdmin: true, // 环境变量登录的都是超级管理员
         });
-
-        // 监听登录状态变化
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            const newUserId = session?.user?.id ?? null;
-
-            // 如果是相同用户的重复 SIGNED_IN 事件，跳过处理
-            if (event === 'SIGNED_IN' && newUserId && processedUserIdRef.current === newUserId) {
-                return;
-            }
-
-            // 更新已处理的用户 ID
-            processedUserIdRef.current = newUserId;
-
-            setUser(session?.user ?? null);
-            if (!session?.user) {
-                setAdminAccess(null);
-                setIsCheckingAccess(false);
-            } else {
-                setIsCheckingAccess(true);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
-
-    // 检查管理员权限
-    useEffect(() => {
-        if (!user) {
-            setAdminAccess(null);
-            return;
-        }
-
-        const checkAccess = async () => {
-            setIsCheckingAccess(true);
-            let access = await checkAdminAccess(user.id);
-
-            // 如果通过 user_id 找不到，尝试通过邮箱查找
-            if (!access.isAdmin && user.email) {
-                const emailAccess = await checkAdminAccessByEmail(user.email);
-                if (emailAccess.isAdmin) {
-                    access = emailAccess;
-                }
-            }
-
-            setAdminAccess(access);
-            setIsCheckingAccess(false);
-            setIsLoading(false);
-        };
-
-        checkAccess();
-    }, [user]);
+    };
 
     // 退出登录
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
+    const handleLogout = () => {
+        setAdminInfo(null);
     };
 
     const renderPage = () => {
@@ -120,34 +63,25 @@ function AdminApp() {
             case 'shared':
                 return <SharedManagePage />;
             case 'settings':
-                return <SettingsPage isSuperAdmin={adminAccess?.isSuperAdmin ?? false} />;
+                return <SettingsPage isSuperAdmin={adminInfo?.isSuperAdmin ?? false} />;
             default:
                 return <DashboardPage />;
         }
     };
 
-    // 加载中或检查权限中
-    if (isLoading || isCheckingAccess) {
-        return (
-            <div className="min-h-screen bg-[#0f1923] flex items-center justify-center">
-                <div className="w-10 h-10 border-3 border-[#ff4655] border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
-
     // 未登录，显示登录页面
-    if (!user) {
-        return <SharedLoginPage setAlertMessage={setAlertMessage} />;
+    if (!adminInfo) {
+        return <AdminLoginPage onLogin={handleLogin} setAlertMessage={setAlertMessage} />;
     }
 
-    // 已登录但无管理员权限，显示无权限页面
-    if (!adminAccess?.isAdmin) {
-        return <AdminAccessDenied email={user.email} onLogout={handleLogout} />;
-    }
-
-    // 已登录且有管理员权限，显示管理后台
+    // 已登录，显示管理后台
     return (
-        <AdminLayout currentPage={currentPage} onPageChange={setCurrentPage}>
+        <AdminLayout
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onLogout={handleLogout}
+            adminAccount={adminInfo.account}
+        >
             {renderPage()}
         </AdminLayout>
     );

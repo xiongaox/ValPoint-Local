@@ -405,6 +405,9 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                                     placeholder="https://shared.example.com"
                                     className="w-full px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
                                 />
+                                <p className="mt-2 text-xs text-gray-500">
+                                    💡 如果设置了环境变量 <code className="text-amber-400">VITE_SHARED_LIBRARY_URL</code>，将优先使用环境变量的值
+                                </p>
                             </div>
                         </div>
                     </div>

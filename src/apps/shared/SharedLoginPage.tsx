@@ -723,14 +723,8 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     )}
                 </div>
 
-                {/* 底部版权 - 双击可进入验证码调试模式 */}
-                <div
-                    className="absolute bottom-6 left-0 right-0 text-center"
-                    onDoubleClick={() => {
-                        setEmail('debug@example.com');
-                        setMode('magic-sent');
-                    }}
-                >
+                {/* 底部版权 */}
+                <div className="absolute bottom-6 left-0 right-0 text-center">
                     <p className="text-gray-600 text-xs">
                         © 2024 VALPOINT · 社区驱动的战术平台
                     </p>
