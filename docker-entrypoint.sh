@@ -11,18 +11,14 @@ window.__ENV__ = {
   VITE_SUPABASE_SHARE_URL: "${VITE_SUPABASE_SHARE_URL}",
   VITE_SUPABASE_SHARE_ANON_KEY: "${VITE_SUPABASE_SHARE_ANON_KEY}",
   VITE_SHARED_LIBRARY_URL: "${VITE_SHARED_LIBRARY_URL}",
+  VITE_PERSONAL_LIBRARY_URL: "${VITE_PERSONAL_LIBRARY_URL}",
   VITE_ADMIN_ACCOUNT: "${VITE_ADMIN_ACCOUNT}",
   VITE_ADMIN_PASSWORD: "${VITE_ADMIN_PASSWORD}"
 };
 EOF
 
-# Copy config to each app's directory
-# User App
-cp /tmp/${CONFIG_FILE} /usr/share/nginx/html/user/${CONFIG_FILE}
-# Shared App
-cp /tmp/${CONFIG_FILE} /usr/share/nginx/html/shared/${CONFIG_FILE}
-# Admin App
-cp /tmp/${CONFIG_FILE} /usr/share/nginx/html/admin/${CONFIG_FILE}
+# Copy config to unified app root (MPA architecture)
+cp /tmp/${CONFIG_FILE} /usr/share/nginx/html/${CONFIG_FILE}
 
 # Start Nginx
 exec "$@"
