@@ -208,7 +208,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
 
     return (
         <div
-            className={`rounded-full overflow-hidden flex-shrink-0 bg-[#0f131a] ${bordered ? `border-2 ${borderStyles[borderColor]}` : ''} ${className}`}
+            className={`rounded-xl overflow-hidden flex-shrink-0 bg-[#0f131a] ${bordered ? `border-2 ${borderStyles[borderColor]}` : ''} ${className}`}
             style={{ width: size, height: size }}
         >
             {loading ? (

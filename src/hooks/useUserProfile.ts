@@ -21,6 +21,7 @@ export interface UserProfile {
     ban_reason: string | null;
     download_count: number;
     can_batch_download?: boolean; // 是否允许批量下载
+    pinned_lineup_ids: string[]; // 置顶点位ID列表
     created_at: string;
     updated_at: string;
 }

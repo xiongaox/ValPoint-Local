@@ -49,7 +49,7 @@ const CompactUserCard: React.FC<CompactUserCardProps> = ({
                     <>
                         {/* 头像 (Compact) */}
                         <div className="relative shrink-0">
-                            <div className="rounded-lg overflow-hidden border border-white/20 shadow-inner group-hover:border-[#ff4655]/50 transition-colors duration-300">
+                            <div className="rounded-xl overflow-hidden border border-white/20 shadow-inner group-hover:border-[#ff4655]/50 transition-colors duration-300">
                                 <UserAvatar email={user.email || ''} size={36} bordered={false} />
                             </div>
                             {/* 在线指示灯 */}

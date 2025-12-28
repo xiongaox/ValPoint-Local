@@ -6,7 +6,7 @@
  * - 展示用户绑定的邮箱、UUID 及注册日期
  * - 处理用户个人资料的异步更新
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
 import { useUserProfile } from '../../../hooks/useUserProfile';
@@ -38,6 +38,32 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
     // 卡面列表状态（异步加载）
     const [playerCards, setPlayerCards] = useState<PlayerCardAvatar[]>([]);
     const [isLoadingCards, setIsLoadingCards] = useState(false);
+
+    // 无限滚动状态
+    const [visibleCount, setVisibleCount] = useState(48); // 初始显示 48 个 (约 4 行x6列 或 12行x4列)
+    const visibleCards = useMemo(() => playerCards.slice(0, visibleCount), [playerCards, visibleCount]);
+    const loadMoreRef = useRef<HTMLDivElement>(null);
+
+    // 监听滚动到底部
+    useEffect(() => {
+        if (!isAvatarPickerOpen || isLoadingCards || visibleCount >= playerCards.length) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    // 加载更多 (增加 48 个)
+                    setVisibleCount((prev) => Math.min(prev + 48, playerCards.length));
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        if (loadMoreRef.current) {
+            observer.observe(loadMoreRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [isAvatarPickerOpen, isLoadingCards, playerCards.length, visibleCount]);
 
     // 生成随机 ID：8位 大写字母+数字
     const generateId = () => {
@@ -153,7 +179,7 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                     <div className="flex flex-col items-center gap-2">
                         <button
                             onClick={() => setIsAvatarPickerOpen(true)}
-                            className="relative w-24 h-24 rounded-full border-2 border-white/10 overflow-hidden bg-[#0f131a] group hover:border-[#ff4655] transition-colors cursor-pointer"
+                            className="relative w-24 h-24 rounded-xl border-2 border-white/10 overflow-hidden bg-[#0f131a] group hover:border-[#ff4655] transition-colors cursor-pointer"
                             title="点击更换头像"
                         >
                             <img
@@ -223,7 +249,7 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#1c2028]">
-                            <span className="text-sm font-bold text-white">选择卡面头像</span>
+                            <span className="text-sm font-bold text-white">选择卡面头像 ({playerCards.length})</span>
                             <button onClick={() => setIsAvatarPickerOpen(false)} className="text-gray-400 hover:text-white">
                                 <Icon name="X" size={16} />
                             </button>
@@ -235,7 +261,7 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-4 gap-3">
-                                    {playerCards.map((card) => (
+                                    {visibleCards.map((card) => (
                                         <button
                                             key={card.uuid}
                                             onClick={(e) => {
@@ -252,6 +278,12 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                                             <img src={card.url} alt={card.name} className="w-full h-full object-cover" loading="lazy" />
                                         </button>
                                     ))}
+                                    {/* 加载更多触发器 */}
+                                    {visibleCount < playerCards.length && (
+                                        <div ref={loadMoreRef} className="col-span-4 py-4 flex justify-center">
+                                            <div className="w-6 h-6 border-2 border-white/20 border-t-[#ff4655] rounded-full animate-spin" />
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

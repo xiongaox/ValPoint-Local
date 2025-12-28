@@ -135,7 +135,7 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                     <div className="text-xs text-gray-500">{adminInfo.nickname || adminInfo.account}</div>
                                 </div>
                                 {/* 头像 */}
-                                <div className="rounded-full overflow-hidden border-2 border-[#ff4655]/50 flex-shrink-0">
+                                <div className="rounded-xl overflow-hidden border-2 border-[#ff4655]/50 flex-shrink-0">
                                     <UserAvatar
                                         email={adminInfo.account === 'admin' ? '' : adminInfo.account}
                                         size={36}
@@ -158,7 +158,7 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                         {/* 用户信息 */}
                                         <div className="px-4 py-3 border-b border-white/10">
                                             <div className="flex items-center gap-3">
-                                                <div className="rounded-full overflow-hidden flex-shrink-0">
+                                                <div className="rounded-xl overflow-hidden flex-shrink-0">
                                                     <UserAvatar
                                                         email={adminInfo.account === 'admin' ? '' : adminInfo.account}
                                                         size={40}

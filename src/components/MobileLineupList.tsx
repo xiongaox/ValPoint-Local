@@ -16,6 +16,7 @@ interface MobileLineupListProps {
     onSelectLineup: (id: string) => void;
     isLoading?: boolean;
     pinnedLineupIds?: string[]; // 置顶的点位ID列表
+    onTogglePin?: (id: string) => void; // 置顶切换回调
 }
 
 function MobileLineupList({
@@ -26,6 +27,7 @@ function MobileLineupList({
     onSelectLineup,
     isLoading = false,
     pinnedLineupIds = [],
+    onTogglePin,
 }: MobileLineupListProps) {
     if (!isOpen) return null;
 
@@ -160,6 +162,20 @@ function MobileLineupList({
                                                 {lineup.agentName}
                                             </div>
                                         </div>
+
+                                        {/* 置顶按钮 */}
+                                        {onTogglePin && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onTogglePin(lineup.id);
+                                                }}
+                                                className={`p-2 rounded-lg transition-colors shrink-0 ${pinned ? 'text-amber-400 bg-amber-400/10' : 'text-gray-500 hover:text-white hover:bg-white/10'
+                                                    }`}
+                                            >
+                                                <Icon name="Pin" size={18} className={pinned ? "fill-current" : ""} />
+                                            </button>
+                                        )}
 
                                         {/* 箭头图标 */}
                                         <Icon

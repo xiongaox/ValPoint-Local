@@ -212,14 +212,14 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                     <>
                         {/* 左上角：库切换 Tab（移动端样式） */}
                         <div className="absolute top-3 left-3 z-10">
-                            <div className="flex bg-black/60 backdrop-blur-sm rounded-full border border-white/10 p-1.5">
+                            <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                                 <a
                                     href={personalLibraryUrl || '/'}
-                                    className="px-4 h-[32px] flex items-center justify-center rounded-full text-sm font-medium transition-all text-gray-400 hover:text-white"
+                                    className="px-4 h-[32px] flex items-center justify-center rounded-lg text-sm font-medium transition-all text-gray-400 hover:text-white"
                                 >
                                     个人库
                                 </a>
-                                <div className="px-4 h-[32px] flex items-center justify-center rounded-full text-sm font-medium bg-[#17b890] text-white">
+                                <div className="px-4 h-[32px] flex items-center justify-center rounded-lg text-sm font-medium bg-[#17b890] text-white">
                                     共享库
                                 </div>
                             </div>
@@ -228,11 +228,11 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                         {/* 右上角：用户胶囊按钮 + 列表按钮 */}
                         <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
                             {user ? (
-                                <div className="flex bg-black/60 backdrop-blur-sm rounded-full border border-white/10 p-1.5 items-center gap-2">
+                                <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5 items-center gap-2">
                                     {/* 左侧：头像 → 个人中心 */}
                                     <button
                                         onClick={() => setIsProfileModalOpen(true)}
-                                        className="w-[32px] h-[32px] flex items-center justify-center rounded-full overflow-hidden hover:bg-white/10 transition-colors"
+                                        className="w-[32px] h-[32px] flex items-center justify-center rounded-lg overflow-hidden hover:bg-white/10 transition-colors"
                                         title="个人中心"
                                     >
                                         {profile?.avatar ? (
@@ -253,7 +253,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                     {/* 右侧：退出按钮 - 红色选中状态 */}
                                     <button
                                         onClick={onSignOut}
-                                        className="px-5 h-[32px] bg-[#ff4655] rounded-full text-white text-sm font-medium hover:bg-[#ff5b6b] transition-colors"
+                                        className="px-5 h-[32px] bg-[#ff4655] rounded-lg text-white text-sm font-medium hover:bg-[#ff5b6b] transition-colors"
                                         title="退出登录"
                                     >
                                         退出
@@ -262,7 +262,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             ) : (
                                 <button
                                     onClick={onRequestLogin}
-                                    className="w-[46px] h-[46px] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-full border border-white/10"
+                                    className="w-[46px] h-[46px] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
                                     title="登录"
                                 >
                                     <Icon name="User" size={20} className="text-white" />
@@ -271,7 +271,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             {/* 点位列表入口 */}
                             <button
                                 onClick={() => setIsMobileLineupListOpen(true)}
-                                className="w-[46px] h-[46px] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-full border border-white/10"
+                                className="w-[46px] h-[46px] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
                                 title="点位列表"
                             >
                                 <Icon name="List" size={20} className="text-white" />
@@ -283,17 +283,17 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             {/* 左侧：地图选择 - 胶囊按钮 */}
                             <button
                                 onClick={() => setIsMobileMapPickerOpen(true)}
-                                className="flex items-center gap-2 px-4 h-[46px] bg-black/60 backdrop-blur-sm rounded-full border border-white/10"
+                                className="flex items-center gap-2 px-3 h-[46px] bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
                             >
                                 <Icon name="Map" size={18} className="text-[#ff4655]" />
                                 <span className="text-white text-sm font-medium max-w-[70px] truncate">{controller.getMapDisplayName(controller.selectedMap?.displayName || '') || '地图'}</span>
                             </button>
 
                             {/* 中间：攻防切换 */}
-                            <div className="flex bg-black/60 backdrop-blur-sm rounded-full border border-white/10 p-1.5">
+                            <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                                 <button
                                     onClick={() => controller.setSelectedSide('attack')}
-                                    className={`px-3 h-[32px] rounded-full text-sm font-medium whitespace-nowrap transition-all ${controller.selectedSide === 'attack'
+                                    className={`px-3 h-[32px] rounded-lg text-sm font-medium whitespace-nowrap transition-all ${controller.selectedSide === 'attack'
                                         ? 'bg-[#ff4655] text-white'
                                         : 'text-gray-400'
                                         }`}
@@ -302,7 +302,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                 </button>
                                 <button
                                     onClick={() => controller.setSelectedSide('defense')}
-                                    className={`px-4 h-[32px] rounded-full text-sm font-medium whitespace-nowrap transition-all ${controller.selectedSide === 'defense'
+                                    className={`px-4 h-[32px] rounded-lg text-sm font-medium whitespace-nowrap transition-all ${controller.selectedSide === 'defense'
                                         ? 'bg-emerald-500 text-white'
                                         : 'text-gray-400'
                                         }`}
@@ -312,15 +312,15 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             </div>
 
                             {/* 右侧：角色选择 - Tab 样式 */}
-                            <div className="flex bg-black/60 backdrop-blur-sm rounded-full border border-white/10 p-1.5">
+                            <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                                 <button
                                     onClick={() => setIsMobileAgentPickerOpen(true)}
-                                    className="flex items-center gap-2 px-2 h-[32px] rounded-full"
+                                    className="flex items-center gap-2 px-1 h-[32px] rounded-lg"
                                 >
                                     <img
                                         src={controller.selectedAgent?.displayIcon || `/agents/${controller.selectedAgent?.displayName || 'default'}.webp`}
                                         alt=""
-                                        className="w-7 h-7 rounded-full object-cover"
+                                        className="w-7 h-7 rounded-lg object-cover"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = '/agents/default.webp';
                                         }}
@@ -351,7 +351,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                                     return next;
                                                 });
                                             }}
-                                            className={`w-10 h-10 rounded-full border-2 backdrop-blur-sm transition-all flex items-center justify-center ${isSelected
+                                            className={`w-10 h-10 rounded-xl border-2 backdrop-blur-sm transition-all flex items-center justify-center ${isSelected
                                                 ? 'bg-[#ff4655] border-[#ff4655] shadow-lg shadow-red-500/30'
                                                 : 'bg-black/40 border-white/10 opacity-50'
                                                 }`}
