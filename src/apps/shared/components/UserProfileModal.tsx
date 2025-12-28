@@ -11,7 +11,12 @@ import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useEmailAuth } from '../../../hooks/useEmailAuth';
-import { AGENT_AVATARS, getAvatarByUserId, getAvatarByEmail } from '../../../utils/avatarUtils';
+import {
+    PlayerCardAvatar,
+    loadPlayerCardAvatars,
+    getPlayerCardByEmail,
+    getDefaultPlayerCardAvatar
+} from '../../../utils/playerCardAvatars';
 
 type Props = {
     isOpen: boolean;
@@ -23,12 +28,16 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
     const { user } = useEmailAuth();
     const { profile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
     const [nickname, setNickname] = useState('');
-    // 使用用户邮箱生成确定性随机默认头像，以保持与 UserAvatar 一致
-    const defaultAvatar = user?.email ? getAvatarByEmail(user.email) : '捷风.png';
+    // 使用用户邮箱生成确定性随机默认头像（现在使用玩家卡面）
+    const defaultAvatar = user?.email ? getPlayerCardByEmail(user.email) : getDefaultPlayerCardAvatar();
     const [currentAvatar, setCurrentAvatar] = useState(defaultAvatar);
     const [pendingId, setPendingId] = useState<string | null>(null); // 用于补填的 ID
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+
+    // 卡面列表状态（异步加载）
+    const [playerCards, setPlayerCards] = useState<PlayerCardAvatar[]>([]);
+    const [isLoadingCards, setIsLoadingCards] = useState(false);
 
     // 生成随机 ID：8位 大写字母+数字
     const generateId = () => {
@@ -53,6 +62,17 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
             }
         }
     }, [isOpen, profile]);
+
+    // 头像选择器打开时加载卡面列表
+    useEffect(() => {
+        if (isAvatarPickerOpen && playerCards.length === 0 && !isLoadingCards) {
+            setIsLoadingCards(true);
+            loadPlayerCardAvatars()
+                .then(cards => setPlayerCards(cards))
+                .catch(err => console.error('加载卡面失败:', err))
+                .finally(() => setIsLoadingCards(false));
+        }
+    }, [isAvatarPickerOpen, playerCards.length, isLoadingCards]);
 
     if (!isOpen) return null;
 
@@ -137,7 +157,7 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                             title="点击更换头像"
                         >
                             <img
-                                src={`/agents/${currentAvatar}`}
+                                src={currentAvatar.startsWith('http') ? currentAvatar : `/agents/${currentAvatar}`}
                                 alt="Avatar"
                                 className="w-full h-full object-cover"
                             />
@@ -198,31 +218,42 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
 
                 {/* 头像选择器覆盖层 */}
                 {isAvatarPickerOpen && (
-                    <div className="absolute inset-0 bg-[#181b1f] z-10 flex flex-col animate-in fade-in slide-in-from-bottom-10 duration-300">
+                    <div
+                        className="absolute inset-0 bg-[#181b1f] z-10 flex flex-col animate-in fade-in slide-in-from-bottom-10 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#1c2028]">
-                            <span className="text-sm font-bold text-white">选择特工头像</span>
+                            <span className="text-sm font-bold text-white">选择卡面头像</span>
                             <button onClick={() => setIsAvatarPickerOpen(false)} className="text-gray-400 hover:text-white">
                                 <Icon name="X" size={16} />
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                            <div className="grid grid-cols-4 gap-3">
-                                {AGENT_AVATARS.map((agent) => (
-                                    <button
-                                        key={agent}
-                                        onClick={() => {
-                                            setCurrentAvatar(agent);
-                                            setIsAvatarPickerOpen(false);
-                                        }}
-                                        className={`aspect-square rounded-full overflow-hidden border-2 transition-all ${currentAvatar === agent
-                                            ? 'border-[#ff4655] scale-110 shadow-lg shadow-[#ff4655]/20'
-                                            : 'border-white/10 hover:border-white/50 hover:scale-105'
-                                            }`}
-                                    >
-                                        <img src={`/agents/${agent}`} alt={agent} className="w-full h-full object-cover" />
-                                    </button>
-                                ))}
-                            </div>
+                            {isLoadingCards ? (
+                                <div className="flex items-center justify-center h-32">
+                                    <div className="w-8 h-8 border-4 border-[#ff4655] border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-4 gap-3">
+                                    {playerCards.map((card) => (
+                                        <button
+                                            key={card.uuid}
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // 防止冒泡导致弹窗关闭
+                                                setCurrentAvatar(card.url);
+                                                setIsAvatarPickerOpen(false);
+                                            }}
+                                            className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${currentAvatar === card.url
+                                                ? 'border-[#ff4655] scale-110 shadow-lg shadow-[#ff4655]/20'
+                                                : 'border-white/10 hover:border-white/50 hover:scale-105'
+                                                }`}
+                                            title={card.name}
+                                        >
+                                            <img src={card.url} alt={card.name} className="w-full h-full object-cover" loading="lazy" />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

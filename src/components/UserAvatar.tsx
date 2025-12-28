@@ -54,6 +54,24 @@ const persistCache = () => {
     }
 };
 
+// 监听跨标签页/窗口的 LocalStorage 变化
+if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'valpoint_avatar_cache' && event.newValue) {
+            try {
+                // 更新内存中的缓存
+                const newCache = new Map<string, string>(JSON.parse(event.newValue));
+                avatarCache.clear();
+                newCache.forEach((value, key) => avatarCache.set(key, value));
+                // 通知当前页面的组件刷新
+                notifySubscribers();
+            } catch (e) {
+                console.warn('Failed to sync avatar cache from storage event', e);
+            }
+        }
+    });
+}
+
 const UserAvatar: React.FC<UserAvatarProps> = ({
     email,
     size = 40,
@@ -99,25 +117,21 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         }
     }, [normalizedEmail, defaultAvatar]);
 
-    // 获取头像
     const fetchAvatar = useCallback(async () => {
-        if (!normalizedEmail) {
-            // 没邮箱，不需要 fetch，由上面的 effect 控制 loading 状态
-            return;
-        }
+        if (!normalizedEmail) return;
 
-        // 检查缓存
-        // 注意：即使有缓存，我们仍然可以在后台静默刷新，以确保数据最新 (Stale-while-revalidate)
-        // 但为了性能，如果缓存存在，我们先不强制刷新，除非 explicit refresh
+        // 1. SWR: 优先显示缓存，但不阻断网络请求
         if (avatarCache.has(normalizedEmail)) {
-            return;
+            const cachedParams = avatarCache.get(normalizedEmail);
+            setAvatar(cachedParams!);
+            // 注意：这里移除了 return，确保会继续进行网络请求 (Revalidate)
         }
 
         try {
-            // 确保 loading 为 true
-            setLoading(true);
+            // 2. 发起网络请求
+            // 如果只有缓存，且没有正在 loading，可以视情况是否显示 loading
+            // 这里我们选择静默更新，不干扰用户体验
 
-            // 从 user_profiles 表查询头像
             const { data, error } = await supabase
                 .from('user_profiles')
                 .select('avatar')
@@ -125,8 +139,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
                 .single();
 
             if (!error && data?.avatar) {
-                setAvatar(data.avatar);
-                updateAvatarCache(normalizedEmail, data.avatar);
+                const currentCache = avatarCache.get(normalizedEmail);
+                // 3. 只有当数据真正变化时才更新缓存和状态，避免死循环
+                if (data.avatar !== currentCache) {
+                    console.log('[UserAvatar] Avatar changed, updating:', data.avatar);
+                    setAvatar(data.avatar);
+                    // 更新全局缓存并通知其他组件
+                    updateAvatarCache(normalizedEmail, data.avatar);
+                }
             }
         } catch (err) {
             console.error('获取用户头像失败:', err);
@@ -136,8 +156,48 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     }, [normalizedEmail]);
 
     useEffect(() => {
+        // 初始加载
         fetchAvatar();
-    }, [fetchAvatar, refreshKey]);
+
+        // 窗口聚焦时重新验证 (解决跨 Tab/跨窗口同步延迟问题)
+        const onFocus = () => {
+            fetchAvatar();
+        };
+        window.addEventListener('focus', onFocus);
+
+        // 订阅数据库实时变更 (跨端口/跨设备同步)
+        if (!normalizedEmail) return () => {
+            window.removeEventListener('focus', onFocus);
+        };
+
+        const channel = supabase
+            .channel(`avatar-${normalizedEmail}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'user_profiles',
+                    filter: `email=eq.${normalizedEmail}`
+                },
+                (payload) => {
+                    const newAvatar = (payload.new as any).avatar;
+                    if (newAvatar) {
+                        const currentCache = avatarCache.get(normalizedEmail);
+                        if (newAvatar !== currentCache) {
+                            setAvatar(newAvatar);
+                            updateAvatarCache(normalizedEmail, newAvatar);
+                        }
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            window.removeEventListener('focus', onFocus);
+            supabase.removeChannel(channel);
+        };
+    }, [fetchAvatar, normalizedEmail, refreshKey]);
 
     // 边框样式
     const borderStyles = {
@@ -155,7 +215,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
                 <div className="w-full h-full bg-gray-700 animate-pulse" />
             ) : (
                 <img
-                    src={`/agents/${avatar}`}
+                    src={avatar.startsWith('http') ? avatar : `/agents/${avatar}`}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                 />

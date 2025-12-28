@@ -10,6 +10,7 @@ import React, { useState } from 'react';
 import Icon, { IconName } from '../../../components/Icon';
 import { AdminPage, AdminInfo } from '../AdminApp';
 import UserProfileModal from '../../shared/components/UserProfileModal';
+import UserAvatar from '../../../components/UserAvatar';
 
 interface AdminLayoutProps {
     currentPage: AdminPage;
@@ -134,18 +135,13 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                     <div className="text-xs text-gray-500">{adminInfo.nickname || adminInfo.account}</div>
                                 </div>
                                 {/* 头像 */}
-                                {showAvatarImage ? (
-                                    <img
-                                        src={avatarSrc!}
-                                        alt="头像"
-                                        className="w-9 h-9 rounded-full object-cover border-2 border-[#ff4655]/50"
-                                        onError={() => setAvatarError(true)}
+                                <div className="rounded-full overflow-hidden border-2 border-[#ff4655]/50 flex-shrink-0">
+                                    <UserAvatar
+                                        email={adminInfo.account === 'admin' ? '' : adminInfo.account}
+                                        size={36}
+                                        bordered={false}
                                     />
-                                ) : (
-                                    <div className="w-9 h-9 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-full flex items-center justify-center">
-                                        <Icon name="Shield" size={18} className="text-white" />
-                                    </div>
-                                )}
+                                </div>
                                 <Icon name="ChevronDown" size={16} className={`text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
                             </button>
 
@@ -162,18 +158,13 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                         {/* 用户信息 */}
                                         <div className="px-4 py-3 border-b border-white/10">
                                             <div className="flex items-center gap-3">
-                                                {showAvatarImage ? (
-                                                    <img
-                                                        src={avatarSrc!}
-                                                        alt="头像"
-                                                        className="w-10 h-10 rounded-full object-cover"
-                                                        onError={() => setAvatarError(true)}
+                                                <div className="rounded-full overflow-hidden flex-shrink-0">
+                                                    <UserAvatar
+                                                        email={adminInfo.account === 'admin' ? '' : adminInfo.account}
+                                                        size={40}
+                                                        bordered={false}
                                                     />
-                                                ) : (
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-[#ff4655] to-[#ff6b77] rounded-full flex items-center justify-center">
-                                                        <Icon name="User" size={20} className="text-white" />
-                                                    </div>
-                                                )}
+                                                </div>
                                                 <div>
                                                     <div className="text-sm font-medium text-white">{adminInfo.nickname || '未设置昵称'}</div>
                                                     <div className="text-xs text-gray-500">{adminInfo.account}</div>
