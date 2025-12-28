@@ -1,29 +1,23 @@
 #!/usr/bin/env node
 /**
- * auto_tag.js - Git 自动发版脚本
+ * auto_tag.js - ValPoint 自动发版脚本
  * 
  * 功能说明：
- *   自动为未打标签的 commit 递增版本号并创建 tag
+ *   1. 检查是否有未提交更改（有则终止）
+ *   2. 检查是否有未推送的 commit -> 自动推送 (Auto upload to GitHub)
+ *   3. 计算从上一个 tag 到现在的未标记 commit -> 生成新版本号
+ *   4. 交互式询问：是否构建 Docker?
+ *      - Yes: 正常 tag，推送到 GitHub 触发构建
+ *      - No: tag 消息带 [skip docker]，推送到 GitHub 但 CI 跳过 Docker 构建
  * 
  * 使用方法：
- *   1. 预览模式（不实际创建标签）：
- *      node scripts/auto_tag.js
- *      或 npm run release:preview
+ *   1. 交互模式 (推荐):
+ *      npm run release
+ *      (或 node scripts/auto_tag.js)
  * 
- *   2. 执行模式（创建标签，交互式询问是否推送触发 Docker 构建）：
- *      node scripts/auto_tag.js --run
- *      或 npm run release
- * 
- * 工作原理：
- *   1. 获取当前最新的 git tag（如 v2.1.5）
- *   2. 查找从该 tag 到 HEAD 的所有 commit
- *   3. 为每个 commit 依次递增补丁版本号（v2.1.6, v2.1.7, ...）
- *   4. 创建对应的 tag
- *   5. 询问是否推送 tag（推送会触发 GitHub Actions 构建 Docker）
- * 
- * 注意事项：
- *   - 执行前请确保所有代码已提交并推送
- *   - 推送 tag 会触发 GitHub Actions 自动构建 Docker 镜像
+ *   2. 预览模式 (仅显示将要做的操作):
+ *      npm run release:preview
+ *      (或 node scripts/auto_tag.js --preview)
  */
 
 import { execSync } from 'child_process';
@@ -42,12 +36,15 @@ const colors = {
 /**
  * 执行 shell 命令
  */
-function runCommand(command, ignoreError = false) {
+function runCommand(command, ignoreError = false, stdio = 'pipe') {
     try {
-        return execSync(command, { encoding: 'utf8', stdio: 'pipe' }).trim();
+        const output = execSync(command, { encoding: 'utf8', stdio: stdio });
+        return stdio === 'pipe' ? output.trim() : '';
     } catch (error) {
         if (!ignoreError) {
             console.error(`${colors.red}命令执行失败: ${command}${colors.reset}`);
+            // 如果是严重错误，可以选择 process.exit(1); 但为了灵活性，这里仅打印
+            if (stdio === 'inherit') process.exit(1);
         }
         return '';
     }
@@ -83,6 +80,7 @@ function hasUncommittedChanges() {
  * 检查是否有未推送的 commit
  */
 function hasUnpushedCommits() {
+    // 检查本地分支相对于远程跟踪分支是否有超前
     const unpushed = runCommand('git log @{u}..HEAD --oneline 2>/dev/null', true);
     return unpushed.length > 0;
 }
@@ -104,53 +102,54 @@ function askQuestion(question) {
 }
 
 /**
+ * 推送代码到 GitHub
+ */
+function pushCodeToGithub() {
+    console.log(`${colors.cyan}检测到未推送的 commit，正在自动推送到 GitHub...${colors.reset}`);
+    runCommand('git push', false, 'inherit');
+    console.log(`${colors.green}✓ 代码推送成功${colors.reset}\n`);
+}
+
+/**
  * 主函数
  */
 async function main() {
     const args = process.argv.slice(2);
-    const runMode = args.includes('--run');
-    const autoPush = args.includes('-y') || args.includes('--yes');
-    const noDocker = args.includes('--no-docker');
+    const isPreview = args.includes('--preview');
 
     console.log(`${colors.blue}======================================${colors.reset}`);
     console.log(`${colors.blue}        ValPoint 自动发版脚本${colors.reset}`);
     console.log(`${colors.blue}======================================${colors.reset}\n`);
 
-    // 检查未提交的更改
+    // 1. 检查未提交的更改 (本地脏状态)
     if (hasUncommittedChanges()) {
         console.log(`${colors.yellow}⚠ 检测到未提交的更改${colors.reset}`);
         console.log('请先提交所有更改后再运行发版脚本\n');
-        console.log('运行: git add . && git commit -m "your message"');
         return;
     }
 
-    // 检查未推送的 commit
-    if (hasUnpushedCommits() && runMode) {
-        console.log(`${colors.yellow}⚠ 检测到未推送的 commit${colors.reset}`);
-        let answer = 'n';
-        if (autoPush) {
-            console.log(`${colors.cyan}检测到 -y 参数，自动推送代码...${colors.reset}`);
-            answer = 'y';
-        } else {
-            answer = await askQuestion('是否先推送代码? (y/n): ');
-        }
-        if (answer === 'y' || answer === 'yes') {
-            console.log(`${colors.cyan}正在推送代码...${colors.reset}`);
+    // 2. 自动推送未推送的 commit (Auto Upload Github)
+    if (!isPreview) {
+        if (hasUnpushedCommits()) {
             try {
-                execSync('git push', { stdio: 'inherit' });
-                console.log(`${colors.green}✓ 代码推送成功${colors.reset}\n`);
+                pushCodeToGithub();
             } catch (e) {
-                console.error(`${colors.red}✗ 推送失败${colors.reset}`);
+                console.error(`${colors.red}无法推送到 GitHub，请检查网络或权限。${colors.reset}`);
                 return;
             }
+        } else {
+            console.log(`${colors.green}✓ 本地代码已同步至 GitHub${colors.reset}\n`);
+        }
+    } else {
+        if (hasUnpushedCommits()) {
+            console.log(`${colors.yellow}[预览] 有未推送的代码，正式运行时会自动推送。${colors.reset}\n`);
         }
     }
 
-    // 获取最新 tag
+    // 3. 计算版本
     const latestTag = getLatestTag();
-    console.log(`当前最新版本: ${colors.green}${latestTag}${colors.reset}\n`);
+    console.log(`上次发布版本: ${colors.green}${latestTag}${colors.reset}\n`);
 
-    // 获取未打 tag 的 commits
     let commitsOutput;
     if (latestTag === 'v0.0.0') {
         commitsOutput = runCommand('git log --oneline --reverse');
@@ -159,79 +158,96 @@ async function main() {
     }
 
     if (!commitsOutput) {
-        console.log(`${colors.yellow}没有检测到需要发版的提交${colors.reset}`);
+        console.log(`${colors.yellow}没有检测到新提交，无需发版。${colors.reset}`);
         return;
     }
 
     const commits = commitsOutput.split('\n').filter(Boolean);
     let currentVersion = latestTag;
-    const tagsToPush = [];
-    let count = 0;
+    const pendingTags = [];
 
-    console.log('即将打标签的提交:');
+    console.log('计划发布的版本:');
     console.log('--------------------------------------');
-
     for (const line of commits) {
         const spaceIndex = line.indexOf(' ');
         const hash = line.substring(0, spaceIndex);
         const msg = line.substring(spaceIndex + 1);
 
         currentVersion = incrementPatch(currentVersion);
-        count++;
 
         console.log(`${colors.yellow}${currentVersion}${colors.reset} <- ${hash} ${msg}`);
 
-        if (runMode) {
-            const tagMessage = noDocker
-                ? `Release ${currentVersion} [skip docker]`
-                : `Release ${currentVersion}`;
+        pendingTags.push({
+            version: currentVersion,
+            hash: hash,
+            message: msg
+        });
+    }
+    console.log('--------------------------------------');
+    console.log(`共计: ${colors.green}${pendingTags.length}${colors.reset} 个新版本\n`);
 
-            // Use -a -m to create annotated tag with message
-            runCommand(`git tag -a "${currentVersion}" -m "${tagMessage}" "${hash}"`);
-            tagsToPush.push(currentVersion);
+    if (isPreview) {
+        console.log(`${colors.cyan}预览结束。运行 npm run release 开始正式发版。${colors.reset}`);
+        return;
+    }
+
+    // 4. 交互式询问 Docker 构建 (Interactive Docker Question)
+    console.log(`${colors.blue}发布配置:${colors.reset}`);
+    const answer = await askQuestion('是否构建并发布 Docker 镜像? (Y/n): ');
+
+    const buildDocker = (answer === '' || answer === 'y' || answer === 'yes');
+
+    if (buildDocker) {
+        console.log(`${colors.green}>> 选择: 构建 Docker (CI 将执行构建)${colors.reset}\n`);
+    } else {
+        console.log(`${colors.yellow}>> 选择: 跳过 Docker (CI 将跳过构建)${colors.reset}\n`);
+    }
+
+    // 再次确认
+    const confirm = await askQuestion('确认开始打标签并发布? (Y/n): ');
+    if (confirm !== '' && confirm !== 'y' && confirm !== 'yes') {
+        console.log('已取消。');
+        return;
+    }
+
+    // 5. 打标签并推送
+    console.log(`\n${colors.cyan}正在创建标签...${colors.reset}`);
+
+    for (const tagInfo of pendingTags) {
+        // 如果不构建 Docker，在 tag 消息中加入 [skip docker]
+        // 注意：这依赖于 GitHub Actions 的 workflow 配置检测 commit message 或 tag message
+        // 通常 CI 检测的是 commit message。但如果是 tag 触发的 workflow，
+        // 我们可以在 tag message 中包含关键字，然后在 workflow 中读取 tag message 进行判断。
+        // 或者，更简单的方法：
+        // 我们的 workflow 目前可能是监听 push tags。
+        // 我们这里将 [skip docker] 写入 tag 的附注信息 (Annotation Message)。
+
+        let tagMessage = `Release ${tagInfo.version}`;
+        if (!buildDocker) {
+            tagMessage += ` [skip docker]`;
+        }
+
+        try {
+            runCommand(`git tag -a "${tagInfo.version}" -m "${tagMessage}" "${tagInfo.hash}"`, true);
+            console.log(`已创建: ${tagInfo.version}`);
+        } catch (e) {
+            console.error(`创建标签 ${tagInfo.version} 失败`);
         }
     }
 
-    console.log('--------------------------------------');
-    console.log(`总计: ${colors.green}${count}${colors.reset} 个提交\n`);
-
-    if (runMode) {
-        if (tagsToPush.length > 0) {
-            console.log(`${colors.green}✓ 已创建 ${tagsToPush.length} 个本地标签${colors.reset}\n`);
-
-            // 询问是否推送 tag（触发 Docker 构建）
-            if (noDocker) {
-                console.log(`${colors.cyan}推送标签 (检测到 --no-docker，将跳过 Docker 构建)${colors.reset}`);
-            } else {
-                console.log(`${colors.cyan}推送标签将触发 GitHub Actions 构建 Docker 镜像${colors.reset}`);
-            }
-
-            let answer = 'n';
-            if (autoPush) {
-                console.log(`${colors.cyan}检测到 -y 参数，自动推送标签...${colors.reset}`);
-                answer = 'y';
-            } else {
-                answer = await askQuestion('是否推送标签并构建 Docker? (y/n): ');
-            }
-
-            if (answer === 'y' || answer === 'yes') {
-                console.log(`\n${colors.blue}正在推送标签...${colors.reset}`);
-                try {
-                    execSync(`git push origin ${tagsToPush.join(' ')}`, { stdio: 'inherit' });
-                    console.log(`\n${colors.green}✓ 标签推送成功！Docker 构建已触发${colors.reset}`);
-                    console.log(`查看构建状态: https://github.com/xiongaox/ValPoint/actions`);
-                } catch (e) {
-                    console.error(`${colors.red}✗ 推送失败${colors.reset}`);
-                    process.exit(1);
-                }
-            } else {
-                console.log(`\n${colors.yellow}已跳过推送，标签仅保留在本地${colors.reset}`);
-                console.log(`稍后手动推送: git push origin ${tagsToPush[tagsToPush.length - 1]}`);
-            }
+    console.log(`\n${colors.cyan}正在推送标签到 GitHub...${colors.reset}`);
+    try {
+        // 推送所有 tag
+        runCommand(`git push origin --tags`, false, 'inherit');
+        console.log(`\n${colors.green}✓ 发版成功！${colors.reset}`);
+        if (buildDocker) {
+            console.log(`GitHub Actions 应该已开始构建 Docker 镜像。`);
+        } else {
+            console.log(`已请求跳过 Docker 构建。`);
         }
-    } else {
-        console.log(`${colors.yellow}预览模式 - 未创建标签${colors.reset}`);
-        console.log(`请运行 ${colors.green}npm run release${colors.reset} 或 ${colors.green}node scripts/auto_tag.js --run${colors.reset} 以创建标签`);
+        console.log(`查看状态: https://github.com/xiongaox/ValPoint/actions`);
+    } catch (e) {
+        console.error(`${colors.red}✗ 推送标签失败${colors.reset}`);
     }
 }
 
