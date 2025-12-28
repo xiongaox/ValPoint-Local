@@ -134,7 +134,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
   // 获取共享库URL用于切换
   const sharedLibraryUrl = (window as any).__ENV__?.VITE_SHARED_LIBRARY_URL
     || import.meta.env.VITE_SHARED_LIBRARY_URL
-    || '';
+    || '/';
 
   return (
     <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">

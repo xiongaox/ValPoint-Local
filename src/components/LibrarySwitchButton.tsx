@@ -36,13 +36,13 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
             const settings = await getSystemSettings();
             if (settings) {
                 // 环境变量 > 数据库配置
-                setPersonalUrl(envPersonalUrl || settings.personal_library_url);
+                setPersonalUrl(envPersonalUrl || settings.personal_library_url || '/user');
 
                 // 环境变量 > 数据库配置
-                setSharedUrl(envSharedUrl || settings.shared_library_url || '');
+                setSharedUrl(envSharedUrl || settings.shared_library_url || '/');
             } else {
-                setPersonalUrl(envPersonalUrl);
-                setSharedUrl(envSharedUrl);
+                setPersonalUrl(envPersonalUrl || '/user');
+                setSharedUrl(envSharedUrl || '/');
             }
             setIsLoading(false);
         }

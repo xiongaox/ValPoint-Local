@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="VALPOINT - 页面未找到" />
+    <title>404 - VALPOINT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 20px rgba(255, 70, 85, 0.5);
+            }
+
+            50% {
+                text-shadow: 0 0 40px rgba(255, 70, 85, 0.8), 0 0 60px rgba(255, 70, 85, 0.4);
+            }
+        }
+
+        .glow-text {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="bg-[#0f1923] text-white min-h-screen flex items-center justify-center">
+    <div class="text-center px-6">
+        <!-- 404 大字 -->
+        <h1 class="text-[150px] md:text-[200px] font-black text-[#ff4655] glow-text leading-none float-animation">
+            404
+        </h1>
+
+        <!-- 副标题 -->
+        <p class="text-xl md:text-2xl text-gray-400 mt-4 mb-8">
+            页面走丢了，像是被烟雾弹挡住了视野...
+        </p>
+
+        <!-- 操作按钮 -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="/user"
+                class="px-8 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-all hover:scale-105 border border-white/20 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                进入个人库
+            </a>
+
+            <a href="/"
+                class="px-8 py-3 bg-[#ff4655] hover:bg-[#ff5a67] text-white font-medium rounded-xl transition-all hover:scale-105 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                返回首页
+            </a>
+        </div>
+
+    </div>
+</body>
+
+</html>

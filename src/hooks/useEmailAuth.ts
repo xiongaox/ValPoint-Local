@@ -176,7 +176,7 @@ export function useEmailAuth(): UseEmailAuthResult {
 
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/shared.html',
+                redirectTo: window.location.origin + '/',
             });
 
             if (error) {

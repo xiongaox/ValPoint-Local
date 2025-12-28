@@ -107,7 +107,7 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                 → 返回个人库
                             </a>
                             <a
-                                href="/shared.html"
+                                href="/"
                                 className="hover:text-white transition-colors"
                             >
                                 → 查看共享库

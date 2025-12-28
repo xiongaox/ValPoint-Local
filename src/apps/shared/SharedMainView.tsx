@@ -110,6 +110,9 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
             const settings = await getSystemSettings();
             if (settings?.personal_library_url) {
                 setPersonalLibraryUrl(settings.personal_library_url);
+            } else {
+                // 默认使用相对路径
+                setPersonalLibraryUrl('/user');
             }
         }
         loadPersonalLibraryUrl();

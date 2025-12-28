@@ -12,12 +12,14 @@ export default defineConfig({
       timeout: 60000,
     },
   },
+  appType: 'mpa', // 多页应用模式，禁用 SPA 路由回退
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        shared: resolve(__dirname, 'shared.html'),
+        main: resolve(__dirname, 'index.html'), // 共享库 (默认首页)
+        personal: resolve(__dirname, 'user.html'), // 个人库
         admin: resolve(__dirname, 'admin.html'),
+        notFound: resolve(__dirname, '404.html'), // 404 页面
       },
     },
   },

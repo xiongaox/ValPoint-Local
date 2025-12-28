@@ -43,7 +43,7 @@ function AdminAccessDenied({ email, onLogout }: Props) {
                 {/* 操作按钮 */}
                 <div className="flex flex-col gap-3">
                     <a
-                        href="/shared.html"
+                        href="/"
                         className="w-full py-3 px-4 bg-[#ff4655] hover:bg-[#ff5a67] text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
                     >
                         <Icon name="Globe" size={18} />
