@@ -24,8 +24,8 @@ cp /tmp/${CONFIG_FILE} /usr/share/nginx/html/${CONFIG_FILE}
 MANIFEST_FILE="valpoint.json"
 cat <<EOF > /usr/share/nginx/html/${MANIFEST_FILE}
 {
-  "name": "ValPoint Share",
-  "description": "Shared Valorant Lineups",
+  "name": "ValPoint 官方库",
+  "description": "ValPoint 官方公共点位库，汇集全网热门实战投掷物演示。",
   "api": {
     "supabaseUrl": "${VITE_SUPABASE_SHARE_URL}",
     "supabaseAnonKey": "${VITE_SUPABASE_SHARE_ANON_KEY}"

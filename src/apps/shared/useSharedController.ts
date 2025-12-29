@@ -18,17 +18,7 @@ import { MAP_TRANSLATIONS } from '../../constants/maps';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { createClient } from '@supabase/supabase-js';
 import { getSubscriptionList, Subscription, addSubscription, removeSubscription, updateSubscription, reorderSubscription, generateTestSubscriptions } from './logic/subscription';
-
-
-
-// ... (component body)
-
-// 重新排序
-
-
-// ... (inside component)
-
-// 更新订阅
+import { fetchUserSubscriptions, updateUserSubscriptions } from '../../services/userProfile';
 
 
 interface UseSharedControllerParams {
@@ -88,6 +78,68 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
     });
     const [placingType, setPlacingType] = useState<'agent' | 'skill' | null>(null);
 
+    // 订阅管理状态
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>(getSubscriptionList());
+    const [currentSubscription, setCurrentSubscription] = useState<Subscription>(subscriptions[0]); // Default to local
+
+    // Cloud Sync Effect
+    useEffect(() => {
+        if (!user) return;
+
+        const syncSubscriptions = async () => {
+            try {
+                const cloudSubs = await fetchUserSubscriptions(user.id);
+                const localSubs = getSubscriptionList().filter(s => s.id !== 'local');
+
+                // Logic 1: Cloud is empty, Local has data -> Initial Push
+                if (cloudSubs.length === 0 && localSubs.length > 0) {
+                    await updateUserSubscriptions(user.id, localSubs);
+                    // No state change needed, cloud is now same as local
+                }
+                // Logic 2: Cloud has data -> Pull & Overwrite Local
+                else if (cloudSubs.length > 0) {
+                    // Update LocalStorage to match Cloud
+                    // We must keep 'local' (Official) at the start, but overwrite the rest
+                    const merged = [getSubscriptionList()[0], ...cloudSubs];
+
+                    // Manually update localStorage
+                    localStorage.setItem('valpoint_subscriptions', JSON.stringify(cloudSubs));
+
+                    setSubscriptions(merged);
+
+                    // If current subscription is not present in new list, reset to local
+                    if (currentSubscription.id !== 'local' && !cloudSubs.find(s => s.id === currentSubscription.id)) {
+                        setCurrentSubscription(merged[0]);
+                    }
+                }
+            } catch (err) {
+                console.error('Subscription sync failed:', err);
+                // Silent fail or toast?
+            }
+        };
+
+        syncSubscriptions();
+    }, [user]); // Re-run on login
+
+    // Helper to sync to cloud
+    const syncToCloud = useCallback(async () => {
+        if (!user) return;
+        const currentList = getSubscriptionList().filter(s => s.id !== 'local');
+        try {
+            await updateUserSubscriptions(user.id, currentList);
+        } catch (e) {
+            console.error('Failed to sync to cloud', e);
+        }
+    }, [user]);
+
+    // 动态创建 Client
+    const activeClient = useMemo(() => {
+        if (currentSubscription.id === 'local') {
+            return undefined;
+        }
+        return createClient(currentSubscription.api.supabaseUrl, currentSubscription.api.supabaseAnonKey);
+    }, [currentSubscription]);
+
     // 创建地图名称中英对照表
     const mapNameZhToEn = useMemo<Record<string, string>>(() => {
         const reverse: Record<string, string> = {};
@@ -126,27 +178,12 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         }
     }, [agents, selectedAgent, hasInitializedAgent]);
 
-
-    // 订阅管理状态
-    const [subscriptions, setSubscriptions] = useState<Subscription[]>(getSubscriptionList());
-    const [currentSubscription, setCurrentSubscription] = useState<Subscription>(subscriptions[0]); // Default to local
-
-    // 动态创建 Client
-    const activeClient = useMemo(() => {
-        if (currentSubscription.id === 'local') {
-            // 使用默认的 shared client (services/shared.ts 里引用的那个, 但这里 fetchSharedList 会默认用它，所以传 undefined 也行，或者我们需要从 supabaseClient 导出它)
-            // 为了简单，我们让 service 默认值生效。但 fetchSharedList(..., client) 需要传参数。
-            // 实际上 services/shared.ts 里的 shareSupabase 是全局单例。
-            return undefined;
-        }
-        // 创建新的 Client
-        return createClient(currentSubscription.api.supabaseUrl, currentSubscription.api.supabaseAnonKey);
-    }, [currentSubscription]);
-
-    // 刷新订阅列表
+    // 刷新订阅列表 (Local + Cloud Sync Trigger)
     const refreshSubscriptions = useCallback(() => {
-        setSubscriptions(getSubscriptionList());
-    }, []);
+        const list = getSubscriptionList();
+        setSubscriptions(list);
+        syncToCloud(); // Trigger background sync
+    }, [syncToCloud]);
 
     // 切换订阅
     const handleSetSubscription = useCallback((sub: Subscription) => {

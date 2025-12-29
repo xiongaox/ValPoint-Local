@@ -1,6 +1,15 @@
 {
     "cleanUrls": true,
-    "rewrites": [],
+    "rewrites": [
+        {
+            "source": "/valpoint.json",
+            "destination": "/api/valpoint"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ],
     "headers": [
         {
             "source": "/(.*).html",
