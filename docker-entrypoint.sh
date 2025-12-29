@@ -20,5 +20,19 @@ EOF
 # Copy config to unified app root (MPA architecture)
 cp /tmp/${CONFIG_FILE} /usr/share/nginx/html/${CONFIG_FILE}
 
+# Generate valpoint.json (Domain Discovery Manifest)
+MANIFEST_FILE="valpoint.json"
+cat <<EOF > /usr/share/nginx/html/${MANIFEST_FILE}
+{
+  "name": "ValPoint Share",
+  "description": "Shared Valorant Lineups",
+  "api": {
+    "supabaseUrl": "${VITE_SUPABASE_SHARE_URL}",
+    "supabaseAnonKey": "${VITE_SUPABASE_SHARE_ANON_KEY}"
+  },
+  "version": "1.0.0"
+}
+EOF
+
 # Start Nginx
 exec "$@"

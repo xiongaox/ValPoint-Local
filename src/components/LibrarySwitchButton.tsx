@@ -14,8 +14,10 @@ interface LibrarySwitchButtonProps {
     currentLibrary: 'personal' | 'shared';
     /** 是否隐藏共享库按钮 */
     hideSharedButton?: boolean;
+    /** 当已经处于共享库时，点击共享库按钮的回调 */
+    onSharedClick?: () => void;
 }
-const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrary, hideSharedButton = false }) => {
+const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrary, hideSharedButton = false, onSharedClick }) => {
     const [personalUrl, setPersonalUrl] = useState<string>('');
     const [sharedUrl, setSharedUrl] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
@@ -144,12 +146,14 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
             {/* 共享库按钮 */}
             {!isPersonalActive ? (
                 <div
+                    onClick={onSharedClick}
                     style={{
                         ...buttonBaseStyle,
                         backgroundColor: '#17b890',
                         color: '#ffffff',
-                        cursor: 'default',
+                        cursor: onSharedClick ? 'pointer' : 'default',
                     }}
+                    title={onSharedClick ? '点击切换订阅源' : undefined}
                 >
                     共享库
                 </div>

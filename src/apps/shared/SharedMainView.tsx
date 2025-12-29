@@ -27,6 +27,7 @@ import CompactUserCard from '../../components/CompactUserCard';
 import ChangePasswordModal from '../../components/ChangePasswordModal';
 import UserProfileModal from './components/UserProfileModal';
 import ChangelogModal from '../../components/ChangelogModal';
+import { SubscriptionModal } from './components/SubscriptionModal';
 import { useEmailAuth } from '../../hooks/useEmailAuth';
 import { useUserProfile } from '../../hooks/useUserProfile';
 
@@ -66,7 +67,9 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isPasswordSubmitting, setIsPasswordSubmitting] = useState(false);
+
     const [isChangelogOpen, setIsChangelogOpen] = useState(false);
+    const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
 
     // 个人库 URL（用于移动端跳转）
     const [personalLibraryUrl, setPersonalLibraryUrl] = useState<string>('');
@@ -179,7 +182,15 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                     <>
                         {/* 用户信息卡片 (左上角) */}
                         <div className="absolute top-3 left-3 z-10 flex items-center gap-3">
-                            {user && <LibrarySwitchButton currentLibrary="shared" />}
+                            {user && (
+                                <LibrarySwitchButton
+                                    currentLibrary="shared"
+                                    onSharedClick={() => setIsSubscriptionModalOpen(true)}
+                                />
+                            )}
+
+
+
                             <CompactUserCard
                                 user={user}
                                 onSignOut={onSignOut}
@@ -191,6 +202,8 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                         <div className="absolute top-3 right-3 z-10">
                             <AuthorLinksBar />
                         </div>
+
+
 
                         {/* 快捷功能按钮 (仅登录可见) */}
                         {user && (
@@ -222,9 +235,13 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                 >
                                     个人库
                                 </a>
-                                <div className="px-4 h-[32px] flex items-center justify-center rounded-lg text-sm font-medium bg-[#17b890] text-white">
-                                    共享库
-                                </div>
+                                <button
+                                    onClick={() => setIsSubscriptionModalOpen(true)}
+                                    className={`px-4 h-[32px] flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${controller.currentSubscription.id === 'local' ? 'bg-[#17b890] text-white' : 'bg-[#ff4655] text-white'
+                                        }`}
+                                >
+                                    {controller.currentSubscription.name === '官方库 (Official)' ? '共享库' : controller.currentSubscription.name}
+                                </button>
                             </div>
                         </div>
 
@@ -522,6 +539,23 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
             <ChangelogModal
                 isOpen={isChangelogOpen}
                 onClose={() => setIsChangelogOpen(false)}
+            />
+
+            {/* 订阅管理弹窗 */}
+            <SubscriptionModal
+                isOpen={isSubscriptionModalOpen}
+                onClose={() => setIsSubscriptionModalOpen(false)}
+                subscriptions={controller.subscriptions}
+                currentSubscription={controller.currentSubscription}
+                onSetSubscription={(sub) => {
+                    controller.setSubscription(sub);
+                    setIsSubscriptionModalOpen(false);
+                }}
+                onAddSubscription={controller.addSubscription}
+                onRemoveSubscription={controller.removeSubscription}
+                onUpdateSubscription={controller.updateSubscription}
+                onReorderSubscription={controller.reorderSubscription}
+                onGenerateTestData={controller.generateTestSubscriptions}
             />
         </div>
     );

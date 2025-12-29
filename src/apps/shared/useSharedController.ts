@@ -16,6 +16,20 @@ import { downloadLineupBundle } from '../../lib/lineupDownload';
 import { checkDailyDownloadLimit, incrementDownloadCount, logDownload } from '../../lib/downloadLimit';
 import { MAP_TRANSLATIONS } from '../../constants/maps';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { createClient } from '@supabase/supabase-js';
+import { getSubscriptionList, Subscription, addSubscription, removeSubscription, updateSubscription, reorderSubscription, generateTestSubscriptions } from './logic/subscription';
+
+
+
+// ... (component body)
+
+// 重新排序
+
+
+// ... (inside component)
+
+// 更新订阅
+
 
 interface UseSharedControllerParams {
     user: User | null; // 可选，支持游客模式
@@ -112,24 +126,109 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         }
     }, [agents, selectedAgent, hasInitializedAgent]);
 
+
+    // 订阅管理状态
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>(getSubscriptionList());
+    const [currentSubscription, setCurrentSubscription] = useState<Subscription>(subscriptions[0]); // Default to local
+
+    // 动态创建 Client
+    const activeClient = useMemo(() => {
+        if (currentSubscription.id === 'local') {
+            // 使用默认的 shared client (services/shared.ts 里引用的那个, 但这里 fetchSharedList 会默认用它，所以传 undefined 也行，或者我们需要从 supabaseClient 导出它)
+            // 为了简单，我们让 service 默认值生效。但 fetchSharedList(..., client) 需要传参数。
+            // 实际上 services/shared.ts 里的 shareSupabase 是全局单例。
+            return undefined;
+        }
+        // 创建新的 Client
+        return createClient(currentSubscription.api.supabaseUrl, currentSubscription.api.supabaseAnonKey);
+    }, [currentSubscription]);
+
+    // 刷新订阅列表
+    const refreshSubscriptions = useCallback(() => {
+        setSubscriptions(getSubscriptionList());
+    }, []);
+
+    // 切换订阅
+    const handleSetSubscription = useCallback((sub: Subscription) => {
+        setCurrentSubscription(sub);
+        // 切换后自动清理旧数据，等待新加载
+        setLineups([]);
+    }, []);
+
+    // 添加订阅
+    const handleAddSubscription = useCallback((sub: Subscription) => {
+        try {
+            addSubscription(sub);
+            refreshSubscriptions();
+            setAlertMessage(`已订阅: ${sub.name}`);
+        } catch (e: any) {
+            setAlertMessage(e.message);
+        }
+    }, [refreshSubscriptions, setAlertMessage]);
+
+    // 删除订阅
+    const handleRemoveSubscription = useCallback((id: string) => {
+        if (id === currentSubscription.id) {
+            // 如果删除了当前选中的，切换回默认
+            setCurrentSubscription(subscriptions[0]);
+        }
+        removeSubscription(id);
+        refreshSubscriptions();
+    }, [currentSubscription, subscriptions, refreshSubscriptions]);
+
+    // 更新订阅
+    const handleUpdateSubscription = useCallback((sub: Subscription) => {
+        try {
+            updateSubscription(sub);
+            refreshSubscriptions();
+            setAlertMessage(`已更新: ${sub.name}`);
+
+            // 如果更新的是当前订阅，需要刷新状态
+            if (currentSubscription.id === sub.id) {
+                setCurrentSubscription(sub);
+            }
+        } catch (e: any) {
+            setAlertMessage(e.message);
+        }
+    }, [refreshSubscriptions, setAlertMessage, currentSubscription]);
+
+    // 重新排序
+    const handleReorderSubscription = useCallback((id: string, direction: 'up' | 'down') => {
+        reorderSubscription(id, direction);
+        refreshSubscriptions();
+    }, [refreshSubscriptions]);
+
+    // 生成测试数据
+    const handleGenerateTestSubscriptions = useCallback(() => {
+        generateTestSubscriptions();
+        refreshSubscriptions();
+        setAlertMessage('已生成 10 条测试数据');
+    }, [refreshSubscriptions, setAlertMessage]);
+
+    // ... (maps, agents state...)
+
     // 加载共享库点位
     const loadLineups = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await fetchSharedList(mapNameZhToEn);
+            // activeClient 为 undefined 时，fetchSharedList 会使用默认的 client
+            // @ts-ignore activeClient 类型推断可能有细微差别，但 SupabaseClient 兼容
+            const data = await fetchSharedList(mapNameZhToEn, activeClient);
             setLineups(data || []);
         } catch (err) {
             console.error('加载共享点位失败:', err);
-            setAlertMessage('加载点位失败');
+            setAlertMessage('加载点位失败: 连接订阅源出错');
+            setLineups([]);
         } finally {
             setIsLoading(false);
         }
-    }, [mapNameZhToEn, setAlertMessage]);
+    }, [mapNameZhToEn, setAlertMessage, activeClient]);
 
-    // 初次加载
+    // 监听订阅变化自动加载
     useEffect(() => {
         loadLineups();
-    }, [loadLineups]);
+    }, [loadLineups]); // loadLineups depends on activeClient -> currentSubscription
+
 
     // 手动过滤点位（包括共享者筛选）
     const filteredLineups = useMemo(() => {
@@ -320,5 +419,15 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
 
         // 图片查看
         setViewingImage,
+
+        // 订阅管理
+        subscriptions,
+        currentSubscription,
+        setSubscription: handleSetSubscription,
+        addSubscription: handleAddSubscription,
+        removeSubscription: handleRemoveSubscription,
+        updateSubscription: handleUpdateSubscription,
+        reorderSubscription: handleReorderSubscription,
+        generateTestSubscriptions: handleGenerateTestSubscriptions,
     };
 }

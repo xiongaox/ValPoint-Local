@@ -26,8 +26,10 @@ export async function fetchSharedById(id: string, mapNameZhToEn: Record<string, 
   return { ...normalized, id: sharedData.id, sourceId: sharedData.source_id };
 }
 
-export async function fetchSharedList(mapNameZhToEn: Record<string, string>): Promise<BaseLineup[]> {
-  const { data, error } = await shareSupabase.from(TABLE.shared).select('*').order('created_at', { ascending: false });
+import { SupabaseClient } from '@supabase/supabase-js';
+
+export async function fetchSharedList(mapNameZhToEn: Record<string, string>, client: SupabaseClient = shareSupabase): Promise<BaseLineup[]> {
+  const { data, error } = await client.from(TABLE.shared).select('*').order('created_at', { ascending: false });
   if (error) throw error;
   return data.map((d) => normalizeLineup(d, mapNameZhToEn));
 }
