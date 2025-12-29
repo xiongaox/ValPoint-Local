@@ -5,9 +5,7 @@ services:
     build:
       context: .
     ports:
-      - "3208:3208" # User App
-      - "3209:3209" # Shared App
-      - "3210:3210" # Admin App
+      - "8080:3208" # Unified App (Map to 8080 to avoid local dev conflict)
     environment:
       - NODE_ENV=production
       # Supabase 主库（个人点位数据存储，必填）
