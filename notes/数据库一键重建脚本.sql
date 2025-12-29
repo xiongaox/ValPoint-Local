@@ -12,6 +12,7 @@
 -- 1. 基础扩展
 -- ==========================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";  -- 用于密码加密 (gen_salt, crypt)
 
 -- ==========================================
 -- 2. 通用函数
@@ -424,7 +425,7 @@ CREATE OR REPLACE FUNCTION create_super_admin(
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = auth, public
+SET search_path = extensions, auth, public
 AS $$
 DECLARE
   new_user_id uuid;
@@ -444,7 +445,7 @@ BEGIN
   new_user_id := gen_random_uuid();
   
   -- 加密密码 (Supabase 使用 bcrypt)
-  encrypted_pw := crypt(admin_password, gen_salt('bf'));
+  encrypted_pw := extensions.crypt(admin_password, extensions.gen_salt('bf'));
   
   -- 插入 auth.users 表
   INSERT INTO auth.users (

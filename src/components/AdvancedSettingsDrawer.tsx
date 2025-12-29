@@ -35,7 +35,7 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
 
   return (
     <>
-      <div className="fixed inset-0 z-[1100] bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-[1100] bg-black/50 backdrop-blur-sm" />
       <div className="fixed right-0 top-0 bottom-0 w-96 bg-[#1f2326] border-l border-white/10 z-[1101] shadow-2xl flex flex-col animate-in slide-in-from-right">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div className="flex items-center gap-3">

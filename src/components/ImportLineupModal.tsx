@@ -161,7 +161,6 @@ const ImportLineupModal: React.FC<Props> = ({
     return (
         <div
             className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-            onClick={(e) => e.target === e.currentTarget && handleClose()}
         >
             <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
                 {/* Header */}

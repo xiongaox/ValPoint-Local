@@ -150,7 +150,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
     return (
         <div
             className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden relative">
                 {/* Header */}

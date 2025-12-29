@@ -73,7 +73,6 @@ const ViewerModal = ({
   return (
     <div
       className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md flex items-center justify-center p-0 md:p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className={`modal-content bg-[#1f2326] flex flex-col rounded-none md:rounded-xl border-0 md:border border-white/10 shadow-2xl overflow-hidden relative ${isMobile ? 'w-full h-full' : 'w-full max-w-4xl max-h-[90vh]'
         }`}>
