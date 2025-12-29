@@ -28,20 +28,15 @@ interface Settings {
     maintenanceMode: boolean;
 }
 
-interface LibraryUrls {
-    sharedLibraryUrl: string;
-    personalLibraryUrl: string;
-}
 
 // Tab 配置
-type SettingsTab = 'imageBed' | 'submission' | 'download' | 'features' | 'domain' | 'authorInfo' | 'admins';
+type SettingsTab = 'imageBed' | 'submission' | 'download' | 'features' | 'authorInfo' | 'admins';
 
 const TABS: { id: SettingsTab; label: string; icon: 'Cloud' | 'Send' | 'Download' | 'ToggleLeft' | 'Globe' | 'Shield' | 'User'; superAdminOnly?: boolean }[] = [
     { id: 'imageBed', label: '官方图床', icon: 'Cloud' },
     { id: 'submission', label: '投稿设置', icon: 'Send' },
     { id: 'download', label: '下载限制', icon: 'Download' },
     { id: 'features', label: '功能开关', icon: 'ToggleLeft' },
-    { id: 'domain', label: '域名配置', icon: 'Globe' },
     { id: 'authorInfo', label: '作者信息', icon: 'User' },
     { id: 'admins', label: '管理员', icon: 'Shield', superAdminOnly: true },
 ];
@@ -56,10 +51,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
         enableEmailVerification: true,
         enableDownloadLogs: true,
         maintenanceMode: false,
-    });
-    const [libraryUrls, setLibraryUrls] = useState<LibraryUrls>({
-        sharedLibraryUrl: '',
-        personalLibraryUrl: '',
     });
     // 官方图床配置
     const [ossConfig, setOssConfig] = useState<ImageBedConfig>(defaultImageBedConfig);
@@ -91,10 +82,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
             setIsLoading(true);
             const data = await getSystemSettings();
             if (data) {
-                setLibraryUrls({
-                    sharedLibraryUrl: data.shared_library_url || '',
-                    personalLibraryUrl: data.personal_library_url || '',
-                });
                 if (data.official_oss_config) {
                     setOssConfig(data.official_oss_config);
                 }
@@ -160,8 +147,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
     const handleSave = async () => {
         setIsSaving(true);
         const result = await updateSystemSettings({
-            shared_library_url: libraryUrls.sharedLibraryUrl,
-            personal_library_url: libraryUrls.personalLibraryUrl,
             official_oss_config: ossConfig,
             submission_enabled: submissionEnabled,
             daily_submission_limit: dailySubmissionLimit,
@@ -385,55 +370,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                     </div>
                 );
 
-            case 'domain':
-                return (
-                    <div className="space-y-6">
-                        <div>
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <Icon name="Globe" size={18} className="text-[#ff4655]" />
-                                域名配置
-                            </h3>
-                            <p className="text-xs text-gray-500 mb-4">配置后，用户可以从个人库跳转到共享库</p>
-
-                            <div>
-                                <label className="block text-sm text-gray-400 mb-2">个人库域名</label>
-                                <input
-                                    type="url"
-                                    value={libraryUrls.personalLibraryUrl}
-                                    onChange={(e) =>
-                                        setLibraryUrls((prev) => ({
-                                            ...prev,
-                                            personalLibraryUrl: e.target.value,
-                                        }))
-                                    }
-                                    placeholder="https://valpoint.vercel.app"
-                                    className="w-full px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
-                                />
-                                <p className="mt-2 text-xs text-gray-500">
-                                    💡 如果设置了环境变量 <code className="text-amber-400">VITE_PERSONAL_LIBRARY_URL</code>，将优先使用环境变量的值
-                                </p>
-                            </div>
-                            <div className="pt-4">
-                                <label className="block text-sm text-gray-400 mb-2">共享库域名</label>
-                                <input
-                                    type="url"
-                                    value={libraryUrls.sharedLibraryUrl}
-                                    onChange={(e) =>
-                                        setLibraryUrls((prev) => ({
-                                            ...prev,
-                                            sharedLibraryUrl: e.target.value,
-                                        }))
-                                    }
-                                    placeholder="https://valpoint-shared.vercel.app"
-                                    className="w-full px-4 py-2.5 bg-[#0f1923] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#ff4655]/50"
-                                />
-                                <p className="mt-2 text-xs text-gray-500">
-                                    💡 如果设置了环境变量 <code className="text-amber-400">VITE_SHARED_LIBRARY_URL</code>，将优先使用环境变量的值
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                );
 
             case 'admins':
                 return (

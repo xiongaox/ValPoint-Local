@@ -12,8 +12,7 @@ import Icon, { IconName } from '../../../components/Icon';
 // 图表组件
 import RetentionChart from '../components/charts/RetentionChart';
 import StorageChart from '../components/charts/StorageChart';
-import CdnTrafficChart from '../components/charts/CdnTrafficChart';
-import MapDistributionChart from '../components/charts/MapDistributionChart';
+import DailyDownloadsChart from '../components/charts/DailyDownloadsChart';
 import ReviewStatsChart from '../components/charts/ReviewStatsChart';
 
 interface StatsCard {
@@ -79,64 +78,62 @@ function DashboardPage() {
     }
 
     return (
-        <div className="flex gap-6 items-start">
-            {/* 左侧主内容区 */}
-            <div className="flex-1 space-y-6 min-w-0">
-                {/* 统计卡片 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex gap-4 items-start h-[calc(100vh-100px)] overflow-hidden">
+            {/* 左侧主内容区 - Flex 布局自动填充高度 */}
+            <div className="flex-1 flex flex-col gap-4 min-w-0 h-full overflow-hidden">
+                {/* 统计卡片 - 固定高度 */}
+                <div className="flex-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {stats.map((stat, index) => (
                         <div
                             key={index}
-                            className="bg-[#1f2326] rounded-xl border border-white/10 p-6"
+                            className="bg-[#1f2326] rounded-xl border border-white/10 p-3 flex items-center justify-between"
                         >
-                            <div className="flex items-start justify-between mb-4">
-                                <div className={`p-3 rounded-lg ${stat.color}`}>
-                                    <Icon name={stat.icon} size={20} />
+                            <div>
+                                <div className="text-sm text-gray-400 mb-0.5">{stat.label}</div>
+                                <div className="text-xl font-bold text-white flex items-baseline gap-2">
+                                    {typeof stat.value === 'number'
+                                        ? stat.value.toLocaleString()
+                                        : stat.value}
+                                    {stat.trend && (
+                                        <span
+                                            className={`flex items-center text-xs ${stat.trend.isUp ? 'text-emerald-400' : 'text-red-400'
+                                                }`}
+                                        >
+                                            <Icon
+                                                name={stat.trend.isUp ? 'TrendingUp' : 'TrendingDown'}
+                                                size={10}
+                                                className="mr-0.5"
+                                            />
+                                            {stat.trend.value}%
+                                        </span>
+                                    )}
                                 </div>
-                                {stat.trend && (
-                                    <div
-                                        className={`flex items-center gap-1 text-xs ${stat.trend.isUp ? 'text-emerald-400' : 'text-red-400'
-                                            }`}
-                                    >
-                                        <Icon
-                                            name={stat.trend.isUp ? 'TrendingUp' : 'TrendingDown'}
-                                            size={12}
-                                        />
-                                        {stat.trend.value}%
-                                    </div>
-                                )}
                             </div>
-                            <div className="text-2xl font-bold text-white mb-1">
-                                {typeof stat.value === 'number'
-                                    ? stat.value.toLocaleString()
-                                    : stat.value}
+                            <div className={`p-2 rounded-lg ${stat.color}`}>
+                                <Icon name={stat.icon} size={18} />
                             </div>
-                            <div className="text-sm text-gray-400">{stat.label}</div>
                         </div>
                     ))}
                 </div>
 
-                {/* 第一行图表：用户留存 + 存储空间 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* 第一行图表 - 自动填充剩余高度的一半 */}
+                <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <RetentionChart />
                     <StorageChart />
                 </div>
 
-                {/* 第二行图表：CDN流量 + 地图分布 */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <CdnTrafficChart />
-                    <MapDistributionChart />
+                {/* 第二行图表 - 自动填充剩余高度的一半 */}
+                <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <DailyDownloadsChart />
+                    <ReviewStatsChart />
                 </div>
-
-                {/* 第三行：审核统计 */}
-                <ReviewStatsChart />
             </div>
 
-            {/* 右侧最近活动侧边栏 */}
-            <div className="w-80 shrink-0 hidden xl:block">
-                <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6 sticky top-6">
-                    <h3 className="text-lg font-semibold mb-4">最近活动</h3>
-                    <div className="space-y-3">
+            {/* 右侧最近活动侧边栏 - 高度填满，内部滚动 */}
+            <div className="w-80 shrink-0 hidden xl:block h-full">
+                <div className="bg-[#1f2326] rounded-xl border border-white/10 p-4 h-full flex flex-col">
+                    <h3 className="text-lg font-semibold mb-4 flex-none">最近活动</h3>
+                    <div className="space-y-3 overflow-y-auto flex-1 custom-scrollbar pr-2">
                         {[
                             { action: '上传了新点位', user: 'admin@example.com', time: '2 分钟前' },
                             { action: '用户注册', user: 'test@gmail.com', time: '15 分钟前' },
@@ -145,6 +142,9 @@ function DashboardPage() {
                             { action: '新投稿待审核', user: 'player@val.gg', time: '3 小时前' },
                             { action: '点位被下载', user: 'gamer@steam.com', time: '4 小时前' },
                             { action: '用户修改资料', user: 'user123@qq.com', time: '5 小时前' },
+                            { action: '系统备份完成', user: 'system', time: '6 小时前' },
+                            { action: '清理缓存', user: 'system', time: '7 小时前' },
+                            { action: '更新隐私政策', user: 'admin@example.com', time: '8 小时前' },
                         ].map((activity, index) => (
                             <div
                                 key={index}

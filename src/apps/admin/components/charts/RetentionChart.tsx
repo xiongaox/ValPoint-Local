@@ -26,9 +26,12 @@ const mockData = [
 
 export default function RetentionChart() {
     return (
-        <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">用户留存率</h3>
-            <div className="h-64">
+        <div className="bg-[#1f2326] rounded-xl border border-white/10 p-4 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-2 flex-none">
+                <h3 className="text-sm font-semibold text-white">用户留存率</h3>
+                <div className="flex gap-2"></div>
+            </div>
+            <div className="flex-1 min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={mockData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#333" />
