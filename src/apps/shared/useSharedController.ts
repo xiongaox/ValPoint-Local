@@ -17,7 +17,7 @@ import { checkDailyDownloadLimit, incrementDownloadCount, logDownload } from '..
 import { MAP_TRANSLATIONS } from '../../constants/maps';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import { createClient } from '@supabase/supabase-js';
-import { getSubscriptionList, Subscription, addSubscription, removeSubscription, updateSubscription, reorderSubscription, generateTestSubscriptions } from './logic/subscription';
+import { getSubscriptionList, Subscription, addSubscription, removeSubscription, updateSubscription, reorderSubscription } from './logic/subscription';
 import { fetchUserSubscriptions, updateUserSubscriptions } from '../../services/userProfile';
 
 
@@ -197,7 +197,7 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         try {
             addSubscription(sub);
             refreshSubscriptions();
-            setAlertMessage(`已订阅: ${sub.name}`);
+            // Silent success
         } catch (e: any) {
             setAlertMessage(e.message);
         }
@@ -218,7 +218,7 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         try {
             updateSubscription(sub);
             refreshSubscriptions();
-            setAlertMessage(`已更新: ${sub.name}`);
+            // Silent success
 
             // 如果更新的是当前订阅，需要刷新状态
             if (currentSubscription.id === sub.id) {
@@ -235,12 +235,7 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         refreshSubscriptions();
     }, [refreshSubscriptions]);
 
-    // 生成测试数据
-    const handleGenerateTestSubscriptions = useCallback(() => {
-        generateTestSubscriptions();
-        refreshSubscriptions();
-        setAlertMessage('已生成 10 条测试数据');
-    }, [refreshSubscriptions, setAlertMessage]);
+
 
     // ... (maps, agents state...)
 
@@ -465,6 +460,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         removeSubscription: handleRemoveSubscription,
         updateSubscription: handleUpdateSubscription,
         reorderSubscription: handleReorderSubscription,
-        generateTestSubscriptions: handleGenerateTestSubscriptions,
+
     };
 }

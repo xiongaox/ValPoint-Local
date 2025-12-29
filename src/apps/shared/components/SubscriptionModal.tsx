@@ -13,7 +13,6 @@ interface SubscriptionModalProps {
     onRemoveSubscription: (id: string) => void;
     onUpdateSubscription: (sub: Subscription) => void;
     onReorderSubscription: (id: string, direction: 'up' | 'down') => void;
-    onGenerateTestData: () => void;
 }
 
 export function SubscriptionModal({
@@ -26,7 +25,6 @@ export function SubscriptionModal({
     onUpdateSubscription,
     onRemoveSubscription,
     onReorderSubscription,
-    onGenerateTestData,
 }: SubscriptionModalProps) {
     const [view, setView] = useState<'list' | 'add' | 'edit' | 'delete'>('list');
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -305,20 +303,12 @@ export function SubscriptionModal({
                 {/* Footer */}
                 <div className="p-5 border-t border-white/10 shrink-0 bg-[#181b1f] flex justify-end gap-3 rounded-b-2xl">
                     {view === 'list' ? (
-                        <div className="flex items-center justify-between w-full">
-                            <button
-                                onClick={onGenerateTestData}
-                                className="text-xs text-gray-600 hover:text-gray-400 transition-colors flex items-center gap-1"
-                            >
-                                <span className="opacity-50">DEV:</span> 生成测试数据
-                            </button>
-                            <button
-                                onClick={() => setView('add')}
-                                className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/20 transition-all flex items-center gap-2"
-                            >
-                                <Plus className="w-4 h-4" /> 添加订阅
-                            </button>
-                        </div>
+                        <button
+                            onClick={() => setView('add')}
+                            className="px-5 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/20 transition-all flex items-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" /> 添加订阅
+                        </button>
                     ) : (
                         <>
                             <button

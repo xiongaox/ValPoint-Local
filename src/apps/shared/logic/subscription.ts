@@ -16,8 +16,8 @@ const STORAGE_KEY = 'valpoint_subscriptions';
 const getLocalSubscription = (): Subscription => {
     return {
         id: 'local',
-        name: '官方库 (Official)',
-        description: 'ValPoint Official Shared Library',
+        name: 'ValPoint 官方库',
+        description: 'ValPoint 官方公共点位库，汇集全网热门实战投掷物演示。',
         url: window.location.origin,
         api: {
             supabaseUrl: (window as any).__ENV__?.VITE_SUPABASE_SHARE_URL || import.meta.env.VITE_SUPABASE_SHARE_URL,
@@ -114,37 +114,4 @@ export const fetchManifest = async (url: string): Promise<Subscription> => {
     }
 };
 
-export const generateTestSubscriptions = () => {
-    const fakeData = [
-        { name: "Sova God Mains", desc: "Best Sova recon darts from Radiant players", url: "https://sova.mains.gg" },
-        { name: "Viper Setups EU", desc: "Complete Viper lineups for all maps", url: "https://viper.eu.val" },
-        { name: "Grim Walls Only", desc: "Sage walls that will get you banned", url: "https://grim.sage.tv" },
-        { name: "Fnatic Stratbook", desc: "Leaked strats from VCT 2024", url: "https://fnc.gg/strats" },
-        { name: "Reddit Community", desc: "Top voted lineups from r/valorant", url: "https://reddit.com/r/val" },
-        { name: "Lineups Hub", desc: "Aggregated lineups from multiple sources", url: "https://hub.lineups.io" },
-        { name: "VCT Meta 2025", desc: "Future meta prediction lineups", url: "https://vct.meta.next" },
-        { name: "Brimstone Molly", desc: "Post-plant lineups for Brimstone", url: "https://brim.molly.zone" },
-        { name: "Fade Haunt", desc: "Reveal everyone with these haunts", url: "https://fade.eye.net" },
-        { name: "Kayo Knife Spots", desc: "Disable everyone instantly", url: "https://kayo.knife.pro" }
-    ];
 
-    const list = getSubscriptionList();
-
-    fakeData.forEach((item, index) => {
-        const id = `test-sub-${Date.now()}-${index}`;
-        const sub: Subscription = {
-            id,
-            name: item.name,
-            description: item.desc,
-            url: item.url,
-            api: { supabaseUrl: "https://fake.url", supabaseAnonKey: "fake-key" },
-            addedAt: Date.now() + index
-        };
-        // Avoid duplicates if clicked multiple times (simple check by url)
-        if (!list.some(s => s.url === sub.url)) {
-            list.push(sub);
-        }
-    });
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list.filter(s => s.id !== 'local')));
-};

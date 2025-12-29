@@ -3,11 +3,18 @@
  * 
  * 职责：
  * - 展示应用核心指标统计（点位总数、共享总数、用户总数、今日下载等）
- * - 渲染多维度的趋势图表 (Lineups, Users, Downloads)
+ * - 渲染多维度的趋势图表 (Retention, Storage, CDN, API, Reviews)
  * - 提供快速审核入口指示
  */
 import React, { useState, useEffect } from 'react';
 import Icon, { IconName } from '../../../components/Icon';
+
+// 图表组件
+import RetentionChart from '../components/charts/RetentionChart';
+import StorageChart from '../components/charts/StorageChart';
+import CdnTrafficChart from '../components/charts/CdnTrafficChart';
+import MapDistributionChart from '../components/charts/MapDistributionChart';
+import ReviewStatsChart from '../components/charts/ReviewStatsChart';
 
 interface StatsCard {
     label: string;
@@ -72,89 +79,88 @@ function DashboardPage() {
     }
 
     return (
-        <div className="space-y-6">
-            {/* 统计卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat, index) => (
-                    <div
-                        key={index}
-                        className="bg-[#1f2326] rounded-xl border border-white/10 p-6"
-                    >
-                        <div className="flex items-start justify-between mb-4">
-                            <div className={`p-3 rounded-lg ${stat.color}`}>
-                                <Icon name={stat.icon} size={20} />
-                            </div>
-                            {stat.trend && (
-                                <div
-                                    className={`flex items-center gap-1 text-xs ${stat.trend.isUp ? 'text-emerald-400' : 'text-red-400'
-                                        }`}
-                                >
-                                    <Icon
-                                        name={stat.trend.isUp ? 'TrendingUp' : 'TrendingDown'}
-                                        size={12}
-                                    />
-                                    {stat.trend.value}%
-                                </div>
-                            )}
-                        </div>
-                        <div className="text-2xl font-bold text-white mb-1">
-                            {typeof stat.value === 'number'
-                                ? stat.value.toLocaleString()
-                                : stat.value}
-                        </div>
-                        <div className="text-sm text-gray-400">{stat.label}</div>
-                    </div>
-                ))}
-            </div>
-
-            {/* 图表区域占位 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6">
-                    <h3 className="text-lg font-semibold mb-4">每周新增点位</h3>
-                    <div className="h-64 flex items-center justify-center text-gray-500">
-                        <div className="text-center">
-                            <Icon name="BarChart2" size={48} className="mx-auto mb-2 opacity-50" />
-                            <span className="text-sm">图表功能即将上线</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6">
-                    <h3 className="text-lg font-semibold mb-4">各特工点位分布</h3>
-                    <div className="h-64 flex items-center justify-center text-gray-500">
-                        <div className="text-center">
-                            <Icon name="PieChart" size={48} className="mx-auto mb-2 opacity-50" />
-                            <span className="text-sm">图表功能即将上线</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* 最近活动 */}
-            <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6">
-                <h3 className="text-lg font-semibold mb-4">最近活动</h3>
-                <div className="space-y-3">
-                    {[
-                        { action: '上传了新点位', user: 'admin@example.com', time: '2 分钟前' },
-                        { action: '用户注册', user: 'test@gmail.com', time: '15 分钟前' },
-                        { action: '下载了点位包', user: 'user@qq.com', time: '1 小时前' },
-                    ].map((activity, index) => (
+        <div className="flex gap-6 items-start">
+            {/* 左侧主内容区 */}
+            <div className="flex-1 space-y-6 min-w-0">
+                {/* 统计卡片 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {stats.map((stat, index) => (
                         <div
                             key={index}
-                            className="flex items-center justify-between py-3 border-b border-white/5 last:border-0"
+                            className="bg-[#1f2326] rounded-xl border border-white/10 p-6"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-[#ff4655]/20 rounded-full flex items-center justify-center">
-                                    <Icon name="Activity" size={14} className="text-[#ff4655]" />
+                            <div className="flex items-start justify-between mb-4">
+                                <div className={`p-3 rounded-lg ${stat.color}`}>
+                                    <Icon name={stat.icon} size={20} />
                                 </div>
-                                <div>
-                                    <div className="text-sm text-white">{activity.action}</div>
-                                    <div className="text-xs text-gray-500">{activity.user}</div>
-                                </div>
+                                {stat.trend && (
+                                    <div
+                                        className={`flex items-center gap-1 text-xs ${stat.trend.isUp ? 'text-emerald-400' : 'text-red-400'
+                                            }`}
+                                    >
+                                        <Icon
+                                            name={stat.trend.isUp ? 'TrendingUp' : 'TrendingDown'}
+                                            size={12}
+                                        />
+                                        {stat.trend.value}%
+                                    </div>
+                                )}
                             </div>
-                            <span className="text-xs text-gray-500">{activity.time}</span>
+                            <div className="text-2xl font-bold text-white mb-1">
+                                {typeof stat.value === 'number'
+                                    ? stat.value.toLocaleString()
+                                    : stat.value}
+                            </div>
+                            <div className="text-sm text-gray-400">{stat.label}</div>
                         </div>
                     ))}
+                </div>
+
+                {/* 第一行图表：用户留存 + 存储空间 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <RetentionChart />
+                    <StorageChart />
+                </div>
+
+                {/* 第二行图表：CDN流量 + 地图分布 */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <CdnTrafficChart />
+                    <MapDistributionChart />
+                </div>
+
+                {/* 第三行：审核统计 */}
+                <ReviewStatsChart />
+            </div>
+
+            {/* 右侧最近活动侧边栏 */}
+            <div className="w-80 shrink-0 hidden xl:block">
+                <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6 sticky top-6">
+                    <h3 className="text-lg font-semibold mb-4">最近活动</h3>
+                    <div className="space-y-3">
+                        {[
+                            { action: '上传了新点位', user: 'admin@example.com', time: '2 分钟前' },
+                            { action: '用户注册', user: 'test@gmail.com', time: '15 分钟前' },
+                            { action: '下载了点位包', user: 'user@qq.com', time: '1 小时前' },
+                            { action: '审核通过点位', user: 'admin@example.com', time: '2 小时前' },
+                            { action: '新投稿待审核', user: 'player@val.gg', time: '3 小时前' },
+                            { action: '点位被下载', user: 'gamer@steam.com', time: '4 小时前' },
+                            { action: '用户修改资料', user: 'user123@qq.com', time: '5 小时前' },
+                        ].map((activity, index) => (
+                            <div
+                                key={index}
+                                className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0"
+                            >
+                                <div className="w-8 h-8 bg-[#ff4655]/20 rounded-full flex items-center justify-center shrink-0">
+                                    <Icon name="Activity" size={14} className="text-[#ff4655]" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="text-sm text-white">{activity.action}</div>
+                                    <div className="text-xs text-gray-500 truncate">{activity.user}</div>
+                                    <div className="text-xs text-gray-600 mt-1">{activity.time}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
@@ -162,3 +168,4 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+

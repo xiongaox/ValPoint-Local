@@ -555,7 +555,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 onRemoveSubscription={controller.removeSubscription}
                 onUpdateSubscription={controller.updateSubscription}
                 onReorderSubscription={controller.reorderSubscription}
-                onGenerateTestData={controller.generateTestSubscriptions}
+
             />
         </div>
     );
