@@ -28,8 +28,13 @@ export interface AdminAccessResult {
 /**
  * 检查用户是否有管理员权限
  * 从 user_profiles.role 字段读取，或通过环境变量配置超级管理员
+ * 当检测到环境变量超管账号时，自动同步 role 到数据库，确保 RLS 策略生效
  */
 export async function checkAdminAccess(userId: string): Promise<AdminAccessResult> {
+    // 获取环境变量中的超级管理员账号
+    const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
+        || import.meta.env.VITE_ADMIN_ACCOUNT;
+
     // 先获取用户信息
     const { data, error } = await supabase
         .from('user_profiles')
@@ -37,7 +42,31 @@ export async function checkAdminAccess(userId: string): Promise<AdminAccessResul
         .eq('id', userId)
         .single();
 
+    // 如果数据库查询失败，尝试通过 auth.getUser 获取邮箱来检查环境变量
     if (error || !data) {
+        // 尝试从 auth 获取当前用户邮箱
+        const { data: authData } = await supabase.auth.getUser();
+        const userEmail = authData?.user?.email;
+
+        // 检查是否为环境变量配置的超级管理员
+        if (adminAccount && userEmail &&
+            userEmail.toLowerCase() === adminAccount.toLowerCase()) {
+            console.log('[AdminService] 环境变量超管账号匹配 (无 profile):', userEmail);
+            return {
+                isAdmin: true,
+                isSuperAdmin: true,
+                adminInfo: {
+                    id: userId,
+                    email: userEmail,
+                    nickname: null,
+                    role: 'super_admin',
+                    avatar: null,
+                    custom_id: null,
+                    created_at: new Date().toISOString()
+                } as AdminUser,
+            };
+        }
+
         return {
             isAdmin: false,
             isSuperAdmin: false,
@@ -46,10 +75,18 @@ export async function checkAdminAccess(userId: string): Promise<AdminAccessResul
     }
 
     // 检查环境变量中的超级管理员账号
-    const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
-        || import.meta.env.VITE_ADMIN_ACCOUNT;
-
     if (adminAccount && data.email?.toLowerCase() === adminAccount.toLowerCase()) {
+        console.log('[AdminService] 环境变量超管账号匹配:', data.email);
+
+        // 如果数据库中的 role 不是 super_admin，自动同步
+        if (data.role !== 'super_admin') {
+            console.log('[AdminService] 自动同步 role 为 super_admin');
+            await supabase
+                .from('user_profiles')
+                .update({ role: 'super_admin' })
+                .eq('id', userId);
+        }
+
         return {
             isAdmin: true,
             isSuperAdmin: true,
@@ -121,11 +158,13 @@ export async function addAdmin(
     email: string,
     _nickname?: string
 ): Promise<{ success: boolean; error?: string }> {
-    // 获取当前用户
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // 获取当前用户 - 使用 getSession 更可靠
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+        console.error('[AdminService] addAdmin: 未获取到有效 session');
         return { success: false, error: '未登录' };
     }
+    const user = session.user;
 
     // 检查是否为超级管理员
     const access = await checkAdminAccess(user.id);
@@ -144,10 +183,14 @@ export async function addAdmin(
     }
 
     // 更新 role 为 admin
-    const { error } = await supabase
+    console.log('[AdminService] 正在更新用户 role 为 admin:', email);
+    const { data: updateData, error } = await supabase
         .from('user_profiles')
         .update({ role: 'admin' })
-        .eq('email', email);
+        .eq('email', email)
+        .select();
+
+    console.log('[AdminService] 更新结果:', { updateData, error });
 
     if (error) {
         console.error('添加管理员失败:', error);
@@ -164,11 +207,13 @@ export async function addAdmin(
 export async function removeAdmin(
     adminId: string
 ): Promise<{ success: boolean; error?: string }> {
-    // 获取当前用户
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // 获取当前用户 - 使用 getSession 更可靠
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+        console.error('[AdminService] removeAdmin: 未获取到有效 session');
         return { success: false, error: '未登录' };
     }
+    const user = session.user;
 
     // 检查是否为超级管理员
     const access = await checkAdminAccess(user.id);
@@ -204,9 +249,13 @@ export async function updateUserPermission(
     userId: string,
     permission: { canBatchDownload?: boolean }
 ): Promise<{ success: boolean; error?: string }> {
-    // 1. 检查调用者权限
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false, error: '未登录' };
+    // 1. 检查调用者权限 - 使用 getSession 更可靠
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+        console.error('[AdminService] updateUserPermission: 未获取到有效 session');
+        return { success: false, error: '未登录' };
+    }
+    const user = session.user;
 
     const callerAccess = await checkAdminAccess(user.id);
     if (!callerAccess.isAdmin) {

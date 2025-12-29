@@ -11,6 +11,7 @@ import ReactDOM from 'react-dom';
 import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
 import { AGENT_AVATARS, getAvatarByEmail } from '../../../utils/avatarUtils';
+import { loadPlayerCardAvatars, PlayerCardAvatar } from '../../../utils/playerCardAvatars';
 
 export interface UserProfile {
     id: string;
@@ -45,6 +46,21 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
     const [canBatchDownload, setCanBatchDownload] = useState(false);
     const [banReason, setBanReason] = useState('');
     const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
+    const [playerCards, setPlayerCards] = useState<PlayerCardAvatar[]>([]);
+    const [isLoadingCards, setIsLoadingCards] = useState(false);
+
+    // 加载玩家卡面数据
+    useEffect(() => {
+        if (isAvatarPickerOpen && playerCards.length === 0) {
+            setIsLoadingCards(true);
+            loadPlayerCardAvatars()
+                .then(cards => {
+                    setPlayerCards(cards);
+                })
+                .catch(err => console.error('加载玩家卡面失败:', err))
+                .finally(() => setIsLoadingCards(false));
+        }
+    }, [isAvatarPickerOpen, playerCards.length]);
 
     // 初始化表单数据
     useEffect(() => {
@@ -58,6 +74,16 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
             setIsAvatarPickerOpen(false);
         }
     }, [user]);
+
+    /**
+     * 获取头像显示 URL
+     * 兼容两种格式：完整 URL (玩家卡面) 和本地路径 (特工头像)
+     */
+    const getAvatarUrl = (avatarValue: string): string => {
+        if (!avatarValue) return '/agents/KO.png';
+        if (avatarValue.startsWith('http')) return avatarValue;
+        return `/agents/${avatarValue}`;
+    };
 
     if (!isOpen || !user) return null;
 
@@ -113,11 +139,11 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                         <button
                             type="button"
                             onClick={() => setIsAvatarPickerOpen(true)}
-                            className="relative w-20 h-20 rounded-full border-2 border-white/10 overflow-hidden bg-[#0f131a] group hover:border-[#ff4655] transition-colors cursor-pointer"
+                            className="relative w-20 h-20 rounded-xl border-2 border-white/10 overflow-hidden bg-[#0f131a] group hover:border-[#ff4655] transition-colors cursor-pointer"
                             title="点击更换头像"
                         >
                             <img
-                                src={`/agents/${avatar}`}
+                                src={getAvatarUrl(avatar)}
                                 alt="Avatar"
                                 className="w-full h-full object-cover"
                             />
@@ -228,30 +254,42 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                 {isAvatarPickerOpen && (
                     <div className="absolute inset-0 bg-[#181b1f] z-10 flex flex-col animate-in fade-in slide-in-from-bottom-10 duration-300">
                         <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#1c2028]">
-                            <span className="text-sm font-bold text-white">选择特工头像</span>
+                            <span className="text-sm font-bold text-white">选择玩家卡面</span>
                             <button onClick={() => setIsAvatarPickerOpen(false)} className="text-gray-400 hover:text-white">
                                 <Icon name="X" size={16} />
                             </button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                            <div className="grid grid-cols-4 gap-3">
-                                {AGENT_AVATARS.map((agentAvatar) => (
-                                    <button
-                                        key={agentAvatar}
-                                        type="button"
-                                        onClick={() => {
-                                            setAvatar(agentAvatar);
-                                            setIsAvatarPickerOpen(false);
-                                        }}
-                                        className={`aspect-square rounded-full overflow-hidden border-2 transition-all ${avatar === agentAvatar
-                                            ? 'border-[#ff4655] scale-110 shadow-lg shadow-[#ff4655]/20'
-                                            : 'border-white/10 hover:border-white/50 hover:scale-105'
-                                            }`}
-                                    >
-                                        <img src={`/agents/${agentAvatar}`} alt={agentAvatar} className="w-full h-full object-cover" />
-                                    </button>
-                                ))}
-                            </div>
+                            {isLoadingCards ? (
+                                <div className="flex items-center justify-center py-10">
+                                    <div className="w-6 h-6 border-2 border-[#ff4655] border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : playerCards.length === 0 ? (
+                                <div className="text-center text-gray-500 py-10">
+                                    <p>无法加载卡面数据</p>
+                                    <p className="text-xs mt-1">请检查网络连接</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-4 gap-3">
+                                    {playerCards.map((card) => (
+                                        <button
+                                            key={card.uuid}
+                                            type="button"
+                                            onClick={() => {
+                                                setAvatar(card.url);
+                                                setIsAvatarPickerOpen(false);
+                                            }}
+                                            className={`aspect-square rounded-xl overflow-hidden border-2 transition-all ${avatar === card.url
+                                                ? 'border-[#ff4655] scale-110 shadow-lg shadow-[#ff4655]/20'
+                                                : 'border-white/10 hover:border-white/50 hover:scale-105'
+                                                }`}
+                                            title={card.name}
+                                        >
+                                            <img src={card.url} alt={card.name} className="w-full h-full object-cover" loading="lazy" />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

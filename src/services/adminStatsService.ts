@@ -27,11 +27,37 @@ export interface RecentActivity {
 }
 
 /**
+ * 计算周环比百分比
+ * 公式: ((本周 - 上周) / 上周) * 100
+ */
+function calculateTrend(current: number, previous: number): number {
+    if (previous === 0) {
+        return current > 0 ? 100 : 0; // 上周为0时，有增长显示100%，无增长显示0%
+    }
+    return Math.round(((current - previous) / previous) * 100);
+}
+
+/**
  * 获取仪表盘核心指标
  */
 export async function fetchDashboardStats(): Promise<DashboardStats> {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
+    // 计算本周和上周的时间范围
+    const dayOfWeek = now.getDay(); // 0=周日, 1=周一...
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    // 本周一 00:00
+    const thisWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - daysToMonday);
+    thisWeekStart.setHours(0, 0, 0, 0);
+
+    // 上周一 00:00
+    const lastWeekStart = new Date(thisWeekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+    // 上周日 23:59:59 (本周一的前一毫秒)
+    const lastWeekEnd = new Date(thisWeekStart.getTime() - 1);
 
     // 1. 各项总数
     const [
@@ -48,16 +74,51 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
 
     const todayDownloads = downloadData?.reduce((acc, current) => acc + (current.download_count || 0), 0) || 0;
 
-    // 趋势计算（简单 Mock 或基于昨日对比，此处先返回固定值或简单逻辑）
+    // 2. 获取本周和上周的数据用于环比计算
+    const [
+        { count: thisWeekLineups },
+        { count: lastWeekLineups },
+        { count: thisWeekUsers },
+        { count: lastWeekUsers },
+        { data: thisWeekDownloadsData },
+        { data: lastWeekDownloadsData }
+    ] = await Promise.all([
+        // 本周新增点位
+        supabase.from(TABLE.lineups).select('*', { count: 'exact', head: true })
+            .gte('created_at', thisWeekStart.toISOString()),
+        // 上周新增点位
+        supabase.from(TABLE.lineups).select('*', { count: 'exact', head: true })
+            .gte('created_at', lastWeekStart.toISOString())
+            .lte('created_at', lastWeekEnd.toISOString()),
+        // 本周新增用户
+        supabase.from('user_profiles').select('*', { count: 'exact', head: true })
+            .gte('created_at', thisWeekStart.toISOString()),
+        // 上周新增用户
+        supabase.from('user_profiles').select('*', { count: 'exact', head: true })
+            .gte('created_at', lastWeekStart.toISOString())
+            .lte('created_at', lastWeekEnd.toISOString()),
+        // 本周下载量
+        supabase.from('download_logs').select('download_count')
+            .gte('created_at', thisWeekStart.toISOString()),
+        // 上周下载量
+        supabase.from('download_logs').select('download_count')
+            .gte('created_at', lastWeekStart.toISOString())
+            .lte('created_at', lastWeekEnd.toISOString())
+    ]);
+
+    const thisWeekDownloads = thisWeekDownloadsData?.reduce((acc, d) => acc + (d.download_count || 0), 0) || 0;
+    const lastWeekDownloads = lastWeekDownloadsData?.reduce((acc, d) => acc + (d.download_count || 0), 0) || 0;
+
+    // 3. 计算周环比趋势
     return {
         totalLineups: totalLineups || 0,
         todayNewLineups: todayNewLineups || 0,
         totalUsers: totalUsers || 0,
         todayDownloads,
         trends: {
-            lineups: 12, // 暂时硬编码趋势百分比
-            users: 8,
-            downloads: -3
+            lineups: calculateTrend(thisWeekLineups || 0, lastWeekLineups || 0),
+            users: calculateTrend(thisWeekUsers || 0, lastWeekUsers || 0),
+            downloads: calculateTrend(thisWeekDownloads, lastWeekDownloads)
         }
     };
 }
