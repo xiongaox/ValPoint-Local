@@ -13,14 +13,15 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Icon from '../../../components/Icon';
 import Select from '../../../components/Select';
-import { getSharedLineups, deleteSharedLineup, SharedLineup } from '../../../lib/reviewService';
+import { getSharedLineups, deleteSharedLineup, deleteSharedLineups, SharedLineup } from '../../../lib/reviewService';
 import { MAP_TRANSLATIONS } from '../../../constants/maps';
 
 const SharedManagePage: React.FC = () => {
     const [lineups, setLineups] = useState<SharedLineup[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'batch'; ids: string[] } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -73,22 +74,54 @@ const SharedManagePage: React.FC = () => {
         return true;
     });
 
-    // 删除点位
-    const handleDelete = async (shareId: string) => {
+    // 切换选择
+    const toggleSelect = (id: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
+
+    // 全选/取消全选
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredLineups.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredLineups.map((l) => l.id)));
+        }
+    };
+
+    // 执行删除
+    const executeDelete = async () => {
+        if (!deleteConfirm) return;
+
         setIsDeleting(true);
-        const result = await deleteSharedLineup(shareId);
+        let result;
+
+        if (deleteConfirm.type === 'single') {
+            result = await deleteSharedLineup(deleteConfirm.ids[0]);
+        } else {
+            result = await deleteSharedLineups(deleteConfirm.ids);
+        }
+
         setIsDeleting(false);
         setDeleteConfirm(null);
 
         if (result.success) {
             setMessage({ type: 'success', text: '删除成功' });
-            setLineups((prev) => prev.filter((l) => l.id !== shareId));
+            setLineups((prev) => prev.filter((l) => !deleteConfirm.ids.includes(l.id)));
+            setSelectedIds(new Set()); // 清空选择
         } else {
             setMessage({ type: 'error', text: `删除失败: ${result.error}` });
         }
 
         setTimeout(() => setMessage(null), 3000);
     };
+
+
 
     // 重置筛选
     const resetFilters = () => {
@@ -206,6 +239,16 @@ const SharedManagePage: React.FC = () => {
 
                     {/* 右侧区域 */}
                     <div className="ml-auto flex items-center gap-4">
+                        {/* 批量删除按钮 */}
+                        {selectedIds.size > 0 && (
+                            <button
+                                onClick={() => setDeleteConfirm({ type: 'batch', ids: Array.from(selectedIds) })}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 text-sm font-bold shadow-lg shadow-red-500/20"
+                            >
+                                <Icon name="Trash2" size={16} />
+                                批量删除 ({selectedIds.size})
+                            </button>
+                        )}
                         {/* 重置按钮 */}
                         {hasFilters && (
                             <button
@@ -245,6 +288,19 @@ const SharedManagePage: React.FC = () => {
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-white/10 text-left text-sm text-gray-400">
+                                <th className="p-4 w-12">
+                                    <div
+                                        onClick={toggleSelectAll}
+                                        className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-all ${filteredLineups.length > 0 && selectedIds.size === filteredLineups.length
+                                            ? 'bg-[#ff4655] border-[#ff4655] text-white'
+                                            : 'bg-[#0f1923] border-gray-600 hover:border-gray-400'
+                                            }`}
+                                    >
+                                        {filteredLineups.length > 0 && selectedIds.size === filteredLineups.length && (
+                                            <Icon name="Check" size={14} />
+                                        )}
+                                    </div>
+                                </th>
                                 <th className="p-4">标题</th>
                                 <th className="p-4">地图</th>
                                 <th className="p-4">特工</th>
@@ -256,7 +312,20 @@ const SharedManagePage: React.FC = () => {
                         </thead>
                         <tbody>
                             {filteredLineups.map((item) => (
-                                <tr key={item.id} className="border-b border-white/5 hover:bg-white/5">
+                                <tr key={item.id} className={`border-b border-white/5 hover:bg-white/5 ${selectedIds.has(item.id) ? 'bg-white/5' : ''}`}>
+                                    <td className="p-4">
+                                        <div
+                                            onClick={() => toggleSelect(item.id)}
+                                            className={`w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-all ${selectedIds.has(item.id)
+                                                ? 'bg-[#ff4655] border-[#ff4655] text-white'
+                                                : 'bg-[#0f1923] border-gray-600 hover:border-gray-400'
+                                                }`}
+                                        >
+                                            {selectedIds.has(item.id) && (
+                                                <Icon name="Check" size={14} />
+                                            )}
+                                        </div>
+                                    </td>
                                     <td className="p-4">
                                         <div className="font-medium text-white truncate max-w-[200px]">{item.title}</div>
                                         <div className="text-xs text-gray-500 font-mono" title={item.id}>
@@ -290,11 +359,10 @@ const SharedManagePage: React.FC = () => {
                                     </td>
                                     <td className="p-4 text-center">
                                         <button
-                                            onClick={() => setDeleteConfirm(item.id)}
-                                            className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                            title="删除"
+                                            onClick={() => setDeleteConfirm({ type: 'single', ids: [item.id] })}
+                                            className="px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded transition-all text-xs font-medium"
                                         >
-                                            <Icon name="Trash2" size={16} />
+                                            删除
                                         </button>
                                     </td>
                                 </tr>
@@ -306,31 +374,48 @@ const SharedManagePage: React.FC = () => {
 
             {/* 删除确认弹窗 */}
             {deleteConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-                    <div className="bg-[#1f2326] rounded-xl p-6 w-full max-w-md border border-white/10">
-                        <h3 className="text-lg font-bold text-white mb-4">确认删除</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <div className="bg-[#1f2326] rounded-xl p-6 w-full max-w-md border border-white/10 shadow-2xl">
+                        <div className="flex items-center gap-3 mb-4 text-red-500">
+                            <Icon name="AlertTriangle" size={24} />
+                            <h3 className="text-lg font-bold text-white">确认删除</h3>
+                        </div>
                         <p className="text-gray-400 mb-6">
-                            确定要删除这个点位吗？此操作不可撤销。
+                            {deleteConfirm.type === 'batch'
+                                ? `确定要删除选中的 ${deleteConfirm.ids.length} 个点位吗？`
+                                : '确定要删除这个点位吗？'
+                            }
+                            <br />
+                            <span className="text-red-400 text-sm mt-2 block">此操作不可撤销，删除后将无法恢复。</span>
                         </p>
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setDeleteConfirm(null)}
                                 disabled={isDeleting}
-                                className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                                className="px-4 py-2 text-gray-400 hover:text-white transition-colors bg-white/5 rounded-lg border border-white/5 hover:border-white/20"
                             >
                                 取消
                             </button>
                             <button
-                                onClick={() => handleDelete(deleteConfirm)}
+                                onClick={executeDelete}
                                 disabled={isDeleting}
-                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
-                                {isDeleting ? '删除中...' : '确认删除'}
+                                {isDeleting ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        删除中...
+                                    </>
+                                ) : (
+                                    '确认删除'
+                                )}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 };

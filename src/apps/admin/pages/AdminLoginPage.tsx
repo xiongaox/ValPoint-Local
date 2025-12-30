@@ -84,31 +84,9 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
         setIsSubmitting(true);
 
         try {
-            // 方式1: 环境变量账号（超级管理员后门）
-            const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
-                || import.meta.env.VITE_ADMIN_ACCOUNT;
-            const adminPassword = (window as any).__ENV__?.VITE_ADMIN_PASSWORD
-                || import.meta.env.VITE_ADMIN_PASSWORD;
 
-            console.log('[Admin Login] 输入账号:', account.trim());
-            console.log('[Admin Login] 环境变量账号:', adminAccount);
-            console.log('[Admin Login] 环境变量匹配:', account.trim().toLowerCase() === adminAccount?.trim()?.toLowerCase());
 
-            if (adminAccount && adminPassword
-                && account.trim().toLowerCase() === adminAccount.trim().toLowerCase()
-                && password === adminPassword) {
-                console.log('[Admin Login] ✓ 环境变量账号匹配成功');
-                setAlertMessage('环境变量管理员登录成功');
-                onLogin({
-                    account: adminAccount,
-                    isSuperAdmin: true,
-                    role: 'super_admin',
-                });
-                setIsSubmitting(false);
-                return;
-            }
 
-            console.log('[Admin Login] 环境变量不匹配，尝试 Supabase Auth...');
 
             // 方式2: Supabase Auth 登录
             const { adminSupabase } = await import('../../../supabaseClient');

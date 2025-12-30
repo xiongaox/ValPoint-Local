@@ -47,12 +47,7 @@ export interface EmailValidationResult {
  * 验证邮箱格式和域名白名单
  */
 export function validateEmail(email: string): EmailValidationResult {
-    // 超级管理员账号绕过验证（环境变量配置）
-    const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
-        || import.meta.env.VITE_ADMIN_ACCOUNT;
-    if (adminAccount && email.toLowerCase() === adminAccount.toLowerCase()) {
-        return { isValid: true };
-    }
+
 
     // 开发环境绕过验证
     const devBypassEmail = import.meta.env.VITE_DEV_BYPASS_EMAIL;

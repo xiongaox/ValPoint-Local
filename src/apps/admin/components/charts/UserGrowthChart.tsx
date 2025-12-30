@@ -47,7 +47,7 @@ export default function UserGrowthChart() {
                 {loading ? (
                     <div className="h-full flex items-center justify-center text-gray-500">加载中...</div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="99%" height="100%">
                         <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#333" />
                             <XAxis dataKey="displayDate" stroke="#666" fontSize={12} />

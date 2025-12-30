@@ -31,42 +31,14 @@ export interface AdminAccessResult {
  * 当检测到环境变量超管账号时，自动同步 role 到数据库，确保 RLS 策略生效
  */
 export async function checkAdminAccess(userId: string): Promise<AdminAccessResult> {
-    // 获取环境变量中的超级管理员账号
-    const adminAccount = (window as any).__ENV__?.VITE_ADMIN_ACCOUNT
-        || import.meta.env.VITE_ADMIN_ACCOUNT;
-
-    // 先获取用户信息
+    // 获取用户信息
     const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-    // 如果数据库查询失败，尝试通过 auth.getUser 获取邮箱来检查环境变量
     if (error || !data) {
-        // 尝试从 auth 获取当前用户邮箱
-        const { data: authData } = await supabase.auth.getUser();
-        const userEmail = authData?.user?.email;
-
-        // 检查是否为环境变量配置的超级管理员
-        if (adminAccount && userEmail &&
-            userEmail.toLowerCase() === adminAccount.toLowerCase()) {
-            console.log('[AdminService] 环境变量超管账号匹配 (无 profile):', userEmail);
-            return {
-                isAdmin: true,
-                isSuperAdmin: true,
-                adminInfo: {
-                    id: userId,
-                    email: userEmail,
-                    nickname: null,
-                    role: 'super_admin',
-                    avatar: null,
-                    custom_id: null,
-                    created_at: new Date().toISOString()
-                } as AdminUser,
-            };
-        }
-
         return {
             isAdmin: false,
             isSuperAdmin: false,
@@ -74,25 +46,6 @@ export async function checkAdminAccess(userId: string): Promise<AdminAccessResul
         };
     }
 
-    // 检查环境变量中的超级管理员账号
-    if (adminAccount && data.email?.toLowerCase() === adminAccount.toLowerCase()) {
-        console.log('[AdminService] 环境变量超管账号匹配:', data.email);
-
-        // 如果数据库中的 role 不是 super_admin，自动同步
-        if (data.role !== 'super_admin') {
-            console.log('[AdminService] 自动同步 role 为 super_admin');
-            await supabase
-                .from('user_profiles')
-                .update({ role: 'super_admin' })
-                .eq('id', userId);
-        }
-
-        return {
-            isAdmin: true,
-            isSuperAdmin: true,
-            adminInfo: { ...data, role: 'super_admin' } as AdminUser,
-        };
-    }
 
     const role = data.role as 'user' | 'admin' | 'super_admin';
 

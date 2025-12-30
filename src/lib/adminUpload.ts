@@ -7,10 +7,20 @@
  */
 
 import { unzipSync, strFromU8 } from 'fflate';
-import { shareSupabase } from '../supabaseClient';
+import { adminSupabase } from '../supabaseClient';
 import { ImageBedConfig } from '../types/imageBed';
 import { uploadImage } from './imageBed';
 import { TABLE } from '../services/tables';
+
+export interface AdminProfile {
+    id: string;
+    email: string;
+    nickname?: string;
+    avatar?: string;
+    customId?: string;
+}
+
+
 
 /** ZIP 解析后的图片数据 */
 interface ParsedZipData {
@@ -101,7 +111,7 @@ export const parseZipMetadata = async (zipFile: File): Promise<{
  */
 export const adminUploadLineup = async (
     zipFile: File,
-    adminEmail: string,
+    adminProfile: AdminProfile,
     ossConfig: ImageBedConfig,
     onProgress?: (progress: AdminUploadProgress) => void,
 ): Promise<AdminUploadResult> => {
@@ -158,6 +168,12 @@ export const adminUploadLineup = async (
         // 3. 直接写入 valorant_shared 表
         const newId = crypto.randomUUID();
 
+        // 优先使用 ZIP 中的作者信息，如果没有则使用管理员信息
+        // author_uid 优先使用 customId (Z74X...), 其次使用 UUID
+        const authorUid = jsonPayload.author_uid || adminProfile.customId || adminProfile.id;
+        const authorName = jsonPayload.author_name || adminProfile.nickname || authorUid;
+        const authorAvatar = jsonPayload.author_avatar || adminProfile.avatar || '';
+
         const sharedLineup = {
             id: newId,
             title: jsonPayload.title || '未命名点位',
@@ -180,10 +196,12 @@ export const adminUploadLineup = async (
             land_img: imageUrls.land_img,
             land_desc: jsonPayload.land_desc,
             source_link: jsonPayload.source_link,
-            user_id: adminEmail || 'admin',
+            author_uid: authorUid,
+            author_name: authorName,
+            author_avatar: authorAvatar,
         };
 
-        const { error } = await shareSupabase.from(TABLE.shared).insert(sharedLineup);
+        const { error } = await adminSupabase.from(TABLE.shared).insert(sharedLineup);
 
         if (error) {
             throw new Error(`保存点位失败: ${error.message}`);
@@ -210,7 +228,7 @@ export const adminUploadLineup = async (
  */
 export const adminUploadMultiple = async (
     zipFiles: File[],
-    adminEmail: string,
+    adminProfile: AdminProfile,
     ossConfig: ImageBedConfig,
     onProgress?: (fileIndex: number, total: number, progress: AdminUploadProgress) => void,
 ): Promise<{ success: number; failed: number; errors: string[] }> => {
@@ -222,7 +240,7 @@ export const adminUploadMultiple = async (
         const file = zipFiles[i];
         const result = await adminUploadLineup(
             file,
-            adminEmail,
+            adminProfile,
             ossConfig,
             (progress) => onProgress?.(i, zipFiles.length, progress),
         );

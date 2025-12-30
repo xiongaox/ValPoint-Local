@@ -42,8 +42,7 @@ BEGIN
     );
     RETURN NEW;
 END;
-    RETURN NEW;
-END;
+
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 自动累计下载次数

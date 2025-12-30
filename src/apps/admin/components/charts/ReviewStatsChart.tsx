@@ -85,7 +85,7 @@ export default function ReviewStatsChart() {
                 {loading ? (
                     <div className="h-full flex items-center justify-center text-gray-500">加载中...</div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="99%" height="100%">
                         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={2}>
                             <defs>
                                 <linearGradient id="colorApproved" x1="0" y1="0" x2="0" y2="1">

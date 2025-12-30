@@ -202,8 +202,19 @@ function SharedRightPanel({
                                             >
                                                 {l.side === 'attack' ? '进攻' : '防守'}
                                             </span>
-                                            <div className="ml-auto flex items-center gap-1">
-                                                {l.userId && <span className="text-[12px] text-gray-500">{l.userId}</span>}
+                                            <div className="ml-auto flex items-center gap-1.5 max-w-[100px]">
+                                                {l.authorAvatar && (
+                                                    <img
+                                                        src={l.authorAvatar.startsWith('http') ? l.authorAvatar : `/agents/${l.authorAvatar}`}
+                                                        alt=""
+                                                        className="w-4 h-4 rounded-full object-cover"
+                                                    />
+                                                )}
+                                                {(l.authorName || l.userId) && (
+                                                    <span className="text-xs text-gray-500 truncate">
+                                                        {l.authorName || l.userId?.slice(0, 8)}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

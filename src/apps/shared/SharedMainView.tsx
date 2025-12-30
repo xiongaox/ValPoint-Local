@@ -115,7 +115,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 setPersonalLibraryUrl(settings.personal_library_url);
             } else {
                 // 默认使用相对路径
-                setPersonalLibraryUrl('/user');
+                setPersonalLibraryUrl('/user.html');
             }
         }
         loadPersonalLibraryUrl();

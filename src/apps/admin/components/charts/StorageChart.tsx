@@ -74,7 +74,7 @@ export default function StorageChart() {
                 <span className="text-xs text-gray-400">{totalUsedGB.toFixed(2)} GB / {STORAGE_LIMIT_GB} GB</span>
             </div>
             <div className="flex-1 min-h-0 relative">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="99%" height="100%">
                     <PieChart>
                         <defs>
                             <linearGradient id="colorUsed" x1="0" y1="0" x2="1" y2="1">

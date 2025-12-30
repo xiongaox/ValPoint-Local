@@ -257,3 +257,16 @@ export async function deleteSharedLineup(id: string): Promise<{ success: boolean
     }
     return { success: true };
 }
+
+/** 批量删除共享库点位 */
+export async function deleteSharedLineups(ids: string[]): Promise<{ success: boolean; error?: string }> {
+    const { error } = await adminSupabase
+        .from(TABLE.shared)
+        .delete()
+        .in('id', ids);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+    return { success: true };
+}

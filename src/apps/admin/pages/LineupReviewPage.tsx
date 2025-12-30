@@ -46,16 +46,19 @@ function LineupReviewPage() {
         if (settings?.official_oss_config) {
             setOssConfig(settings.official_oss_config);
         }
-        // 自动选中第一个
-        if (subs.length > 0 && !selectedId) {
-            setSelectedId(subs[0].id);
-        }
         setIsLoading(false);
-    }, [selectedId]);
+    }, []);
 
     useEffect(() => {
         loadData();
     }, [loadData]);
+
+    // 自动选中第一个
+    useEffect(() => {
+        if (submissions.length > 0 && !selectedId) {
+            setSelectedId(submissions[0].id);
+        }
+    }, [submissions, selectedId]);
 
     // 消息自动消失
     useEffect(() => {
@@ -267,12 +270,25 @@ function LineupReviewPage() {
                             </div>
 
                             {/* 投稿者信息 */}
-                            <div className="pt-3 border-t border-white/10">
-                                <label className="text-xs text-gray-400 mb-1 block">投稿者</label>
-                                <p className="text-white text-sm">{selected.submitter_email || '未知'}</p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    {new Date(selected.created_at).toLocaleString('zh-CN')}
-                                </p>
+                            <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">投稿者</label>
+                                    <p className="text-white text-sm">{selected.submitter_email || '未知'}</p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        {new Date(selected.created_at).toLocaleString('zh-CN')}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => selected.source_link && window.open(selected.source_link, '_blank')}
+                                    disabled={!selected.source_link}
+                                    className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${selected.source_link
+                                        ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300'
+                                        : 'bg-white/5 border-white/5 text-gray-600 cursor-not-allowed'
+                                        }`}
+                                    title={selected.source_link ? "点击查看来源" : "无来源链接"}
+                                >
+                                    精准空降
+                                </button>
                             </div>
                         </>
                     ) : (
@@ -292,6 +308,7 @@ function LineupReviewPage() {
                                 请先配置官方图床
                             </div>
                         )}
+
                         <div className="flex gap-2">
                             <button
                                 onClick={handleOpenReject}

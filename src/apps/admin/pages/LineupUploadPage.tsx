@@ -13,6 +13,7 @@ import { useEmailAuth } from '../../../hooks/useEmailAuth';
 import { adminSupabase } from '../../../supabaseClient';
 import { ImageBedConfig } from '../../../types/imageBed';
 import { MAP_TRANSLATIONS } from '../../../constants/maps';
+import { getSystemSettings } from '../../../lib/systemSettings';
 
 interface PendingUpload {
     file: File;
@@ -36,7 +37,6 @@ const MAX_FILES = 50;
 const SYSTEM_SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
 
 const LineupUploadPage: React.FC<LineupUploadPageProps> = ({ setAlertMessage }) => {
-    const { user } = useEmailAuth();
     const [pendingFiles, setPendingFiles] = useState<PendingUpload[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const [imageBedConfig, setImageBedConfig] = useState<ImageBedConfig | null>(null);
@@ -45,14 +45,9 @@ const LineupUploadPage: React.FC<LineupUploadPageProps> = ({ setAlertMessage }) 
     // 加载图床配置
     useEffect(() => {
         const loadConfig = async () => {
-            const { data } = await adminSupabase
-                .from('system_settings')
-                .select('value')
-                .eq('key', 'image_bed_config')
-                .single();
-
-            if (data?.value) {
-                setImageBedConfig(data.value as ImageBedConfig);
+            const settings = await getSystemSettings();
+            if (settings?.official_oss_config) {
+                setImageBedConfig(settings.official_oss_config);
             }
         };
         loadConfig();
@@ -119,9 +114,18 @@ const LineupUploadPage: React.FC<LineupUploadPageProps> = ({ setAlertMessage }) 
             });
 
             try {
+                // 获取当前管理员用户信息
+                const { data: { user } } = await adminSupabase.auth.getUser();
+
                 const result = await adminUploadLineup(
                     item.file,
-                    user?.email || '',
+                    {
+                        id: user?.id || 'admin',
+                        email: user?.email || '',
+                        nickname: user?.user_metadata?.nickname,
+                        avatar: user?.user_metadata?.avatar,
+                        customId: user?.user_metadata?.custom_id
+                    },
                     imageBedConfig,
                     (p: AdminUploadProgress) => {
                         const percent = p.total > 0 ? Math.round((p.current / p.total) * 100) : 0;
