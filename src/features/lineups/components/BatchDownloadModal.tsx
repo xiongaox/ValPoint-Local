@@ -60,7 +60,7 @@ const BatchDownloadModal: React.FC<Props> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-500/15 border border-blue-500/35 flex items-center justify-center text-blue-500">
+                        <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
                             <Icon name="Download" size={18} />
                         </div>
                         <div className="leading-tight">
@@ -81,8 +81,8 @@ const BatchDownloadModal: React.FC<Props> = ({
                 <div className="p-5 bg-[#181b1f]">
                     {isDownloading ? (
                         <div className="text-center py-8">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center">
-                                <Icon name="Loader" size={32} className="text-blue-500 animate-spin" />
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ff4655]/10 border border-[#ff4655]/30 flex items-center justify-center">
+                                <Icon name="Loader" size={32} className="text-[#ff4655] animate-spin" />
                             </div>
                             <p className="text-white font-semibold mb-2">正在根据浏览器机制下载...</p>
                             <p className="text-gray-400 text-sm">请允许浏览器即使下载多个文件</p>
@@ -93,9 +93,9 @@ const BatchDownloadModal: React.FC<Props> = ({
                             <button
                                 onClick={() => handleDownloadClick('map')}
                                 disabled={!currentMapName || totalMapLineups === 0}
-                                className="group rounded-2xl p-3 flex flex-col items-center gap-2 transition-colors border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed hover:border-blue-500/50"
+                                className="group rounded-2xl p-3 flex flex-col items-center gap-2 transition-colors border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed hover:border-[#ff4655]/50"
                             >
-                                <div className="w-14 h-14 rounded-full border-2 border-white/10 overflow-hidden bg-[#1f2326] group-hover:border-blue-500/50 transition-colors flex items-center justify-center">
+                                <div className="w-14 h-14 rounded-full border-2 border-[#ff4655]/50 overflow-hidden bg-[#1f2326] group-hover:border-[#ff4655]/70 transition-colors flex items-center justify-center">
                                     {currentMapIcon ? (
                                         <img src={currentMapIcon} alt={currentMapName} className="w-full h-full object-cover" />
                                     ) : (
@@ -104,16 +104,16 @@ const BatchDownloadModal: React.FC<Props> = ({
                                 </div>
                                 <div className="text-white font-semibold text-sm">当前地图</div>
                                 <div className="text-xs text-gray-400">{mapNameDisplay}</div>
-                                <div className="text-xs font-semibold text-blue-400">{totalMapLineups} 个点位</div>
+                                <div className="text-xs font-semibold text-[#ff4655]">{totalMapLineups} 个点位</div>
                             </button>
 
                             {/* Agent Button */}
                             <button
                                 onClick={() => handleDownloadClick('agent')}
                                 disabled={!currentAgentName || totalAgentLineups === 0}
-                                className="group rounded-2xl p-3 flex flex-col items-center gap-2 transition-colors border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed hover:border-amber-400/50"
+                                className="group rounded-2xl p-3 flex flex-col items-center gap-2 transition-colors border border-amber-400/40 bg-amber-500/10 hover:bg-amber-500/15 disabled:opacity-50 disabled:cursor-not-allowed hover:border-amber-400/70"
                             >
-                                <div className="w-14 h-14 rounded-full border-2 border-white/10 overflow-hidden bg-[#1f2326] group-hover:border-amber-400/50 transition-colors flex items-center justify-center">
+                                <div className="w-14 h-14 rounded-full border-2 border-amber-500/50 overflow-hidden bg-[#1f2326] group-hover:border-amber-500/70 transition-colors flex items-center justify-center">
                                     {currentAgentIcon ? (
                                         <img src={currentAgentIcon} alt={currentAgentName} className="w-full h-full object-cover" />
                                     ) : (
@@ -121,12 +121,27 @@ const BatchDownloadModal: React.FC<Props> = ({
                                     )}
                                 </div>
                                 <div className="text-white font-semibold text-sm">当前特工</div>
-                                <div className="text-xs text-gray-400">{currentAgentName || '未选择'}</div>
+                                <div className="text-xs text-amber-200/80">{currentAgentName || '未选择'}</div>
                                 <div className="text-xs font-semibold text-amber-400">{totalAgentLineups} 个点位</div>
                             </button>
                         </div>
                     )}
                 </div>
+
+                {/* Footer */}
+                {!isDownloading && (
+                    <div className="px-5 py-4 border-t border-white/10 bg-[#1c2028] flex items-center justify-between">
+                        <div className="text-xs text-gray-500">
+                            点击卡片即可开始下载
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 rounded-lg border border-white/15 text-sm text-gray-200 hover:border-white/40 hover:bg-white/5 transition-colors"
+                        >
+                            取消
+                        </button>
+                    </div>
+                )}
             </div>
         </div>,
         document.body

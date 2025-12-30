@@ -42,6 +42,21 @@ BEGIN
     );
     RETURN NEW;
 END;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 自动累计下载次数
+CREATE OR REPLACE FUNCTION public.increment_user_download_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.user_id IS NOT NULL THEN
+        UPDATE public.user_profiles
+        SET download_count = COALESCE(download_count, 0) + COALESCE(NEW.download_count, 1)
+        WHERE id = NEW.user_id;
+    END IF;
+    RETURN NEW;
+END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- [优化] 管理员权限检查函数 (提升 RLS 性能与可读性)
@@ -253,6 +268,12 @@ CREATE TRIGGER tr_lineup_submissions_updated_at BEFORE UPDATE ON public.lineup_s
 DROP TRIGGER IF EXISTS tr_user_daily_downloads_updated_at ON public.user_daily_downloads;
 CREATE TRIGGER tr_user_daily_downloads_updated_at BEFORE UPDATE ON public.user_daily_downloads FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
 
+-- 4.3 下载日志触发器 (累计总下载次数)
+DROP TRIGGER IF EXISTS on_download_log_created ON public.download_logs;
+CREATE TRIGGER on_download_log_created
+    AFTER INSERT ON public.download_logs
+    FOR EACH ROW EXECUTE FUNCTION public.increment_user_download_count();
+
 -- ==========================================
 -- 5. 行级安全策略 (RLS)
 -- ==========================================
@@ -419,109 +440,5 @@ CREATE INDEX IF NOT EXISTS idx_download_logs_created_at ON public.download_logs(
 CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON public.user_profiles(email);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_custom_id ON public.user_profiles(custom_id);
 
--- ==========================================
--- 8. 超级管理员账号初始化 (可选)
--- ==========================================
--- 说明: 直接通过 SQL 创建超级管理员账号，无需邮箱验证
--- 使用前请修改下方的邮箱和密码
--- 密码会自动使用 bcrypt 加密
--- ==========================================
 
--- 创建超级管理员账号的函数
-CREATE OR REPLACE FUNCTION create_super_admin(
-  admin_email TEXT,
-  admin_password TEXT,
-  admin_nickname TEXT DEFAULT 'Super Admin'
-)
-RETURNS uuid
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = extensions, auth, public
-AS $$
-DECLARE
-  new_user_id uuid;
-  encrypted_pw text;
-BEGIN
-  -- 检查用户是否已存在
-  SELECT id INTO new_user_id FROM auth.users WHERE email = admin_email;
-  
-  IF new_user_id IS NOT NULL THEN
-    -- 用户已存在，直接更新 role 为 super_admin
-    UPDATE public.user_profiles SET role = 'super_admin' WHERE id = new_user_id;
-    RAISE NOTICE '用户已存在，已更新为超级管理员: %', admin_email;
-    RETURN new_user_id;
-  END IF;
-  
-  -- 生成新 UUID
-  new_user_id := gen_random_uuid();
-  
-  -- 加密密码 (Supabase 使用 bcrypt)
-  encrypted_pw := extensions.crypt(admin_password, extensions.gen_salt('bf'));
-  
-  -- 插入 auth.users 表
-  INSERT INTO auth.users (
-    id,
-    instance_id,
-    email,
-    encrypted_password,
-    email_confirmed_at,
-    raw_app_meta_data,
-    raw_user_meta_data,
-    aud,
-    role,
-    created_at,
-    updated_at,
-    confirmation_token,
-    recovery_token
-  ) VALUES (
-    new_user_id,
-    '00000000-0000-0000-0000-000000000000',
-    admin_email,
-    encrypted_pw,
-    NOW(), -- 直接确认邮箱，跳过验证
-    '{"provider": "email", "providers": ["email"]}'::jsonb,
-    jsonb_build_object('nickname', admin_nickname),
-    'authenticated',
-    'authenticated',
-    NOW(),
-    NOW(),
-    '',
-    ''
-  );
-  
-  -- 插入 auth.identities 表 (Supabase 需要)
-  INSERT INTO auth.identities (
-    id,
-    user_id,
-    provider_id,
-    identity_data,
-    provider,
-    last_sign_in_at,
-    created_at,
-    updated_at
-  ) VALUES (
-    new_user_id,
-    new_user_id,
-    admin_email,
-    jsonb_build_object('sub', new_user_id, 'email', admin_email),
-    'email',
-    NOW(),
-    NOW(),
-    NOW()
-  );
-  
-  -- handle_new_user 触发器会自动创建 user_profiles 记录
-  -- 但我们需要手动设置 role 为 super_admin
-  -- 等待触发器执行后更新
-  UPDATE public.user_profiles SET role = 'super_admin', nickname = admin_nickname WHERE id = new_user_id;
-  
-  RAISE NOTICE '超级管理员创建成功: %', admin_email;
-  RETURN new_user_id;
-END;
-$$;
 
--- ==========================================
--- 使用示例：创建超级管理员
--- 请取消下方注释并修改邮箱和密码后执行
--- ==========================================
--- SELECT create_super_admin('super@gmail.com', 'your_secure_password_here', 'Super Admin');

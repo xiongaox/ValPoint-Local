@@ -148,7 +148,7 @@ export const syncLineupsToShared = async (
                 land_img: lineup.land_img,
                 land_desc: lineup.land_desc,
                 source_link: lineup.source_link,
-                user_id: userDisplayId,  // 使用用户的 custom_id（短 ID）
+                author_uid: userDisplayId,  // 使用用户的 custom_id（短 ID）
             };
 
             // 插入共享库

@@ -55,15 +55,32 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-            <div className="w-full max-w-md mx-4 bg-[#1f2326] rounded-xl border border-white/10 p-8 shadow-2xl">
-                <h2 className="text-xl font-bold text-white mb-2 text-center">设置新密码</h2>
-                <p className="text-gray-400 text-sm mb-6 text-center">
-                    请输入您的新密码
-                </p>
+        <div className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
+                            <Icon name="Lock" size={18} />
+                        </div>
+                        <div className="leading-tight">
+                            <div className="text-xl font-bold text-white">设置新密码</div>
+                            <div className="text-xs text-gray-500">请输入您的新密码</div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onCancel || onClose}
+                        disabled={isSubmitting}
+                        className="p-2 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/30 transition-colors disabled:opacity-50"
+                        aria-label="关闭"
+                    >
+                        <Icon name="X" size={16} />
+                    </button>
+                </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
+                {/* Body */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-[#181b1f]">
+                    <div>
                         <label className="block text-sm text-gray-400 mb-2">新密码</label>
                         <input
                             type="password"
@@ -76,7 +93,7 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
                         />
                     </div>
 
-                    <div className="mb-4">
+                    <div>
                         <label className="block text-sm text-gray-400 mb-2">确认新密码</label>
                         <input
                             type="password"
@@ -89,37 +106,42 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
                     </div>
 
                     {validationError && (
-                        <p className="mb-4 text-sm text-red-400">{validationError}</p>
+                        <p className="text-sm text-red-400">{validationError}</p>
                     )}
 
-                    <button
-                        type="submit"
-                        disabled={isSubmitting || !password || !confirmPassword}
-                        className="w-full py-3 bg-[#ff4655] hover:bg-[#ff5a67] text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                保存中...
-                            </>
-                        ) : (
-                            <>
-                                <Icon name="Check" size={18} />
-                                确认修改
-                            </>
-                        )}
-                    </button>
-
-                    {onCancel && (
-                        <button
-                            type="button"
-                            onClick={onCancel}
-                            disabled={isSubmitting}
-                            className="w-full mt-3 py-2 text-gray-400 hover:text-white text-sm transition-colors disabled:opacity-50"
-                        >
-                            取消并退出登录
-                        </button>
-                    )}
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                        <div className="text-xs text-gray-500">密码设置后立即生效</div>
+                        <div className="flex items-center gap-2">
+                            {onCancel && (
+                                <button
+                                    type="button"
+                                    onClick={onCancel}
+                                    disabled={isSubmitting}
+                                    className="px-4 py-2 rounded-lg border border-white/15 text-sm text-gray-200 hover:border-white/40 hover:bg-white/5 transition-colors disabled:opacity-50"
+                                >
+                                    取消
+                                </button>
+                            )}
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || !password || !confirmPassword}
+                                className="px-5 py-2 rounded-lg bg-[#ff4655] hover:bg-[#ff5a67] text-white font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md shadow-[#ff4655]/30"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        保存中...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Icon name="Check" size={16} />
+                                        确认修改
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>

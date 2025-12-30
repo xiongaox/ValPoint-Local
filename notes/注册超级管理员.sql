@@ -1,22 +1,20 @@
 -- ==========================================
--- 注册超级管理员
+-- 注册/提权超级管理员
 -- ==========================================
--- 使用说明:
--- 1. 请先执行「数据库一键重建脚本.sql」创建 create_super_admin 函数
--- 2. 修改下方的邮箱、密码、昵称
--- 3. 在 Supabase Dashboard -> SQL Editor 中执行此脚本
+-- 步骤说明:
+-- 1. 流程：
+--    a. 在前端页面 (Admin 后台或个人库) 正常注册一个普通账号。
+--    b. 使用本脚本将该账号提权为 super_admin。
 -- ==========================================
 
--- 创建超级管理员账号
--- 参数说明:
---   第1个参数: 邮箱 (用于登录)
---   第2个参数: 密码 (请使用强密码)
---   第3个参数: 昵称 (可选，默认 'Super Admin')
-
-SELECT create_super_admin(
-  'super@gmail.com',          -- 修改为你的超管邮箱
-  'your_password_here',       -- 修改为你的密码
-  'Super Admin'               -- 修改为你的昵称
+-- 请将下方 'your_email@example.com' 替换为你刚刚注册的邮箱
+UPDATE public.user_profiles 
+SET role = 'super_admin' 
+WHERE id = (
+    SELECT id 
+    FROM auth.users 
+    WHERE email = 'your_email@example.com'
 );
 
--- 执行成功后，即可使用上述邮箱和密码登录后台管理系统
+-- 验证提权结果 (可选)
+-- SELECT auth.users.email, user_profiles.role FROM user_profiles JOIN auth.users ON user_profiles.id = auth.users.id WHERE auth.users.email = 'your_email@example.com';

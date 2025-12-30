@@ -36,7 +36,17 @@ export interface AdminInfo {
  * 后台管理应用根组件
  */
 function AdminApp() {
-    const [currentPage, setCurrentPage] = useState<AdminPage>('dashboard');
+    const [currentPage, setCurrentPage] = useState<AdminPage>(() => {
+        try {
+            const storedPage = localStorage.getItem('valpoint_admin_page');
+            if (storedPage && ['dashboard', 'users', 'logs', 'upload', 'review', 'shared', 'settings'].includes(storedPage)) {
+                return storedPage as AdminPage;
+            }
+        } catch (e) {
+            // Ignore errors
+        }
+        return 'dashboard';
+    });
     const [adminInfo, setAdminInfo] = useState<AdminInfo | null>(() => {
         try {
             const stored = localStorage.getItem('valpoint_admin_info');
@@ -46,6 +56,11 @@ function AdminApp() {
         }
     });
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+    // Persist currentPage to localStorage
+    React.useEffect(() => {
+        localStorage.setItem('valpoint_admin_page', currentPage);
+    }, [currentPage]);
 
     // 检查会话有效性 (仅针对 Supabase 用户)
     React.useEffect(() => {

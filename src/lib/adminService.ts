@@ -5,7 +5,7 @@
  * - 检查用户的管理员/超级管理员权限（基于 user_profiles.role）
  * - 管理管理员列表（添加、移除管理员）
  */
-import { supabase } from '../supabaseClient';
+import { adminSupabase as supabase } from '../supabaseClient';
 
 /** 管理员用户类型 */
 export interface AdminUser {

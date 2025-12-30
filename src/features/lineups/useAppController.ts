@@ -47,6 +47,7 @@ import { buildModalProps } from './controllers/useModalProps';
 import { buildUiProps } from './controllers/useUiProps';
 import { useAppState } from './controllers/useAppState';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { supabase } from '../../supabaseClient';
 
 /** 置顶点位数量上限 */
 const DEFAULT_PINNED_COUNT = 8;
@@ -300,12 +301,66 @@ export function useAppController() {
     }
   }, [selectedMap, selectedAgent, allMapLineups, handleDownload, modal]);
 
-  // 使用 Supabase Auth 后，密码修改通过登录页面的"忘记密码"功能完成
+  // 使用 Supabase Auth 更新密码
   const handleChangePasswordSubmit = useCallback(
-    async (_oldPassword: string, _newPassword: string, _confirmPassword: string) => {
-      modal.setAlertMessage('请通过登录页面的"忘记密码"功能重置密码');
+    async (oldPassword: string, newPassword: string, confirmPassword: string) => {
+      // 1. 基础校验
+      if (!newPassword || !confirmPassword) {
+        modal.setAlertMessage('请输入新密码');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        modal.setAlertMessage('两次输入的密码不一致');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        modal.setAlertMessage('新密码长度不能少于 6 位');
+        return;
+      }
+
+      setIsChangingPassword(true);
+
+      try {
+        // 2. 验证旧密码 (通过尝试登录)
+        // 注意：Supabase 没有直接验证旧密码的 API，通常的做法是再次登录验证
+        if (!user?.email) throw new Error('用户未登录');
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: oldPassword,
+        });
+
+        if (signInError) {
+          console.error('Verify old password failed:', signInError);
+          modal.setAlertMessage('旧密码错误，请重新输入');
+          setIsChangingPassword(false);
+          return;
+        }
+
+        // 3. 更新密码
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        modal.setIsChangePasswordOpen(false);
+        modal.setAlertMessage('密码修改成功！下次登录请使用新密码');
+
+        // 可选：修改成功后登出
+        // await signOut(); 
+      } catch (err: any) {
+        console.error('Change password failed:', err);
+        modal.setAlertMessage(err.message || '修改密码失败，请稍后重试');
+      } finally {
+        setIsChangingPassword(false);
+      }
     },
-    [modal],
+    [modal, user, setIsChangingPassword],
   );
 
   const togglePlacingType = (type: 'agent' | 'skill') => {

@@ -306,7 +306,7 @@ function UsersPage() {
                                 用户
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                自定义 ID
+                                用户 ID
                             </th>
                             <th
                                 className="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-white transition-colors"

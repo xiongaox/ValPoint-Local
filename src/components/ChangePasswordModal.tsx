@@ -18,11 +18,18 @@ const ChangePasswordModal: React.FC<Props> = ({
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      setShowOld(false);
+      setShowNew(false);
+      setShowConfirm(false);
     }
   }, [isOpen]);
 
@@ -68,39 +75,66 @@ const ChangePasswordModal: React.FC<Props> = ({
 
             <div className="space-y-1.5">
               <label className="text-xs text-gray-400 font-medium ml-1">当前密码</label>
-              <input
-                type="password"
-                name="current-password"
-                autoComplete="new-password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full bg-[#0f131a] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-[#ff4655] outline-none transition-colors placeholder:text-gray-600"
-                placeholder="请输入您现在的密码"
-              />
+              <div className="relative">
+                <input
+                  type={showOld ? 'text' : 'password'}
+                  name="current-password"
+                  autoComplete="new-password"
+                  value={oldPassword}
+                  onChange={(e) => setOldPassword(e.target.value)}
+                  className="w-full bg-[#0f131a] border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-sm text-white focus:border-[#ff4655] outline-none transition-colors placeholder:text-gray-600"
+                  placeholder="请输入您现在的密码"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOld(!showOld)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                >
+                  <Icon name={showOld ? 'EyeOff' : 'Eye'} size={16} />
+                </button>
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-gray-400 font-medium ml-1">新密码</label>
-              <input
-                type="password"
-                name="new-password"
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-[#0f131a] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-[#ff4655] outline-none transition-colors placeholder:text-gray-600"
-                placeholder="设置一个新的强密码"
-              />
+              <div className="relative">
+                <input
+                  type={showNew ? 'text' : 'password'}
+                  name="new-password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full bg-[#0f131a] border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-sm text-white focus:border-[#ff4655] outline-none transition-colors placeholder:text-gray-600"
+                  placeholder="设置一个新的强密码"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNew(!showNew)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                >
+                  <Icon name={showNew ? 'EyeOff' : 'Eye'} size={16} />
+                </button>
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-gray-400 font-medium ml-1">确认新密码</label>
-              <input
-                type="password"
-                name="confirm-password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-[#0f131a] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:border-[#ff4655] outline-none transition-colors placeholder:text-gray-600"
-                placeholder="请再次输入新密码"
-              />
+              <div className="relative">
+                <input
+                  type={showConfirm ? 'text' : 'password'}
+                  name="confirm-password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-[#0f131a] border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-sm text-white focus:border-[#ff4655] outline-none transition-colors placeholder:text-gray-600"
+                  placeholder="请再次输入新密码"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                >
+                  <Icon name={showConfirm ? 'EyeOff' : 'Eye'} size={16} />
+                </button>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-2">

@@ -195,5 +195,52 @@ function formatTimeAgo(dateStr: string): string {
     if (diffInSeconds < 60) return '刚刚';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} 分钟前`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} 小时前`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} 小时前`;
     return `${Math.floor(diffInSeconds / 86400)} 天前`;
+}
+
+export interface UserTrend {
+    date: string;
+    count: number;
+}
+
+/**
+ * 获取过去 7 天的用户增长趋势
+ */
+export async function fetchUserGrowthTrends(): Promise<UserTrend[]> {
+    const now = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const { data, error } = await supabase
+        .from('user_profiles')
+        .select('created_at')
+        .gte('created_at', sevenDaysAgo.toISOString());
+
+    if (error) {
+        console.error('Error fetching user growth:', error);
+        return [];
+    }
+
+    // 初始化每天的计数为 0
+    const trends: Record<string, number> = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(sevenDaysAgo);
+        d.setDate(d.getDate() + i);
+        const dateStr = d.toISOString().split('T')[0];
+        trends[dateStr] = 0;
+    }
+
+    // 聚合数据
+    data?.forEach(u => {
+        const dateStr = new Date(u.created_at).toISOString().split('T')[0];
+        if (trends[dateStr] !== undefined) {
+            trends[dateStr]++;
+        }
+    });
+
+    return Object.entries(trends)
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
 }

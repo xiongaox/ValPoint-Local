@@ -10,7 +10,7 @@ import React, { useState, useEffect } from 'react';
 import Icon, { IconName } from '../../../components/Icon';
 
 // 图表组件
-import RetentionChart from '../components/charts/RetentionChart';
+import UserGrowthChart from '../components/charts/UserGrowthChart';
 import StorageChart from '../components/charts/StorageChart';
 import DailyDownloadsChart from '../components/charts/DailyDownloadsChart';
 import ReviewStatsChart from '../components/charts/ReviewStatsChart';
@@ -131,7 +131,7 @@ function DashboardPage() {
 
                 {/* 第一行图表 - 自动填充剩余高度的一半 */}
                 <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
-                    <RetentionChart />
+                    <UserGrowthChart />
                     <StorageChart />
                 </div>
 
