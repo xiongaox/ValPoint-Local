@@ -134,7 +134,8 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
 
     // 动态创建 Client
     const activeClient = useMemo(() => {
-        if (currentSubscription.id === 'local') {
+        // local 订阅或 redirect 模式不需要创建 Client
+        if (currentSubscription.id === 'local' || currentSubscription.mode === 'redirect' || !currentSubscription.api) {
             return undefined;
         }
         return createClient(currentSubscription.api.supabaseUrl, currentSubscription.api.supabaseAnonKey);
@@ -187,6 +188,12 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
 
     // 切换订阅
     const handleSetSubscription = useCallback((sub: Subscription) => {
+        // redirect 模式：直接跳转到对方网站，不改变当前状态
+        if (sub.mode === 'redirect') {
+            window.open(sub.url, '_blank', 'noopener,noreferrer');
+            return;
+        }
+        // embed 模式：正常切换订阅源
         setCurrentSubscription(sub);
         // 切换后自动清理旧数据，等待新加载
         setLineups([]);

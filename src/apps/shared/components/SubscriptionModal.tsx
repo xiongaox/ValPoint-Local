@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Check, Trash2, Globe, Server, Info, ChevronUp, ChevronDown, Pencil, AlertTriangle } from 'lucide-react';
+import { X, Plus, Check, Trash2, Globe, Server, Info, ChevronUp, ChevronDown, Pencil, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Subscription, fetchManifest } from '../logic/subscription';
 import AlertModal from '../../../components/AlertModal';
 
@@ -182,6 +182,13 @@ export function SubscriptionModal({
                                                         {sub.name}
                                                     </h3>
                                                     {isLocal && <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-gray-400 uppercase tracking-wider font-semibold">Official</span>}
+                                                    {sub.mode === 'redirect' ? (
+                                                        <span className="text-[10px] bg-blue-500/20 px-1.5 py-0.5 rounded text-blue-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                                                            <ExternalLink className="w-2.5 h-2.5" />跳转
+                                                        </span>
+                                                    ) : (
+                                                        !isLocal && <span className="text-[10px] bg-green-500/20 px-1.5 py-0.5 rounded text-green-400 uppercase tracking-wider font-semibold">嵌入</span>
+                                                    )}
                                                 </div>
                                                 <p className="text-xs text-gray-500 font-mono mt-0.5 truncate">{sub.url}</p>
                                                 {sub.description && (

@@ -3,7 +3,8 @@ export interface Subscription {
     name: string;
     description?: string;
     url: string; // The base URL (e.g. https://val.example.com)
-    api: {
+    mode: 'embed' | 'redirect'; // embed=在当前域名加载数据, redirect=跳转到对方网站
+    api?: {  // redirect 模式不需要 api 配置
         supabaseUrl: string;
         supabaseAnonKey: string;
     };
@@ -19,6 +20,7 @@ const getLocalSubscription = (): Subscription => {
         name: 'ValPoint 官方库',
         description: 'ValPoint 官方公共点位库，汇集全网热门实战投掷物演示。',
         url: window.location.origin,
+        mode: 'embed',
         api: {
             supabaseUrl: (window as any).__ENV__?.VITE_SUPABASE_SHARE_URL || import.meta.env.VITE_SUPABASE_SHARE_URL,
             supabaseAnonKey: (window as any).__ENV__?.VITE_SUPABASE_SHARE_ANON_KEY || import.meta.env.VITE_SUPABASE_SHARE_ANON_KEY
@@ -98,17 +100,27 @@ export const fetchManifest = async (url: string): Promise<Subscription> => {
             throw new Error('Invalid manifest: Missing API configuration');
         }
 
-        return {
+        // 确定订阅模式：默认为 embed，如果清单指定 redirect 则使用跳转模式
+        const mode = data.mode === 'redirect' ? 'redirect' : 'embed';
+
+        const subscription: Subscription = {
             id: crypto.randomUUID(),
             name: data.name || 'Unknown Library',
             description: data.description,
             url: baseUrl,
-            api: {
-                supabaseUrl: data.api.supabaseUrl,
-                supabaseAnonKey: data.api.supabaseAnonKey
-            },
+            mode,
             addedAt: Date.now()
         };
+
+        // embed 模式需要 API 配置，redirect 模式不需要
+        if (mode === 'embed') {
+            subscription.api = {
+                supabaseUrl: data.api.supabaseUrl,
+                supabaseAnonKey: data.api.supabaseAnonKey
+            };
+        }
+
+        return subscription;
     } catch (e: any) {
         throw new Error(`Connection failed: ${e.message}`);
     }
