@@ -11,6 +11,7 @@ import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useEmailAuth } from '../../../hooks/useEmailAuth';
+import { useEscapeClose } from '../../../hooks/useEscapeClose';
 import {
     PlayerCardAvatar,
     loadPlayerCardAvatars,
@@ -99,6 +100,8 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                 .finally(() => setIsLoadingCards(false));
         }
     }, [isAvatarPickerOpen, playerCards.length, isLoadingCards]);
+
+    useEscapeClose(isOpen, onClose);
 
     if (!isOpen) return null;
 

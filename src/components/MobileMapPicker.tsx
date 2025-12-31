@@ -8,6 +8,7 @@ import React from 'react';
 import Icon from './Icon';
 import { MapOption } from '../types/lineup';
 import { MAP_TRANSLATIONS } from '../constants/maps';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 interface MobileMapPickerProps {
     isOpen: boolean;
@@ -24,6 +25,8 @@ function MobileMapPicker({
     selectedMap,
     onSelect,
 }: MobileMapPickerProps) {
+    useEscapeClose(isOpen, onClose);
+
     if (!isOpen) return null;
 
     const handleSelect = (map: MapOption) => {

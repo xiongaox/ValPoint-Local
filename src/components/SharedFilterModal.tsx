@@ -6,6 +6,7 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from './Icon';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   isOpen: boolean;
@@ -16,6 +17,8 @@ type Props = {
 };
 
 const SharedFilterModal: React.FC<Props> = ({ isOpen, contributors, selectedUserId, onSelect, onClose }) => {
+  useEscapeClose(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const options = useMemo(() => {

@@ -17,6 +17,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { fetchAuthorInfo } from '../utils/authorFetcher';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 const ViewerModal = ({
   viewingLineup,
@@ -34,6 +35,8 @@ const ViewerModal = ({
   const [authorInfo, setAuthorInfo] = useState<{ name: string; avatar: string; uid?: string } | null>(null);
   const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
   const isMobile = useIsMobile();
+
+  useEscapeClose(Boolean(viewingLineup), onClose);
 
   useEffect(() => {
     if (!viewingLineup?.sourceLink) {

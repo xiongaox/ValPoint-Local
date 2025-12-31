@@ -13,6 +13,7 @@ import Icon from './Icon';
 import { uploadImage } from '../lib/imageBed';
 import { prepareClipboardImage } from '../lib/imageCompression';
 import { fetchAuthorInfo } from '../utils/authorFetcher';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 /** 图片字段配置：定义编辑器支持的图片槽位 */
 const fields = [
@@ -37,6 +38,8 @@ const EditorModal = ({
   imageProcessingSettings,
 }) => {
   if (!isEditorOpen) return null;
+  useEscapeClose(isEditorOpen, onClose);
+
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [uploadingField, setUploadingField] = useState(null);
   const [isPastingSourceLink, setIsPastingSourceLink] = useState(false);

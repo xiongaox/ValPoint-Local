@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import Icon from '../../components/Icon';
 import { supabase } from '../../supabaseClient';
+import { useEscapeClose } from '../../hooks/useEscapeClose';
 
 interface Props {
     isOpen: boolean;
@@ -25,6 +26,12 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
+    const handleClose = () => {
+        if (isSubmitting) return;
+        (onCancel || onClose)();
+    };
+
+    useEscapeClose(isOpen, handleClose);
 
     if (!isOpen) return null;
 
@@ -69,7 +76,7 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
                         </div>
                     </div>
                     <button
-                        onClick={onCancel || onClose}
+                        onClick={handleClose}
                         disabled={isSubmitting}
                         className="p-2 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/30 transition-colors disabled:opacity-50"
                         aria-label="关闭"
@@ -116,7 +123,7 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
                             {onCancel && (
                                 <button
                                     type="button"
-                                    onClick={onCancel}
+                                    onClick={handleClose}
                                     disabled={isSubmitting}
                                     className="px-4 py-2 rounded-lg border border-white/15 text-sm text-gray-200 hover:border-white/40 hover:bg-white/5 transition-colors disabled:opacity-50"
                                 >

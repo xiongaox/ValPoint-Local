@@ -6,8 +6,12 @@
  */
 import React from 'react';
 import Icon from './Icon';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 const MapPickerModal = ({ isOpen, maps, selectedMap, setSelectedMap, setIsMapModalOpen, getMapDisplayName }) => {
+  const handleClose = () => setIsMapModalOpen(false);
+  useEscapeClose(isOpen, handleClose);
+
   if (!isOpen) return null;
   return (
     <div
@@ -18,7 +22,7 @@ const MapPickerModal = ({ isOpen, maps, selectedMap, setSelectedMap, setIsMapMod
           <h2 className="text-2xl font-bold uppercase tracking-widest text-white">
             选择地图 <span className="text-[#ff4655]">SELECT MAP</span>
           </h2>
-          <button onClick={() => setIsMapModalOpen(false)} className="text-white hover:text-[#ff4655]">
+          <button onClick={handleClose} className="text-white hover:text-[#ff4655]">
             <Icon name="X" size={32} />
           </button>
         </div>
@@ -31,7 +35,7 @@ const MapPickerModal = ({ isOpen, maps, selectedMap, setSelectedMap, setIsMapMod
                 key={m.uuid}
                 onClick={() => {
                   setSelectedMap(m);
-                  setIsMapModalOpen(false);
+                  handleClose();
                 }}
                 className="group relative aspect-video rounded-xl overflow-hidden border-2 border-transparent hover:border-[#ff4655] cursor-pointer transition-all"
               >

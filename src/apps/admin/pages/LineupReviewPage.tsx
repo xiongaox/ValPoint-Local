@@ -20,6 +20,7 @@ import ReviewMapPreview from '../components/ReviewMapPreview';
 import { MAP_TRANSLATIONS } from '../../../constants/maps';
 import Lightbox from '../../../components/Lightbox';
 import { LightboxImage } from '../../../types/ui';
+import { useEscapeClose } from '../../../hooks/useEscapeClose';
 
 function LineupReviewPage() {
     const [submissions, setSubmissions] = useState<LineupSubmission[]>([]);
@@ -31,6 +32,8 @@ function LineupReviewPage() {
     const [ossConfig, setOssConfig] = useState<ImageBedConfig | null>(null);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [viewingImage, setViewingImage] = useState<LightboxImage | null>(null);
+
+    useEscapeClose(showRejectModal, () => setShowRejectModal(false));
 
     // 当前选中的投稿
     const selected = submissions.find((s) => s.id === selectedId) || null;

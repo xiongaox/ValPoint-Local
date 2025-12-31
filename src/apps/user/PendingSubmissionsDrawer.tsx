@@ -12,6 +12,7 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '../../components/Icon';
 import PendingSubmissionsTab from '../shared/PendingSubmissionsTab';
+import { useEscapeClose } from '../../hooks/useEscapeClose';
 
 interface Props {
     isOpen: boolean;
@@ -20,6 +21,8 @@ interface Props {
 }
 
 const PendingSubmissionsDrawer: React.FC<Props> = ({ isOpen, onClose, userId }) => {
+    useEscapeClose(isOpen, onClose);
+
     if (!isOpen) return null;
 
     return (

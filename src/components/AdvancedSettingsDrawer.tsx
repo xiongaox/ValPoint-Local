@@ -9,6 +9,7 @@
 import React, { useState } from 'react';
 import Icon from './Icon';
 import { ImageProcessingSettings } from '../types/imageProcessing';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   isOpen: boolean;
@@ -26,6 +27,8 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
       setLocalSettings(settings);
     }
   }, [isOpen, settings]);
+
+  useEscapeClose(isOpen, onClose);
 
   if (!isOpen) return null;
 

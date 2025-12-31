@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import Icon from '../../../components/Icon';
 import { MAP_TRANSLATIONS } from '../../../constants/maps';
+import { useEscapeClose } from '../../../hooks/useEscapeClose';
 
 interface Props {
     isOpen: boolean;
@@ -27,6 +28,12 @@ const BatchDownloadModal: React.FC<Props> = ({
     onDownload,
 }) => {
     const [isDownloading, setIsDownloading] = useState(false);
+    const handleClose = () => {
+        if (isDownloading) return;
+        onClose();
+    };
+
+    useEscapeClose(isOpen, handleClose);
 
     if (!isOpen) return null;
 

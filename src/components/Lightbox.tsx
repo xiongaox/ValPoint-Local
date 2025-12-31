@@ -12,6 +12,7 @@ import React, { useMemo, useEffect, useLayoutEffect, useCallback, useState, useR
 import Icon from './Icon';
 import { LightboxImage } from '../types/ui';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   viewingImage: LightboxImage | null;
@@ -59,6 +60,8 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
     setViewingImage(null);
   }, [setViewingImage]);
 
+  useEscapeClose(Boolean(viewingImage), close);
+
   // 键盘支持
   useEffect(() => {
     if (!viewingImage) return;
@@ -67,8 +70,7 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
       switch (e.key.toLowerCase()) {
         case 'a': e.preventDefault(); goPrev(); break;
         case 'd': e.preventDefault(); goNext(); break;
-        case 'q':
-        case 'escape': e.preventDefault(); close(); break;
+        case 'q': e.preventDefault(); close(); break;
       }
     };
     document.addEventListener('keydown', handleKeyDown);

@@ -6,16 +6,16 @@
  * - 集成点位列表展示 (LineupGrid)
  * - 与 useAppController 通信以同步选取状态
  */
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
 import LibrarySwitchButton from '../../components/LibrarySwitchButton';
 import CompactUserCard from '../../components/CompactUserCard';
+import UserAvatar from '../../components/UserAvatar';
 import AuthorLinksBar from '../../components/AuthorLinksBar';
 import Icon from '../../components/Icon';
 import { useIsMobile } from '../../hooks/useIsMobile';
-import { useUserProfile } from '../../hooks/useUserProfile';
 import MobileAgentPicker from '../../components/MobileAgentPicker';
 import MobileMapPicker from '../../components/MobileMapPicker';
 import MobileLineupList from '../../components/MobileLineupList';
@@ -122,7 +122,6 @@ type Props = {
 
 const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton, hideAuthorLinks, user, onSignOut, onOpenProfile }) => {
   const isMobile = useIsMobile();
-  const { profile } = useUserProfile(); // 获取用户资料
   const [isMobileAgentPickerOpen, setIsMobileAgentPickerOpen] = useState(false);
   const [isMobileMapPickerOpen, setIsMobileMapPickerOpen] = useState(false);
   const [isMobileLineupListOpen, setIsMobileLineupListOpen] = useState(false);
@@ -162,6 +161,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
         <LeafletMap
           mapIcon={map.mapIcon}
           mapCover={map.mapCover}
+          disableFitBoundsAnimation={true}
           activeTab={map.activeTab}
           lineups={map.lineups}
           selectedLineupId={map.selectedLineupId}
@@ -243,20 +243,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                   className="w-[32px] h-[32px] flex items-center justify-center rounded-lg overflow-hidden hover:bg-white/10 transition-colors"
                   title="个人中心"
                 >
-                  {profile?.avatar ? (
-                    <img
-                      src={profile.avatar.startsWith('/') || profile.avatar.startsWith('http') ? profile.avatar : `/agents/${profile.avatar}`}
-                      alt=""
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                  ) : null}
-                  <span className={`text-white text-xs font-bold ${profile?.avatar ? 'hidden' : ''}`}>
-                    {(profile?.nickname || profile?.custom_id || user?.email)?.[0]?.toUpperCase() || 'U'}
-                  </span>
+                  <UserAvatar email={user?.email || ''} size={32} bordered={false} />
                 </button>
                 {/* 右侧：退出按钮 - 红色选中状态 */}
                 <button

@@ -17,7 +17,7 @@ const STORAGE_KEY = 'valpoint_subscriptions';
 const getLocalSubscription = (): Subscription => {
     return {
         id: 'local',
-        name: 'ValPoint 官方库',
+        name: '共享库',
         description: 'ValPoint 官方公共点位库，汇集全网热门实战投掷物演示。',
         url: window.location.origin,
         mode: 'embed',

@@ -17,6 +17,7 @@ import { syncLineupsToShared, getSyncableCount, SyncScope, SyncResult } from '..
 import { checkAdminAccessByEmail } from '../../lib/adminService';
 import { MAP_TRANSLATIONS } from '../../constants/maps';
 import { useEmailAuth } from '../../hooks/useEmailAuth';
+import { useEscapeClose } from '../../hooks/useEscapeClose';
 
 interface Props {
     isOpen: boolean;
@@ -156,6 +157,8 @@ const SyncToSharedModal: React.FC<Props> = ({
         if (isSyncing) return;
         onClose();
     };
+
+    useEscapeClose(isOpen, handleClose);
 
     if (!isOpen) return null;
 

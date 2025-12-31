@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import Icon from './Icon';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   isOpen: boolean;
@@ -25,6 +26,8 @@ const ClearLineupsModal: React.FC<Props> = ({
   onClearAll,
   onClearSelectedAgent,
 }) => {
+  useEscapeClose(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const renderAvatar = () => {

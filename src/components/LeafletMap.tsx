@@ -10,7 +10,7 @@
  * 
  * 使用 CRS.Simple 坐标系，地图范围固定为 [0,0] - [1000,1000]
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { getAbilityIcon } from '../utils/abilityIcons';
 
@@ -25,6 +25,7 @@ type Lineup = {
 type Props = {
   mapIcon: string | null;
   mapCover?: string | null;
+  disableFitBoundsAnimation?: boolean;
   activeTab: string;
   lineups: Lineup[];
   selectedLineupId: string | null;
@@ -43,6 +44,7 @@ type Props = {
 const LeafletMap: React.FC<Props> = ({
   mapIcon,
   mapCover,
+  disableFitBoundsAnimation = false,
   activeTab,
   lineups,
   selectedLineupId,
@@ -57,12 +59,17 @@ const LeafletMap: React.FC<Props> = ({
   isFlipped,
   sharedLineup,
 }) => {
+  const fitBoundsOptions = useMemo(
+    () => (disableFitBoundsAnimation ? { animate: false } : undefined),
+    [disableFitBoundsAnimation]
+  );
   const mapRef = useRef(null);
   const mapInstance = useRef<any>(null);
   const markerMap = useRef<Record<string, any>>({});
   const layers = useRef<{ activeLine: any; createLayer: any[]; sharedLayer: any[] }>({ activeLine: null, createLayer: [], sharedLayer: [] });
   const [hoveredLineupId, setHoveredLineupId] = useState<string | null>(null);
   const hoverLayer = useRef<any>(null);
+  const hasAppliedFlip = useRef(false);
 
   const transformPos = (pos: any) => {
     if (!pos) return null;
@@ -141,21 +148,25 @@ const LeafletMap: React.FC<Props> = ({
       [1000, 1000],
     ];
     L.imageOverlay(mapIcon, bounds).addTo(map);
-    map.fitBounds(bounds);
-  }, [mapIcon]);
+    map.fitBounds(bounds, fitBoundsOptions);
+  }, [mapIcon, fitBoundsOptions]);
 
   // 当切换攻防视角时，强制刷新地图尺寸，避免地图缩小到左上角
   useEffect(() => {
     const map = mapInstance.current;
     if (!map) return;
     // 延迟执行以确保 DOM 已更新
+    if (!hasAppliedFlip.current) {
+      hasAppliedFlip.current = true;
+      return;
+    }
     const timer = setTimeout(() => {
       map.invalidateSize();
       const bounds: any = [[0, 0], [1000, 1000]];
-      map.fitBounds(bounds);
+      map.fitBounds(bounds, fitBoundsOptions);
     }, 100);
     return () => clearTimeout(timer);
-  }, [isFlipped]);
+  }, [isFlipped, fitBoundsOptions]);
 
   const createIcon = (type: 'agent' | 'skill', imgUrl?: string) => {
     const content = imgUrl

@@ -6,6 +6,7 @@
 import React from 'react';
 import Icon from './Icon';
 import { changelogEntries } from '../changelog';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   isOpen: boolean;
@@ -13,6 +14,8 @@ type Props = {
 };
 
 const ChangelogModal: React.FC<Props> = ({ isOpen, onClose }) => {
+  useEscapeClose(isOpen, onClose);
+
   if (!isOpen) return null;
 
   return (

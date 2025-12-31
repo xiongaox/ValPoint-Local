@@ -12,6 +12,7 @@ import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
 import { AGENT_AVATARS, getAvatarByEmail } from '../../../utils/avatarUtils';
 import { loadPlayerCardAvatars, PlayerCardAvatar } from '../../../utils/playerCardAvatars';
+import { useEscapeClose } from '../../../hooks/useEscapeClose';
 
 export interface UserProfile {
     id: string;
@@ -84,6 +85,8 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
         if (avatarValue.startsWith('http')) return avatarValue;
         return `/agents/${avatarValue}`;
     };
+
+    useEscapeClose(isOpen, onClose);
 
     if (!isOpen || !user) return null;
 

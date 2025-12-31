@@ -10,6 +10,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
 import { adminSupabase } from '../../../supabaseClient';
+import { useEscapeClose } from '../../../hooks/useEscapeClose';
 import {
     PlayerCardAvatar,
     loadPlayerCardAvatars,
@@ -120,6 +121,8 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
         for (let i = 0; i < 8; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
         return res;
     };
+
+    useEscapeClose(isOpen, onClose);
 
     if (!isOpen) return null;
 

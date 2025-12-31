@@ -6,6 +6,7 @@
 import React from 'react';
 import Icon from './Icon';
 import { AgentOption } from '../types/lineup';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 interface MobileAgentPickerProps {
     isOpen: boolean;
@@ -24,6 +25,8 @@ function MobileAgentPicker({
     onSelect,
     agentCounts
 }: MobileAgentPickerProps) {
+    useEscapeClose(isOpen, onClose);
+
     if (!isOpen) return null;
 
     const handleSelect = (agent: AgentOption) => {

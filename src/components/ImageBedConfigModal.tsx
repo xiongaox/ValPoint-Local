@@ -9,6 +9,7 @@ import Icon from './Icon';
 import { ImageBedConfig } from '../types/imageBed';
 import { defaultImageBedConfig } from '../lib/imageBed';
 import ImageBedConfigForm, { normalizeConfig } from './ImageBedConfigForm';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   isOpen: boolean;
@@ -25,6 +26,8 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
       setLocalConfig(normalizeConfig(config));
     }
   }, [isOpen, config]);
+
+  useEscapeClose(isOpen, onClose);
 
   if (!isOpen) return null;
 

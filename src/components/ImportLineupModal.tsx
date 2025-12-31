@@ -12,6 +12,7 @@ import Icon from './Icon';
 import { importLineupFromZip, ImportProgress, ImportResult, parseZipMetadata, ZipMetadata } from '../lib/lineupImport';
 import { ImageBedConfig } from '../types/imageBed';
 import { LineupDbPayload, BaseLineup } from '../types/lineup';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
     isOpen: boolean;
@@ -147,6 +148,8 @@ const ImportLineupModal: React.FC<Props> = ({
         setProgress(null);
         onClose();
     };
+
+    useEscapeClose(isOpen, handleClose);
 
     if (!isOpen) return null;
 

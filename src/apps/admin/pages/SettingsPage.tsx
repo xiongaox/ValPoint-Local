@@ -602,9 +602,9 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                 <AlertModal
                     message={confirmState?.message ?? null}
                     onClose={() => setConfirmState(null)}
-                    actionLabel="取消"
-                    secondaryLabel="确定"
-                    onSecondary={confirmState?.onConfirm}
+                    actionLabel="确定"
+                    onAction={confirmState?.onConfirm}
+                    secondaryLabel="取消"
                 />
 
                 {/* 消息弹窗 */}

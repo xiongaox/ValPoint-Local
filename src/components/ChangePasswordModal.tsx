@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   isOpen: boolean;
@@ -32,6 +33,8 @@ const ChangePasswordModal: React.FC<Props> = ({
       setShowConfirm(false);
     }
   }, [isOpen]);
+
+  useEscapeClose(isOpen, onClose);
 
   if (!isOpen) return null;
 

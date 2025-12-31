@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { AuthorLinks, defaultAuthorLinks } from '../types/authorLinks';
 import { getSystemSettings } from '../lib/systemSettings';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type QRModalType = 'donate' | 'contact' | null;
 
@@ -31,6 +32,8 @@ const AuthorLinksBar: React.FC = () => {
 
     // 检查是否有任何链接配置
     const hasAnyLink = links.github_url || links.tutorial_url || links.donate_wechat_qr || links.donate_alipay_qr || links.contact_wechat_qr;
+
+    useEscapeClose(Boolean(qrModal), () => setQrModal(null));
 
     if (!hasAnyLink) return null;
 

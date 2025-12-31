@@ -8,6 +8,7 @@
  */
 import React, { useState } from 'react';
 import Icon from './Icon';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type Props = {
   isOpen: boolean;
@@ -37,6 +38,12 @@ const AuthModal: React.FC<Props> = ({
   onLoginConfirm,
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const handleClose = () => {
+    if (!userId) return;
+    onClose();
+  };
+
+  useEscapeClose(isOpen, handleClose);
 
   if (!isOpen) return null;
 
@@ -54,10 +61,7 @@ const AuthModal: React.FC<Props> = ({
           <button
             type="button"
             disabled={!userId}
-            onClick={() => {
-              if (!userId) return;
-              onClose();
-            }}
+            onClick={handleClose}
             className={`p-2 rounded-lg border border-white/10 text-gray-400 hover:text-white hover:border-white/40 transition-colors ${userId ? '' : 'opacity-40 cursor-not-allowed'
               }`}
             title={userId ? '关闭' : '请先完成模式选择'}

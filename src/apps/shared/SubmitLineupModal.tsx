@@ -10,6 +10,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '../../components/Icon';
 import { parseSubmissionZip, submitLineup, checkDailySubmissionLimit } from '../../lib/submissionUpload';
 import { SubmissionProgress } from '../../types/submission';
+import { useEscapeClose } from '../../hooks/useEscapeClose';
 
 type Props = {
     isOpen: boolean;
@@ -184,6 +185,8 @@ const SubmitLineupModal: React.FC<Props> = ({
         setProgress(null);
         onClose();
     };
+
+    useEscapeClose(isOpen, handleClose);
 
     if (!isOpen) return null;
 

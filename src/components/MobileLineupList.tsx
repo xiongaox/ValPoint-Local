@@ -7,6 +7,7 @@
 import React from 'react';
 import Icon from './Icon';
 import { BaseLineup } from '../types/lineup';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 interface MobileLineupListProps {
     isOpen: boolean;
@@ -29,15 +30,7 @@ function MobileLineupList({
     pinnedLineupIds = [],
     onTogglePin,
 }: MobileLineupListProps) {
-    if (!isOpen) return null;
-
-    const handleSelect = (id: string) => {
-        onSelectLineup(id);
-        onClose();
-    };
-
-    // 判断是否置顶
-    const isPinned = (id: string) => pinnedLineupIds.includes(id);
+    useEscapeClose(isOpen, onClose);
 
     // 搜索状态
     const [searchQuery, setSearchQuery] = React.useState('');
@@ -50,6 +43,16 @@ function MobileLineupList({
             (l) => l.title.toLowerCase().includes(query) || l.agentName?.toLowerCase().includes(query)
         );
     }, [lineups, searchQuery]);
+
+    if (!isOpen) return null;
+
+    const handleSelect = (id: string) => {
+        onSelectLineup(id);
+        onClose();
+    };
+
+    // 判断是否置顶
+    const isPinned = (id: string) => pinnedLineupIds.includes(id);
 
     return (
         <>

@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon from './Icon';
 import { AlertTriangle, Info } from 'lucide-react';
+import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type AlertModalProps = {
   message: string | null;
@@ -25,7 +26,10 @@ const AlertModal: React.FC<AlertModalProps> = ({
   subtitle,
   variant = 'default'
 }) => {
-  if (!message) return null;
+  const isOpen = Boolean(message);
+  useEscapeClose(isOpen, onClose);
+
+  if (!isOpen) return null;
 
   const handlePrimary = () => {
     if (onAction) {

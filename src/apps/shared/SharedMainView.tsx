@@ -24,6 +24,7 @@ import AuthorLinksBar from '../../components/AuthorLinksBar';
 import LibrarySwitchButton from '../../components/LibrarySwitchButton';
 import SharedQuickActions from './components/SharedQuickActions';
 import CompactUserCard from '../../components/CompactUserCard';
+import UserAvatar from '../../components/UserAvatar';
 import ChangePasswordModal from '../../components/ChangePasswordModal';
 import UserProfileModal from './components/UserProfileModal';
 import ChangelogModal from '../../components/ChangelogModal';
@@ -241,7 +242,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                     className={`px-4 h-[32px] flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${controller.currentSubscription.id === 'local' ? 'bg-[#17b890] text-white' : 'bg-[#ff4655] text-white'
                                         }`}
                                 >
-                                    {controller.currentSubscription.name === '官方库 (Official)' ? '共享库' : controller.currentSubscription.name}
+                                    共享库
                                 </button>
                             </div>
                         </div>
@@ -256,20 +257,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                         className="w-[32px] h-[32px] flex items-center justify-center rounded-lg overflow-hidden hover:bg-white/10 transition-colors"
                                         title="个人中心"
                                     >
-                                        {profile?.avatar ? (
-                                            <img
-                                                src={profile.avatar.startsWith('/') || profile.avatar.startsWith('http') ? profile.avatar : `/agents/${profile.avatar}`}
-                                                alt=""
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).style.display = 'none';
-                                                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                                                }}
-                                            />
-                                        ) : null}
-                                        <span className={`text-white text-xs font-bold ${profile?.avatar ? 'hidden' : ''}`}>
-                                            {(profile?.nickname || profile?.custom_id || user.email)?.[0]?.toUpperCase() || 'U'}
-                                        </span>
+                                        <UserAvatar email={user?.email || ''} size={32} bordered={false} />
                                     </button>
                                     {/* 右侧：退出按钮 - 红色选中状态 */}
                                     <button

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Plus, Check, Trash2, Globe, Server, Info, ChevronUp, ChevronDown, Pencil, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Subscription, fetchManifest } from '../logic/subscription';
 import AlertModal from '../../../components/AlertModal';
+import { useEscapeClose } from '../../../hooks/useEscapeClose';
 
 interface SubscriptionModalProps {
     isOpen: boolean;
@@ -34,6 +35,8 @@ export function SubscriptionModal({
     const [checkStatus, setCheckStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
     const [checkResult, setCheckResult] = useState<Subscription | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
+
+    useEscapeClose(isOpen, onClose);
 
     if (!isOpen) return null;
 
