@@ -1,11 +1,12 @@
 /**
- * MainView.tsx - 共享库主导航视图
- * 
+ * MainView - 点位主视图
+ *
  * 职责：
- * - 渲染首页顶部的地图切换与特工选取区域
- * - 集成点位列表展示 (LineupGrid)
- * - 与 useAppController 通信以同步选取状态
+ * - 组织点位主视图的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import LeafletMap from '../../components/LeafletMap';
@@ -29,8 +30,8 @@ import { ActiveTab } from '../../types/app';
 type LeftProps = {
   activeTab: ActiveTab;
   selectedMap: MapOption | null;
-  setSelectedMap: (map: MapOption | null) => void; // 新增：用于移动端地图选择
-  maps: MapOption[]; // 新增：地图列表
+  setSelectedMap: (map: MapOption | null) => void; // 说明：用于移动端地图选择。
+  maps: MapOption[]; // 说明：移动端地图列表。
   setIsMapModalOpen: (v: boolean) => void;
   selectedSide: 'all' | 'attack' | 'defense';
   setSelectedSide: React.Dispatch<React.SetStateAction<'all' | 'attack' | 'defense'>>;
@@ -125,19 +126,16 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
   const [isMobileAgentPickerOpen, setIsMobileAgentPickerOpen] = useState(false);
   const [isMobileMapPickerOpen, setIsMobileMapPickerOpen] = useState(false);
   const [isMobileLineupListOpen, setIsMobileLineupListOpen] = useState(false);
-  const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false); // 用户下拉菜单
+  const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false); // 说明：用户菜单状态。
 
-  // 移动端技能过滤（存储被禁用的技能索引）
   const [disabledAbilities, setDisabledAbilities] = useState<Set<number>>(new Set());
 
-  // 获取共享库URL用于切换
   const sharedLibraryUrl = (window as any).__ENV__?.VITE_SHARED_LIBRARY_URL
     || import.meta.env.VITE_SHARED_LIBRARY_URL
     || '/';
 
   return (
     <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
-      {/* 左侧面板 - 仅桌面端 */}
       {!isMobile && (
         <LeftPanel
           activeTab={left.activeTab}
@@ -176,7 +174,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           isFlipped={map.isFlipped}
         />
 
-        {/* 桌面端：快捷操作按钮 */}
         {!isMobile && (
           <QuickActions
             isOpen={quickActions.isOpen}
@@ -196,7 +193,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           />
         )}
 
-        {/* 桌面端：左上角库切换 + 用户卡片 */}
         {!isMobile && (
           <>
             <div className="absolute top-3 left-3 z-10 flex items-center gap-3">
@@ -207,7 +203,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                 onRequestLogin={onOpenProfile}
               />
             </div>
-            {/* 作者信息快捷按钮 (右上角) */}
             {!hideAuthorLinks && (
               <div className="absolute top-3 right-3 z-10">
                 <AuthorLinksBar />
@@ -216,10 +211,8 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           </>
         )}
 
-        {/* 移动端布局 */}
         {isMobile && (
           <>
-            {/* 左上角：库切换 Tab（移动端样式） */}
             <div className="absolute top-3 left-3 z-10">
               <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                 <div className="px-4 h-[32px] flex items-center justify-center rounded-lg text-sm font-medium bg-[#ff4655] text-white">
@@ -234,10 +227,8 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
               </div>
             </div>
 
-            {/* 右上角：用户胶囊按钮 + 列表按钮 */}
             <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
               <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5 items-center gap-2">
-                {/* 左侧：头像 → 个人中心 */}
                 <button
                   onClick={onOpenProfile}
                   className="w-[32px] h-[32px] flex items-center justify-center rounded-lg overflow-hidden hover:bg-white/10 transition-colors"
@@ -245,7 +236,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                 >
                   <UserAvatar email={user?.email || ''} size={32} bordered={false} />
                 </button>
-                {/* 右侧：退出按钮 - 红色选中状态 */}
                 <button
                   onClick={onSignOut}
                   className="px-5 h-[32px] bg-[#ff4655] rounded-lg text-white text-sm font-medium hover:bg-[#ff5b6b] transition-colors"
@@ -263,9 +253,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
               </button>
             </div>
 
-            {/* 底部工具栏：地图 | 攻防 | 角色 */}
             <div className="absolute bottom-12 left-3 right-3 z-10 flex items-center justify-between gap-2">
-              {/* 左侧：地图选择 */}
               <button
                 onClick={() => setIsMobileMapPickerOpen(true)}
                 className="flex items-center gap-2 px-3 h-[46px] bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
@@ -274,7 +262,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                 <span className="text-white text-sm font-medium max-w-[70px] truncate">{left.getMapDisplayName(left.selectedMap?.displayName || '') || '地图'}</span>
               </button>
 
-              {/* 中间：攻防切换 */}
               <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                 <button
                   onClick={() => left.setSelectedSide('attack')}
@@ -296,7 +283,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                 </button>
               </div>
 
-              {/* 右侧：角色选择 */}
               <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                 <button
                   onClick={() => setIsMobileAgentPickerOpen(true)}
@@ -315,13 +301,12 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
               </div>
             </div>
 
-            {/* 右上角：技能过滤图标（点位列表下方）*/}
             {left.selectedAgent && (
               <div className="absolute top-20 right-3.5 z-10 flex flex-col gap-4">
                 {getAbilityList(left.selectedAgent).map((ability: any, idx: number) => {
                   const iconUrl = getAbilityIcon(left.selectedAgent!, idx);
                   const isDisabled = disabledAbilities.has(idx);
-                  const isSelected = !isDisabled; // 选中 = 未禁用
+                  const isSelected = !isDisabled; // 说明：选中表示未禁用。
                   return (
                     <button
                       key={idx}
@@ -360,7 +345,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
         )}
       </div>
 
-      {/* 右侧面板 - 仅桌面端 */}
       {!isMobile && (
         <RightPanel
           activeTab={right.activeTab}
@@ -390,7 +374,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
         />
       )}
 
-      {/* 移动端弹窗组件 */}
       <MobileAgentPicker
         isOpen={isMobileAgentPickerOpen}
         onClose={() => setIsMobileAgentPickerOpen(false)}
@@ -398,7 +381,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
         selectedAgent={left.selectedAgent}
         onSelect={(agent) => {
           left.setSelectedAgent(agent);
-          // 移动端优化：选择特定角色时默认选中进攻方
           if (agent) {
             left.setSelectedSide('attack');
           }

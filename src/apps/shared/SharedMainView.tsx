@@ -1,12 +1,12 @@
 /**
- * SharedMainView - 共享库主页面视图
- * 
+ * SharedMainView - 共享库主视图
+ *
  * 职责：
- * - 组装左侧侧边栏、中心地图和右侧面板
- * - 集成投稿弹窗、用户卡片、快捷操作等功能
- * - 管理应用中的顶级交互弹窗状态
- * - 响应式布局：移动端隐藏左右面板，使用弹窗选择器
+ * - 组织共享库主视图的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { User } from '@supabase/supabase-js';
 import LeafletMap from '../../components/LeafletMap';
@@ -20,7 +20,6 @@ import { useSharedController } from './useSharedController';
 import { getSystemSettings } from '../../lib/systemSettings';
 import AuthorLinksBar from '../../components/AuthorLinksBar';
 
-// 引入新组件
 import LibrarySwitchButton from '../../components/LibrarySwitchButton';
 import SharedQuickActions from './components/SharedQuickActions';
 import CompactUserCard from '../../components/CompactUserCard';
@@ -32,7 +31,6 @@ import { SubscriptionModal } from './components/SubscriptionModal';
 import { useEmailAuth } from '../../hooks/useEmailAuth';
 import { useUserProfile } from '../../hooks/useUserProfile';
 
-// 移动端组件
 import { useIsMobile } from '../../hooks/useIsMobile';
 import MobileAgentPicker from '../../components/MobileAgentPicker';
 import MobileMapPicker from '../../components/MobileMapPicker';
@@ -41,29 +39,27 @@ import Icon from '../../components/Icon';
 import { getAbilityList, getAbilityIcon } from '../../utils/abilityIcons';
 
 interface SharedMainViewProps {
-    user: User | null; // 可选，未登录也可以浏览
+    user: User | null; // 说明：可选，未登录也可浏览。
     onSignOut: () => void;
     setAlertMessage: (msg: string | null) => void;
     setViewingImage: (img: { src: string; list?: string[]; index?: number } | null) => void;
-    onRequestLogin: () => void; // 下载时请求登录
+    onRequestLogin: () => void; // 说明：下载受限内容时提示登录。
 }
 
 function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onRequestLogin }: SharedMainViewProps) {
     const controller = useSharedController({ user, setAlertMessage, setViewingImage, onRequestLogin });
     const { updateProfile, resetPassword } = useEmailAuth();
-    const { profile } = useUserProfile(); // 获取用户 custom_id
+    const { profile } = useUserProfile(); // 说明：读取用户 custom_id。
     const [activeTab, setActiveTab] = useState<'view' | 'submit' | 'pending'>('view');
     const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
     const [submissionEnabled, setSubmissionEnabled] = useState(false);
 
-    // 移动端检测
     const isMobile = useIsMobile();
     const [isMobileAgentPickerOpen, setIsMobileAgentPickerOpen] = useState(false);
     const [isMobileMapPickerOpen, setIsMobileMapPickerOpen] = useState(false);
     const [isMobileLineupListOpen, setIsMobileLineupListOpen] = useState(false);
-    const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false); // 用户下拉菜单
+    const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false); // 说明：用户菜单状态。
 
-    // 快捷功能状态
     const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -72,13 +68,10 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
     const [isChangelogOpen, setIsChangelogOpen] = useState(false);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false);
 
-    // 个人库 URL（用于移动端跳转）
     const [personalLibraryUrl, setPersonalLibraryUrl] = useState<string>('');
 
-    // 移动端技能过滤（存储被禁用的技能索引）
     const [disabledAbilities, setDisabledAbilities] = useState<Set<number>>(new Set());
 
-    // 根据禁用技能过滤点位（移动端）
     const mobileFilteredLineups = useMemo(() => {
         if (!isMobile || disabledAbilities.size === 0) {
             return controller.filteredLineups;
@@ -88,7 +81,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
         );
     }, [isMobile, disabledAbilities, controller.filteredLineups]);
 
-    // 加载投稿开关状态
     useEffect(() => {
         async function loadSubmissionStatus() {
             const settings = await getSystemSettings();
@@ -99,10 +91,8 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
         loadSubmissionStatus();
     }, []);
 
-    // 加载个人库 URL（用于移动端跳转）
     useEffect(() => {
         async function loadPersonalLibraryUrl() {
-            // 环境变量优先
             const envUrl = (window as any).__ENV__?.VITE_PERSONAL_LIBRARY_URL
                 || import.meta.env.VITE_PERSONAL_LIBRARY_URL
                 || '';
@@ -110,28 +100,22 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 setPersonalLibraryUrl(envUrl);
                 return;
             }
-            // 从数据库配置获取
             const settings = await getSystemSettings();
             if (settings) {
-                // 默认使用相对路径
                 setPersonalLibraryUrl('/user.html');
             } else {
-                // 默认使用相对路径
                 setPersonalLibraryUrl('/user.html');
             }
         }
         loadPersonalLibraryUrl();
     }, []);
 
-    // 记录打开投稿弹窗前的Tab（用于关闭时恢复）
     const [previousTab, setPreviousTab] = useState<'view' | 'pending'>('view');
 
-    // 关闭投稿弹窗时，恢复到之前的Tab
     const handleSubmitModalClose = () => {
         setIsSubmitModalOpen(false);
     };
 
-    // 打开投稿弹窗（不改变 activeTab，避免界面闪烁）
     const handleOpenSubmit = () => {
         setPreviousTab(activeTab as 'view' | 'pending');
         setIsSubmitModalOpen(true);
@@ -139,7 +123,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
 
     return (
         <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
-            {/* 左侧面板 - 仅桌面端显示 */}
             {!isMobile && (
                 <LeftPanel
                     activeTab="view"
@@ -159,7 +142,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 />
             )}
 
-            {/* 中间地图区域 */}
             <div className={`flex-1 relative bg-[#0f1923] z-0 ${!isMobile ? 'border-l border-r border-white/10' : ''}`}>
                 <LeafletMap
                     mapIcon={controller.mapIcon}
@@ -179,10 +161,8 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                     sharedLineup={controller.selectedLineup}
                 />
 
-                {/* 桌面端叠加元素 */}
                 {!isMobile && (
                     <>
-                        {/* 用户信息卡片 (左上角) */}
                         <div className="absolute top-3 left-3 z-10 flex items-center gap-3">
                             {user && (
                                 <LibrarySwitchButton
@@ -200,14 +180,12 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             />
                         </div>
 
-                        {/* 作者信息快捷按钮 (右上角) */}
                         <div className="absolute top-3 right-3 z-10">
                             <AuthorLinksBar />
                         </div>
 
 
 
-                        {/* 快捷功能按钮 (仅登录可见) */}
                         {user && (
                             <SharedQuickActions
                                 isOpen={isQuickActionsOpen}
@@ -225,10 +203,8 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                     </>
                 )}
 
-                {/* 移动端布局 */}
                 {isMobile && (
                     <>
-                        {/* 左上角：库切换 Tab（移动端样式） */}
                         <div className="absolute top-3 left-3 z-10">
                             <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                                 <a
@@ -247,11 +223,9 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             </div>
                         </div>
 
-                        {/* 右上角：用户胶囊按钮 + 列表按钮 */}
                         <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
                             {user ? (
                                 <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5 items-center gap-2">
-                                    {/* 左侧：头像 → 个人中心 */}
                                     <button
                                         onClick={() => setIsProfileModalOpen(true)}
                                         className="w-[32px] h-[32px] flex items-center justify-center rounded-lg overflow-hidden hover:bg-white/10 transition-colors"
@@ -259,7 +233,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                     >
                                         <UserAvatar email={user?.email || ''} size={32} bordered={false} />
                                     </button>
-                                    {/* 右侧：退出按钮 - 红色选中状态 */}
                                     <button
                                         onClick={onSignOut}
                                         className="px-5 h-[32px] bg-[#ff4655] rounded-lg text-white text-sm font-medium hover:bg-[#ff5b6b] transition-colors"
@@ -277,7 +250,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                     <Icon name="User" size={20} className="text-white" />
                                 </button>
                             )}
-                            {/* 点位列表入口 */}
                             <button
                                 onClick={() => setIsMobileLineupListOpen(true)}
                                 className="w-[46px] h-[46px] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
@@ -287,9 +259,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             </button>
                         </div>
 
-                        {/* 底部工具栏：地图 | 攻防 | 角色 - 同一水平线 */}
                         <div className="absolute bottom-12 left-3 right-3 z-10 flex items-center justify-between gap-2">
-                            {/* 左侧：地图选择 - 胶囊按钮 */}
                             <button
                                 onClick={() => setIsMobileMapPickerOpen(true)}
                                 className="flex items-center gap-2 px-3 h-[46px] bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
@@ -298,7 +268,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                 <span className="text-white text-sm font-medium max-w-[70px] truncate">{controller.getMapDisplayName(controller.selectedMap?.displayName || '') || '地图'}</span>
                             </button>
 
-                            {/* 中间：攻防切换 */}
                             <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                                 <button
                                     onClick={() => controller.setSelectedSide('attack')}
@@ -320,7 +289,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                                 </button>
                             </div>
 
-                            {/* 右侧：角色选择 - Tab 样式 */}
                             <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                                 <button
                                     onClick={() => setIsMobileAgentPickerOpen(true)}
@@ -339,13 +307,12 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             </div>
                         </div>
 
-                        {/* 右上角：技能过滤图标（点位列表下方）*/}
                         {controller.selectedAgent && (
                             <div className="absolute top-20 right-3.5 z-10 flex flex-col gap-4">
                                 {getAbilityList(controller.selectedAgent).map((ability: any, idx: number) => {
                                     const iconUrl = getAbilityIcon(controller.selectedAgent!, idx);
                                     const isDisabled = disabledAbilities.has(idx);
-                                    const isSelected = !isDisabled; // 选中 = 未禁用
+                                    const isSelected = !isDisabled; // 说明：选中表示未禁用。
                                     return (
                                         <button
                                             key={idx}
@@ -384,7 +351,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 )}
             </div>
 
-            {/* 右侧面板 - 仅桌面端显示 */}
             {!isMobile && (
                 <SharedRightPanel
                     activeTab={activeTab}
@@ -411,7 +377,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 />
             )}
 
-            {/* 地图选择弹窗 - 桌面端 */}
             <MapPickerModal
                 isOpen={controller.isMapModalOpen}
                 maps={controller.maps}
@@ -421,7 +386,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 getMapDisplayName={controller.getMapDisplayName}
             />
 
-            {/* 移动端角色选择弹窗 */}
             <MobileAgentPicker
                 isOpen={isMobileAgentPickerOpen}
                 onClose={() => setIsMobileAgentPickerOpen(false)}
@@ -431,7 +395,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 agentCounts={controller.agentCounts}
             />
 
-            {/* 移动端地图选择弹窗 */}
             <MobileMapPicker
                 isOpen={isMobileMapPickerOpen}
                 onClose={() => setIsMobileMapPickerOpen(false)}
@@ -440,7 +403,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 onSelect={controller.setSelectedMap}
             />
 
-            {/* 移动端点位列表弹窗 */}
             <MobileLineupList
                 isOpen={isMobileLineupListOpen}
                 onClose={() => setIsMobileLineupListOpen(false)}
@@ -450,7 +412,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 isLoading={controller.isLoading}
             />
 
-            {/* 点位详情弹窗 */}
             <ViewerModal
                 viewingLineup={controller.viewingLineup}
                 onClose={controller.handleViewerClose}
@@ -465,7 +426,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 isSavingShared={controller.isDownloading}
             />
 
-            {/* 共享者筛选弹窗 - 桌面端 */}
             <SharedFilterModal
                 isOpen={controller.isFilterModalOpen}
                 contributors={controller.contributors}
@@ -474,7 +434,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 onClose={() => controller.setIsFilterModalOpen(false)}
             />
 
-            {/* 投稿弹窗 */}
             <SubmitLineupModal
                 isOpen={isSubmitModalOpen}
                 onClose={handleSubmitModalClose}
@@ -486,7 +445,6 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 }}
             />
 
-            {/* 修改密码弹窗 */}
             <ChangePasswordModal
                 isOpen={isChangePasswordOpen}
                 isChangingPassword={isPasswordSubmitting}
@@ -517,20 +475,17 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                 }}
             />
 
-            {/* 个人信息弹窗 */}
             <UserProfileModal
                 isOpen={isProfileModalOpen}
                 onClose={() => setIsProfileModalOpen(false)}
                 setAlertMessage={setAlertMessage}
             />
 
-            {/* 更新日志弹窗 */}
             <ChangelogModal
                 isOpen={isChangelogOpen}
                 onClose={() => setIsChangelogOpen(false)}
             />
 
-            {/* 订阅管理弹窗 */}
             <SubscriptionModal
                 isOpen={isSubscriptionModalOpen}
                 onClose={() => setIsSubscriptionModalOpen(false)}

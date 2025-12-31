@@ -1,9 +1,13 @@
-// @ts-nocheck
 /**
- * MapPickerModal - 地图选择模态框
- * 
- * 以大图网格形式展示所有可选地图，用户点击后切换当前选中的地图。
+ * MapPickerModal - 地图选择器弹窗
+ *
+ * 职责：
+ * - 渲染地图选择器弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
+// @ts-nocheck
 import React from 'react';
 import Icon from './Icon';
 import { useEscapeClose } from '../hooks/useEscapeClose';

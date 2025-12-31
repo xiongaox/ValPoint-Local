@@ -1,3 +1,12 @@
+/**
+ * useMainViewProps - 点位主视图Props
+ *
+ * 职责：
+ * - 封装点位主视图Props相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import React from 'react';
 import { User } from '@supabase/supabase-js';
 import MainView from '../MainView';
@@ -7,8 +16,8 @@ import { AgentOption, BaseLineup, LibraryMode, MapOption, NewLineupForm, SharedL
 type Params = {
   activeTab: ActiveTab;
   selectedMap: MapOption | null;
-  setSelectedMap: (map: MapOption | null) => void; // 新增
-  maps: MapOption[]; // 新增
+  setSelectedMap: (map: MapOption | null) => void; // 说明：用于移动端地图选择。
+  maps: MapOption[]; // 说明：移动端地图列表。
   setIsMapModalOpen: (v: boolean) => void;
   selectedSide: 'all' | 'attack' | 'defense';
   setSelectedSide: React.Dispatch<React.SetStateAction<'all' | 'attack' | 'defense'>>;
@@ -82,8 +91,8 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
     left: {
       activeTab: params.activeTab,
       selectedMap: params.selectedMap,
-      setSelectedMap: params.setSelectedMap, // 新增
-      maps: params.maps, // 新增
+      setSelectedMap: params.setSelectedMap, // 说明：用于移动端地图选择。
+      maps: params.maps, // 说明：移动端地图列表。
       setIsMapModalOpen: params.setIsMapModalOpen,
       selectedSide: params.selectedSide,
       setSelectedSide: params.setSelectedSide,

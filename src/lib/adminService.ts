@@ -1,13 +1,14 @@
 /**
- * adminService - 管理员权限与账户服务
- * 
+ * adminService - 管理端服务
+ *
  * 职责：
- * - 检查用户的管理员/超级管理员权限（基于 user_profiles.role）
- * - 管理管理员列表（添加、移除管理员）
+ * - 封装管理端服务相关的接口调用。
+ * - 处理参数整理、错误兜底与结果转换。
+ * - 向上层提供稳定的服务 API。
  */
+
 import { adminSupabase as supabase } from '../supabaseClient';
 
-/** 管理员用户类型 */
 export interface AdminUser {
     id: string;
     email: string | null;
@@ -18,20 +19,13 @@ export interface AdminUser {
     created_at: string;
 }
 
-/** 权限检查结果 */
 export interface AdminAccessResult {
     isAdmin: boolean;
     isSuperAdmin: boolean;
     adminInfo: AdminUser | null;
 }
 
-/**
- * 检查用户是否有管理员权限
- * 从 user_profiles.role 字段读取，或通过环境变量配置超级管理员
- * 当检测到环境变量超管账号时，自动同步 role 到数据库，确保 RLS 策略生效
- */
 export async function checkAdminAccess(userId: string): Promise<AdminAccessResult> {
-    // 获取用户信息
     const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
@@ -56,9 +50,6 @@ export async function checkAdminAccess(userId: string): Promise<AdminAccessResul
     };
 }
 
-/**
- * 通过邮箱检查用户是否有管理员权限
- */
 export async function checkAdminAccessByEmail(email: string): Promise<AdminAccessResult> {
     const { data, error } = await supabase
         .from('user_profiles')
@@ -84,10 +75,6 @@ export async function checkAdminAccessByEmail(email: string): Promise<AdminAcces
 }
 
 
-/**
- * 获取所有管理员列表
- * 返回 role 为 admin 或 super_admin 的用户
- */
 export async function getAdminList(): Promise<AdminUser[]> {
     const { data, error } = await supabase
         .from('user_profiles')
@@ -103,15 +90,10 @@ export async function getAdminList(): Promise<AdminUser[]> {
     return data as AdminUser[];
 }
 
-/**
- * 添加管理员
- * 仅超级管理员可调用，将 user_profiles.role 设置为 admin
- */
 export async function addAdmin(
     email: string,
     _nickname?: string
 ): Promise<{ success: boolean; error?: string }> {
-    // 获取当前用户 - 使用 getSession 更可靠
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
         console.error('[AdminService] addAdmin: 未获取到有效 session');
@@ -119,13 +101,11 @@ export async function addAdmin(
     }
     const user = session.user;
 
-    // 检查是否为超级管理员
     const access = await checkAdminAccess(user.id);
     if (!access.isSuperAdmin) {
         return { success: false, error: '无权限' };
     }
 
-    // 检查目标用户是否存在
     const existingAccess = await checkAdminAccessByEmail(email);
     if (!existingAccess.adminInfo) {
         return { success: false, error: '用户不存在，请先让用户注册' };
@@ -135,7 +115,6 @@ export async function addAdmin(
         return { success: false, error: '该用户已是管理员' };
     }
 
-    // 更新 role 为 admin
     console.log('[AdminService] 正在更新用户 role 为 admin:', email);
     const { data: updateData, error } = await supabase
         .from('user_profiles')
@@ -153,14 +132,9 @@ export async function addAdmin(
     return { success: true };
 }
 
-/**
- * 移除管理员
- * 仅超级管理员可调用，将 user_profiles.role 设置回 user
- */
 export async function removeAdmin(
     adminId: string
 ): Promise<{ success: boolean; error?: string }> {
-    // 获取当前用户 - 使用 getSession 更可靠
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
         console.error('[AdminService] removeAdmin: 未获取到有效 session');
@@ -168,19 +142,16 @@ export async function removeAdmin(
     }
     const user = session.user;
 
-    // 检查是否为超级管理员
     const access = await checkAdminAccess(user.id);
     if (!access.isSuperAdmin) {
         return { success: false, error: '无权限' };
     }
 
-    // 检查目标用户是否是超级管理员（不能降级）
     const targetAccess = await checkAdminAccess(adminId);
     if (targetAccess.isSuperAdmin) {
         return { success: false, error: '无法移除超级管理员' };
     }
 
-    // 将 role 设置回 user
     const { error } = await supabase
         .from('user_profiles')
         .update({ role: 'user' })
@@ -194,15 +165,10 @@ export async function removeAdmin(
     return { success: true };
 }
 
-/**
- * 更新用户权限
- * 仅超级管理员或管理员可调用
- */
 export async function updateUserPermission(
     userId: string,
     permission: { canBatchDownload?: boolean }
 ): Promise<{ success: boolean; error?: string }> {
-    // 1. 检查调用者权限 - 使用 getSession 更可靠
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
         console.error('[AdminService] updateUserPermission: 未获取到有效 session');
@@ -215,7 +181,6 @@ export async function updateUserPermission(
         return { success: false, error: '无权限' };
     }
 
-    // 2. 准备更新数据
     const updates: any = {};
     if (permission.canBatchDownload !== undefined) {
         updates.can_batch_download = permission.canBatchDownload;
@@ -225,7 +190,6 @@ export async function updateUserPermission(
         return { success: true };
     }
 
-    // 3. 执行更新
     const { error } = await supabase
         .from('user_profiles')
         .update(updates)

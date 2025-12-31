@@ -1,3 +1,12 @@
+/**
+ * maps - 地图
+ *
+ * 职责：
+ * - 集中管理地图相关的配置与常量。
+ * - 为其他模块提供统一的参数来源。
+ * - 支持不同环境或场景的可配置性。
+ */
+
 export const CUSTOM_MAP_URLS = {
   Ascent: {
     attack: "/maps/attack/攻方-亚海悬城(Ascent).svg",

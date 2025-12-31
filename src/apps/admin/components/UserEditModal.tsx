@@ -1,11 +1,12 @@
 /**
- * UserEditModal - 用户资料编辑弹窗
- * 
+ * UserEditModal - 管理端用户Edit弹窗
+ *
  * 职责：
- * - 展示用户详细信息（邮箱、UUID、图床、注册时间等）
- * - 允许管理员修改用户昵称、头像
- * - 处理用户禁用 (Ban) 状态及理由输入
+ * - 渲染管理端用户Edit弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import Icon from '../../../components/Icon';
@@ -37,9 +38,6 @@ interface UserEditModalProps {
     isSubmitting: boolean;
 }
 
-/**
- * 用户编辑弹窗
- */
 function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEditModalProps) {
     const [nickname, setNickname] = useState('');
     const [avatar, setAvatar] = useState('');
@@ -50,7 +48,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
     const [playerCards, setPlayerCards] = useState<PlayerCardAvatar[]>([]);
     const [isLoadingCards, setIsLoadingCards] = useState(false);
 
-    // 加载玩家卡面数据
     useEffect(() => {
         if (isAvatarPickerOpen && playerCards.length === 0) {
             setIsLoadingCards(true);
@@ -63,11 +60,9 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
         }
     }, [isAvatarPickerOpen, playerCards.length]);
 
-    // 初始化表单数据
     useEffect(() => {
         if (user) {
             setNickname(user.nickname || '');
-            // 使用用户邮箱生成确定性随机默认头像
             setAvatar(user.avatar || getAvatarByEmail(user.email));
             setIsBanned(user.is_banned);
             setCanBatchDownload(user.can_batch_download || false);
@@ -76,10 +71,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
         }
     }, [user]);
 
-    /**
-     * 获取头像显示 URL
-     * 兼容两种格式：完整 URL (玩家卡面) 和本地路径 (特工头像)
-     */
     const getAvatarUrl = (avatarValue: string): string => {
         if (!avatarValue) return '/agents/KO.png';
         if (avatarValue.startsWith('http')) return avatarValue;
@@ -99,11 +90,9 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
             can_batch_download: canBatchDownload,
             ban_reason: isBanned ? banReason : null,
         });
-        // 更新头像缓存，确保所有组件立即显示新头像
         updateAvatarCache(user.email, avatar);
     };
 
-    // 禁用/解禁用户
     const handleToggleBan = async () => {
         const newBanStatus = !isBanned;
         setIsBanned(newBanStatus);
@@ -115,7 +104,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden relative">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -135,9 +123,7 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                     </button>
                 </div>
 
-                {/* Body */}
                 <form onSubmit={handleSubmit} className="p-5 space-y-5 bg-[#181b1f]">
-                    {/* 头像设置 - 放在最上面 */}
                     <div className="flex flex-col items-center gap-2">
                         <button
                             type="button"
@@ -157,7 +143,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                         <span className="text-xs text-gray-500">点击头像更换</span>
                     </div>
 
-                    {/* 昵称 */}
                     <div className="space-y-2">
                         <label className="text-sm text-gray-400">昵称</label>
                         <input
@@ -169,7 +154,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                         />
                     </div>
 
-                    {/* 用户基本信息 - 紧跟昵称后面 */}
                     <div className="bg-[#0f131a] rounded-xl p-4 space-y-2 border border-white/5 text-xs">
                         <div className="flex items-center justify-between">
                             <span className="text-gray-500">邮箱</span>
@@ -185,8 +169,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                         </div>
                     </div>
 
-                    {/* 账户状态文案 */}
-                    {/* 账户状态文案 */}
                     <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-400">账户状态</span>
                         <span className={isBanned ? 'text-red-400 font-medium' : 'text-emerald-400 font-medium'}>
@@ -194,7 +176,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                         </span>
                     </div>
 
-                    {/* 批量下载权限 */}
                     <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-400">批量下载</span>
                         <button
@@ -206,7 +187,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                         </button>
                     </div>
 
-                    {/* 禁用原因输入框（仅禁用时显示） */}
                     {isBanned && (
                         <div className="space-y-2">
                             <label className="text-sm text-gray-400">禁用原因</label>
@@ -220,7 +200,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                         </div>
                     )}
 
-                    {/* 按钮 - 禁用按钮放在取消旁边 */}
                     <div className="flex justify-between items-center pt-2">
                         <button
                             type="button"
@@ -253,7 +232,6 @@ function UserEditModal({ isOpen, user, onClose, onSave, isSubmitting }: UserEdit
                     </div>
                 </form>
 
-                {/* 头像选择器覆盖层 */}
                 {isAvatarPickerOpen && (
                     <div className="absolute inset-0 bg-[#181b1f] z-10 flex flex-col animate-in fade-in slide-in-from-bottom-10 duration-300">
                         <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-[#1c2028]">

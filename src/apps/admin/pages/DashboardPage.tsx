@@ -1,15 +1,15 @@
 /**
- * DashboardPage - 管理后台概览页
- * 
+ * DashboardPage - 管理端Dashboard页面
+ *
  * 职责：
- * - 展示应用核心指标统计（点位总数、共享总数、用户总数、今日下载等）
- * - 渲染多维度的趋势图表 (Retention, Storage, CDN, API, Reviews)
- * - 提供快速审核入口指示
+ * - 组织管理端Dashboard页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect } from 'react';
 import Icon, { IconName } from '../../../components/Icon';
 
-// 图表组件
 import UserGrowthChart from '../components/charts/UserGrowthChart';
 import StorageChart from '../components/charts/StorageChart';
 import DailyDownloadsChart from '../components/charts/DailyDownloadsChart';
@@ -25,9 +25,6 @@ interface StatsCard {
 
 import { fetchDashboardStats, fetchRecentActivities, DashboardStats, RecentActivity } from '../../../services/adminStatsService';
 
-/**
- * 统计仪表盘页面
- */
 function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null);
@@ -92,9 +89,7 @@ function DashboardPage() {
 
     return (
         <div className="flex gap-4 items-start h-[calc(100vh-100px)] overflow-hidden">
-            {/* 左侧主内容区 - Flex 布局自动填充高度 */}
             <div className="flex-1 flex flex-col gap-4 min-w-0 h-full overflow-hidden">
-                {/* 统计卡片 - 固定高度 */}
                 <div className="flex-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {stats.map((stat, index) => (
                         <div
@@ -129,20 +124,17 @@ function DashboardPage() {
                     ))}
                 </div>
 
-                {/* 第一行图表 - 自动填充剩余高度的一半 */}
                 <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <UserGrowthChart />
                     <StorageChart />
                 </div>
 
-                {/* 第二行图表 - 自动填充剩余高度的一半 */}
                 <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
                     <DailyDownloadsChart />
                     <ReviewStatsChart />
                 </div>
             </div>
 
-            {/* 右侧最近活动侧边栏 - 高度填满，内部滚动 */}
             <div className="w-80 shrink-0 hidden xl:block h-full">
                 <div className="bg-[#1f2326] rounded-xl border border-white/10 p-4 h-full flex flex-col">
                     <h3 className="text-lg font-semibold mb-4 flex-none">最近活动</h3>

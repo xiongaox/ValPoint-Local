@@ -1,3 +1,12 @@
+/**
+ * useLineupDownload - 点位下载
+ *
+ * 职责：
+ * - 封装点位下载相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { useCallback } from 'react';
 import { BaseLineup } from '../types/lineup';
 import { downloadLineupBundle } from '../lib/lineupDownload';
@@ -14,7 +23,6 @@ export const useLineupDownload = ({ lineups, setAlertMessage }: Params) => {
 
   const handleDownload = useCallback(
     async (id: string, e?: React.MouseEvent) => {
-      // Stop event propagation to prevent opening lineup details
       e?.stopPropagation();
 
       const lineup = lineups.find((item) => item.id === id);
@@ -23,7 +31,6 @@ export const useLineupDownload = ({ lineups, setAlertMessage }: Params) => {
         return;
       }
 
-      // 检查下载限制
       if (user) {
         const { allowed, limit, remaining } = await checkDailyDownloadLimit(user.id);
         if (!allowed) {
@@ -33,13 +40,10 @@ export const useLineupDownload = ({ lineups, setAlertMessage }: Params) => {
       }
 
       try {
-        // 静默下载，不显示提示
         const { failedImages } = await downloadLineupBundle(lineup);
 
-        // 记录下载次数和日志
         if (user) {
           await incrementDownloadCount(user.id);
-          // 记录详细下载日志
           await logDownload({
             userId: user.id,
             userEmail: user.email || '',
@@ -53,7 +57,6 @@ export const useLineupDownload = ({ lineups, setAlertMessage }: Params) => {
         if (failedImages.length > 0) {
           setAlertMessage('部分图片下载失败，已保留原链接');
         }
-        // 成功时不弹窗提示
       } catch (error) {
         console.error(error);
         setAlertMessage('下载失败，请重试');

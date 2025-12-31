@@ -1,8 +1,12 @@
 /**
- * MobileAgentPicker - 移动端角色选择弹窗
- * 
- * 以底部抽屉形式展示角色网格供用户选择
+ * MobileAgentPicker - 移动端英雄选择器
+ *
+ * 职责：
+ * - 渲染移动端英雄选择器相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React from 'react';
 import Icon from './Icon';
 import { AgentOption } from '../types/lineup';
@@ -36,15 +40,12 @@ function MobileAgentPicker({
 
     return (
         <>
-            {/* 背景遮罩 */}
             <div
                 className="fixed inset-0 bg-black/60 z-[1000] animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
-            {/* 底部抽屉 */}
             <div className="fixed bottom-0 left-0 right-0 z-[1001] bg-[#1f2326] rounded-t-2xl animate-in slide-in-from-bottom duration-300 max-h-[70vh] flex flex-col">
-                {/* 头部 */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                     <h3 className="text-white font-semibold">选择角色</h3>
                     <button
@@ -55,7 +56,6 @@ function MobileAgentPicker({
                     </button>
                 </div>
 
-                {/* 角色网格 */}
                 <div className="flex-1 overflow-y-auto p-3">
                     <div className="grid grid-cols-5 gap-2">
                         {agents.map((agent) => {

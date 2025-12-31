@@ -1,12 +1,12 @@
 /**
- * CompactUserCard - 紧凑型用户卡片
- * 
- * 用于在顶部导航栏展示当前登录用户信息：
- * - 展示特工称号和用户昵称/ID
- * - 展示用户头像和在线状态
- * - 提供登出按钮
- * - 未登录状态下显示登录按钮和访客提示
+ * CompactUserCard - Compact用户卡片
+ *
+ * 职责：
+ * - 渲染单个Compact用户卡片条目的关键信息。
+ * - 提供点击或快捷操作入口。
+ * - 与父级列表的状态保持同步。
  */
+
 import React from 'react';
 import { User } from '@supabase/supabase-js';
 import UserAvatar from './UserAvatar';
@@ -20,45 +20,34 @@ interface CompactUserCardProps {
     className?: string;
 }
 
-/**
- * 紧凑型用户卡片组件
- * 用于在顶部导航栏等位置显示当前用户信息
- */
 const CompactUserCard: React.FC<CompactUserCardProps> = ({
     user,
     onSignOut,
     onRequestLogin,
     className = ''
 }) => {
-    // 从 user_profiles 表获取用户业务数据
     const { profile, isLoading: isProfileLoading } = useUserProfile();
 
-    // 获取显示名称，在加载中时返回 null
     const displayName = isProfileLoading
         ? null
         : (profile?.nickname || profile?.custom_id || user?.email?.split('@')[0].toUpperCase() || 'AGENT');
 
     return (
         <div className={`group relative ${className}`}>
-            {/* 容器高度设为 54px */}
             <div className="relative h-[54px] flex items-center gap-3 bg-gradient-to-r from-[#ff4655]/20 via-[#1f2326]/90 to-[#1f2326] backdrop-blur-md px-3 rounded-[12px] border border-white/10 min-w-[200px] overflow-hidden">
-                {/* 装饰纹理 */}
                 <div className="absolute top-0 right-0 w-16 h-full bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,#ffffff05_2px,#ffffff05_4px)] opacity-50 pointer-events-none" />
 
                 {user ? (
                     <>
-                        {/* 头像 (Compact) */}
                         <div className="relative shrink-0">
                             <div className="rounded-xl overflow-hidden border border-white/20 shadow-inner group-hover:border-[#ff4655]/50 transition-colors duration-300">
                                 <UserAvatar email={user.email || ''} size={36} bordered={false} />
                             </div>
-                            {/* 在线指示灯 */}
                             <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#0f1923] rounded-full flex items-center justify-center">
                                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                             </div>
                         </div>
 
-                        {/* 信息区域 (Compact) */}
                         <div className="flex flex-col flex-1 min-w-0 z-10 justify-center h-full py-1">
                             <div className="flex items-center gap-1.5">
                                 <span className="text-[10px] font-bold text-[#ff4655] tracking-widest uppercase opacity-80 leading-none">AGENT</span>
@@ -73,7 +62,6 @@ const CompactUserCard: React.FC<CompactUserCardProps> = ({
                             )}
                         </div>
 
-                        {/* 退出按钮 (Compact) */}
                         <div className="border-l border-white/10 pl-2 ml-1 h-6 flex items-center">
                             <button
                                 onClick={onSignOut}

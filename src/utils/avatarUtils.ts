@@ -1,10 +1,10 @@
 /**
- * avatarUtils.ts - 用户头像工具函数
- * 
+ * avatarUtils - 头像工具
+ *
  * 职责：
- * - 提供可用特工头像列表（用于兼容旧用户数据）
- * - 新用户默认使用玩家卡面头像（见 playerCardAvatars.ts）
- * - 生成随机默认头像（用于新注册用户）
+ * - 提供头像工具相关的纯函数工具。
+ * - 封装常用转换或格式化逻辑。
+ * - 降低重复代码并提升可复用性。
  */
 
 import {
@@ -13,8 +13,6 @@ import {
     preloadPlayerCards
 } from './playerCardAvatars';
 
-// 预定义的特工头像列表 (public/agents 下的文件名)
-// 仅用于兼容旧用户数据，新用户使用玩家卡面
 export const AGENT_AVATARS = [
     'KO.png', '不死鸟.png', '壹决.png', '夜露.png', '奇乐.png',
     '尚勃勒.png', '幻棱.png', '幽影.png', '捷风.png', '斯凯.png',
@@ -24,31 +22,16 @@ export const AGENT_AVATARS = [
     '雷兹.png', '霓虹.png', '黑梦.png'
 ];
 
-/**
- * 获取随机默认头像（新用户使用玩家卡面）
- */
 export const getRandomAvatar = (): string => {
     return getDefaultPlayerCardAvatar();
 };
 
-/**
- * 根据用户 ID 生成确定性随机头像（同一 ID 始终返回相同头像）
- * 新用户返回玩家卡面 URL
- */
 export const getAvatarByUserId = (userId: string): string => {
     return getPlayerCardAvatarByEmail(userId);
 };
 
-/**
- * 根据用户邮箱生成确定性随机头像（同一邮箱始终返回相同头像）
- * 新用户返回玩家卡面 URL
- */
 export const getAvatarByEmail = (email: string): string => {
     return getPlayerCardAvatarByEmail(email);
 };
 
-/**
- * 预加载玩家卡面数据
- * 应在应用启动时调用，减少首次打开头像选择器的延迟
- */
 export { preloadPlayerCards };

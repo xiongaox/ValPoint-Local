@@ -1,9 +1,12 @@
 /**
- * MobileLineupList - 移动端点位列表弹窗
- * 
- * 以底部抽屉形式展示点位列表，点击可定位到地图上的点位
- * 显示置顶状态（不可操作）
+ * MobileLineupList - 移动端点位列表
+ *
+ * 职责：
+ * - 渲染移动端点位列表列表与空态/加载态。
+ * - 处理筛选、排序或选择等列表交互。
+ * - 对外暴露条目操作的回调接口。
  */
+
 import React from 'react';
 import Icon from './Icon';
 import { BaseLineup } from '../types/lineup';
@@ -16,8 +19,8 @@ interface MobileLineupListProps {
     selectedLineupId: string | null;
     onSelectLineup: (id: string) => void;
     isLoading?: boolean;
-    pinnedLineupIds?: string[]; // 置顶的点位ID列表
-    onTogglePin?: (id: string) => void; // 置顶切换回调
+    pinnedLineupIds?: string[]; // 说明：置顶点位 ID 列表。
+    onTogglePin?: (id: string) => void; // 说明：置顶切换回调。
 }
 
 function MobileLineupList({
@@ -32,10 +35,8 @@ function MobileLineupList({
 }: MobileLineupListProps) {
     useEscapeClose(isOpen, onClose);
 
-    // 搜索状态
     const [searchQuery, setSearchQuery] = React.useState('');
 
-    // 根据搜索词过滤点位
     const filteredLineups = React.useMemo(() => {
         if (!searchQuery.trim()) return lineups;
         const query = searchQuery.toLowerCase();
@@ -51,20 +52,16 @@ function MobileLineupList({
         onClose();
     };
 
-    // 判断是否置顶
     const isPinned = (id: string) => pinnedLineupIds.includes(id);
 
     return (
         <>
-            {/* 背景遮罩 */}
             <div
                 className="fixed inset-0 bg-black/60 z-[1000] animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
-            {/* 底部抽屉 - 纯像素高度避免键盘影响 */}
             <div className="fixed inset-x-0 bottom-0 z-[1001] bg-[#1f2326] rounded-t-2xl animate-in slide-in-from-bottom duration-300 flex flex-col h-[450px]">
-                {/* 头部 */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                     <div className="flex items-center gap-2">
                         <Icon name="List" size={18} className="text-[#ff4655]" />
@@ -79,7 +76,6 @@ function MobileLineupList({
                     </button>
                 </div>
 
-                {/* 搜索框 */}
                 <div className="px-4 py-3 border-b border-white/10">
                     <div className="relative">
                         <Icon name="Search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -101,7 +97,6 @@ function MobileLineupList({
                     </div>
                 </div>
 
-                {/* 点位列表 */}
                 <div className="flex-1 overflow-y-auto">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-40">
@@ -126,7 +121,6 @@ function MobileLineupList({
                                             : 'bg-white/5 border border-transparent hover:bg-white/10'
                                             }`}
                                     >
-                                        {/* 角色头像 */}
                                         <div className="relative shrink-0">
                                             {lineup.agentIcon ? (
                                                 <img
@@ -139,7 +133,6 @@ function MobileLineupList({
                                                     {lineup.agentName?.[0]}
                                                 </div>
                                             )}
-                                            {/* 攻防标记 */}
                                             <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold ${lineup.side === 'attack'
                                                 ? 'bg-red-500 text-white'
                                                 : 'bg-emerald-500 text-white'
@@ -148,13 +141,11 @@ function MobileLineupList({
                                             </div>
                                         </div>
 
-                                        {/* 点位信息 */}
                                         <div className="flex-1 min-w-0 text-left">
                                             <div className="flex items-center gap-2">
                                                 <span className={`text-sm font-bold truncate ${isSelected ? 'text-[#ff4655]' : 'text-white'}`}>
                                                     {lineup.title}
                                                 </span>
-                                                {/* 置顶状态标记 */}
                                                 {pinned && (
                                                     <span className="shrink-0 px-1.5 py-0.5 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded">
                                                         置顶
@@ -166,7 +157,6 @@ function MobileLineupList({
                                             </div>
                                         </div>
 
-                                        {/* 置顶按钮 */}
                                         {onTogglePin && (
                                             <button
                                                 onClick={(e) => {
@@ -180,7 +170,6 @@ function MobileLineupList({
                                             </button>
                                         )}
 
-                                        {/* 箭头图标 */}
                                         <Icon
                                             name="ChevronRight"
                                             size={16}

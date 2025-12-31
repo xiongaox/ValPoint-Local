@@ -1,20 +1,12 @@
 /**
- * useShareActions - 共享功能操作 Hook
- * 
- * 处理与共享库相关的复杂业务逻辑：
- * - handleShare: 分享点位到共享库（生成分享ID）
- * - handleSaveShared: 从共享库保存点位到个人库
- * - 图片转存：将共享点位的图片转移到用户自己的图床
- * - 重复检测：防止重复保存同一共享点位
- */
-/**
- * useShareActions.ts - 共享库同步操作 Hook
- * 
+ * useShareActions - 共享操作
+ *
  * 职责：
- * - 处理个人库点位同步到共享库的业务流程
- * - 管理同步进度的展示（通过弹窗状态控制）
- * - 验证管理员权限并调用同步服务
+ * - 封装共享操作相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useState, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { upsertShared } from '../services/shared';
@@ -33,7 +25,7 @@ const imageFields: ImageFieldKey[] = ['standImg', 'stand2Img', 'aimImg', 'aim2Im
 
 const toShortId = (uuid: string) => {
   if (!uuid) return '';
-  return uuid.substring(0, 8); // Use first 8 chars for display
+  return uuid.substring(0, 8); // 说明：展示用 UUID 前 8 位。
 };
 
 type Params = {
@@ -194,7 +186,7 @@ export const useShareActions = ({
       setAlertAction(null);
       const shareId = toShortId(id);
       const payload = {
-        id: id,  // 使用原始 ID 作为主键
+        id: id, // 说明：使用原始 ID 作为主键。
         source_id: id,
         ...{
           title: lineup.title,

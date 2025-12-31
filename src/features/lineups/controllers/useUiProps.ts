@@ -1,3 +1,12 @@
+/**
+ * useUiProps - 点位UiProps
+ *
+ * 职责：
+ * - 封装点位UiProps相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import AlertModal from '../../../components/AlertModal';
 import Lightbox from '../../../components/Lightbox';
 import { LightboxImage } from '../../../types/ui';

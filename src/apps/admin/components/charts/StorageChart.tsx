@@ -1,6 +1,12 @@
 /**
- * StorageChart - 存储空间占用饼状图
+ * StorageChart - 管理端Storage图表
+ *
+ * 职责：
+ * - 渲染管理端Storage图表相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useEffect, useState } from 'react';
 import {
     PieChart,
@@ -26,7 +32,6 @@ const COLORS: Record<string, string> = {
     'Other': '#6b7280'
 };
 
-// Supabase Free Plan limit is typically 1GB
 const STORAGE_LIMIT_GB = 1;
 
 export default function StorageChart() {
@@ -57,7 +62,6 @@ export default function StorageChart() {
         );
     }
 
-    // Convert to GB for display
     const totalUsedGB = stats ? (stats.totalBytes / (1024 * 1024 * 1024)) : 0;
     const freeGB = Math.max(0, STORAGE_LIMIT_GB - totalUsedGB);
     const usagePercent = Math.min(100, (totalUsedGB / STORAGE_LIMIT_GB) * 100).toFixed(1);
@@ -108,7 +112,6 @@ export default function StorageChart() {
                         />
                     </PieChart>
                 </ResponsiveContainer>
-                {/* Center Text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span className="text-2xl font-bold text-white">{usagePercent}%</span>
                     <span className="text-xs text-gray-500">已使用</span>

@@ -1,11 +1,12 @@
 /**
- * useActionMenu - 快捷操作菜单控制器
- * 
- * 管理主界面快捷操作菜单的状态和行为：
- * - 图床配置的读取、保存和多平台切换
- * - 图片处理设置（压缩、格式转换）
- * - 密码修改、清空点位等操作入口
+ * useActionMenu - 点位操作菜单
+ *
+ * 职责：
+ * - 封装点位操作菜单相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useEffect, useState } from 'react';
 import { defaultImageBedConfig } from '../../../components/ImageBedConfigModal';
 import { ImageBedConfig } from '../../../types/imageBed';
@@ -65,11 +66,9 @@ export function useActionMenu({
 
   useEffect(() => {
     try {
-      // 尝试读取多平台配置
       const multiConfigStr = localStorage.getItem('valpoint_imagebed_configs');
       if (multiConfigStr) {
         const multiConfigs = JSON.parse(multiConfigStr);
-        // 优先使用上次保存的 provider，而不是当前 state 中的（刷新时 state 是默认值）
         const lastProvider = localStorage.getItem('valpoint_imagebed_last_provider');
         const currentProvider = lastProvider || defaultImageBedConfig.provider;
         const savedConfig = multiConfigs[currentProvider];
@@ -79,13 +78,11 @@ export function useActionMenu({
         }
       }
 
-      // 兼容旧版单一配置
       const saved = localStorage.getItem('valpoint_imagebed_config');
       if (saved) {
         const oldConfig = JSON.parse(saved);
         setImageBedConfig(normalizeImageBedConfig(oldConfig));
 
-        // 迁移到新格式
         const multiConfigs = { [oldConfig.provider]: oldConfig };
         localStorage.setItem('valpoint_imagebed_configs', JSON.stringify(multiConfigs));
         localStorage.setItem('valpoint_imagebed_last_provider', oldConfig.provider);
@@ -120,16 +117,12 @@ export function useActionMenu({
     const normalized = normalizeImageBedConfig(cfg);
     setImageBedConfig(normalized);
     try {
-      // 读取现有的多平台配置
       const multiConfigStr = localStorage.getItem('valpoint_imagebed_configs');
       const multiConfigs = multiConfigStr ? JSON.parse(multiConfigStr) : {};
 
-      // 更新当前平台的配置
       multiConfigs[normalized.provider] = normalized;
 
-      // 保存回 localStorage
       localStorage.setItem('valpoint_imagebed_configs', JSON.stringify(multiConfigs));
-      // 保存上次使用的 provider，以便刷新后恢复
       localStorage.setItem('valpoint_imagebed_last_provider', normalized.provider);
     } catch (e) {
       console.error(e);
@@ -151,9 +144,6 @@ export function useActionMenu({
   const handleImageProcessingSave = (cfg: ImageProcessingSettings) => {
     saveImageProcessingSettings(cfg);
     setAlertMessage('设置已保存');
-    // 注意：ImageProcessingModal 是独立的，这个 save 也会用于 advanced settings save
-    // 这里我们可能需要根据来源关闭不同的 modal。但 saveImageProcessingSettings 是通用的。
-    // 简单起见，两个都尝试关闭。
     setIsAdvancedSettingsOpen(false);
     setIsPngSettingsOpen(false);
   };

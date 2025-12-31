@@ -1,13 +1,13 @@
-// @ts-nocheck
 /**
- * EditorModal - 点位编辑抽屉组件
- * 
- * 用于新增或编辑图文攻略点位，支持以下功能：
- * - 图片上传（剪贴板粘贴 / 本地文件选择）
- * - 自动获取来源链接的作者信息
- * - 阵营选择（进攻/防守）
- * - 多张图片槽位（站位图、瞄点图、技能落点图）
+ * EditorModal - 编辑器弹窗
+ *
+ * 职责：
+ * - 渲染编辑器弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from './Icon';
 import { uploadImage } from '../lib/imageBed';
@@ -15,7 +15,6 @@ import { prepareClipboardImage } from '../lib/imageCompression';
 import { fetchAuthorInfo } from '../utils/authorFetcher';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 
-/** 图片字段配置：定义编辑器支持的图片槽位 */
 const fields = [
   { k: 'stand', l: '站位图' },
   { k: 'stand2', l: '站位图2', toggleKey: 'enableStand2' },
@@ -47,7 +46,6 @@ const EditorModal = ({
   const fetchTimeoutRef = useRef(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // 自动获取作者信息（防抖）
   useEffect(() => {
     const link = newLineupData.sourceLink?.trim();
 
@@ -121,7 +119,6 @@ const EditorModal = ({
       try {
         const url = new URL(candidate);
         updateSourceLink(url.toString());
-        // 静默更新，不再弹窗提示
       } catch {
         setAlertMessage?.('剪贴板内容不是有效的链接');
       }
@@ -147,7 +144,6 @@ const EditorModal = ({
       return;
     }
 
-    // 验证图床配置（根据不同平台验证不同字段）
     if (!imageBedConfig?.provider) {
       setAlertMessage?.('Image hosting not configured. Please configure it first.');
       return;
@@ -219,7 +215,6 @@ const EditorModal = ({
     setNewLineupData({ ...newLineupData, [`${fieldKey}Img`]: '' });
   };
 
-  // 本地文件上传
   const handleLocalUpload = async (fieldKey: string, file: File) => {
     if (!file.type.startsWith('image/')) {
       setAlertMessage?.('请选择图片文件');
@@ -468,7 +463,7 @@ const EditorModal = ({
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) handleLocalUpload(field.k, file);
-                            e.target.value = ''; // 重置以便重复选择同一文件
+                            e.target.value = ''; // 说明：重置输入以便重复选择同一文件。
                           }}
                           className="hidden"
                         />

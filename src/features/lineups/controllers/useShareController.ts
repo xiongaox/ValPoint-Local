@@ -1,3 +1,12 @@
+/**
+ * useShareController - 点位共享控制器
+ *
+ * 职责：
+ * - 封装点位共享控制器相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { useCallback, useState } from 'react';
 import { useShareActions } from '../../../hooks/useShareActions';
 import { BaseLineup, SharedLineup, LineupDbPayload } from '../../../types/lineup';

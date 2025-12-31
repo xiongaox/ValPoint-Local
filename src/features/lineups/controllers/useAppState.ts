@@ -1,3 +1,12 @@
+/**
+ * useAppState - 点位应用State
+ *
+ * 职责：
+ * - 封装点位应用State相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { useState } from 'react';
 import { ActiveTab } from '../../../types/app';
 import { BaseLineup, LibraryMode, NewLineupForm, SharedLineup } from '../../../types/lineup';
@@ -7,7 +16,6 @@ import { useIsMobile } from '../../../hooks/useIsMobile';
 export function useAppState() {
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState<ActiveTab>('view');
-  // 移动端默认进攻，桌面端默认全部
   const [selectedSide, setSelectedSide] = useState<'all' | 'attack' | 'defense'>(() => isMobile ? 'attack' : 'all');
   const [selectedAbilityIndex, setSelectedAbilityIndex] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');

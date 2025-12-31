@@ -1,10 +1,12 @@
 /**
- * ResetPasswordModal - 重置密码弹窗
- * 
+ * ResetPasswordModal - 共享库ResetPassword弹窗
+ *
  * 职责：
- * - 当用户点击邮件链接进入重置流程后，提供新密码输入界面
- * - 验证并提交新密码到 Supabase Auth 服务
+ * - 渲染共享库ResetPassword弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState } from 'react';
 import Icon from '../../components/Icon';
 import { supabase } from '../../supabaseClient';
@@ -17,10 +19,6 @@ interface Props {
     setAlertMessage: (msg: string | null) => void;
 }
 
-/**
- * 重置密码弹窗
- * 当用户通过重置链接登录后显示
- */
 function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Props) {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -64,7 +62,6 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
     return (
         <div className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -85,7 +82,6 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
                     </button>
                 </div>
 
-                {/* Body */}
                 <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-[#181b1f]">
                     <div>
                         <label className="block text-sm text-gray-400 mb-2">新密码</label>
@@ -116,7 +112,6 @@ function ResetPasswordModal({ isOpen, onClose, onCancel, setAlertMessage }: Prop
                         <p className="text-sm text-red-400">{validationError}</p>
                     )}
 
-                    {/* Footer */}
                     <div className="flex items-center justify-between pt-4 border-t border-white/10">
                         <div className="text-xs text-gray-500">密码设置后立即生效</div>
                         <div className="flex items-center gap-2">

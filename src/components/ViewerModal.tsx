@@ -1,18 +1,13 @@
-// @ts-nocheck
 /**
- * ViewerModal - 点位详情查看模态框
- * 
- * 用于展示单个点位的完整信息，包括：
- * - 多张相关图片（站位、瞄点、落点）的网格展示
- * - 本地作者或 B 站/抖音作者信息展示及跳转
- * - 视频来源精准空降（跳转到对应视频）
- * - 编辑、投稿或转存点位操作
- * 
- * 移动端适配：
- * - 全屏弹窗，支持滚动
- * - 按钮组横向滚动
- * - 图片单列展示
+ * ViewerModal - 查看弹窗
+ *
+ * 职责：
+ * - 渲染查看弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { fetchAuthorInfo } from '../utils/authorFetcher';
@@ -29,8 +24,8 @@ const ViewerModal = ({
   isGuest,
   handleCopyShared = undefined,
   isSavingShared = false,
-  onSubmitLineup,  // 投稿回调
-  isAdmin = true,   // 是否管理员（默认true，不显示投稿按钮）
+  onSubmitLineup, // 说明：投稿回调。
+  isAdmin = true, // 说明：是否管理员，默认 true 不显示投稿按钮。
 }: any) => {
   const [authorInfo, setAuthorInfo] = useState<{ name: string; avatar: string; uid?: string } | null>(null);
   const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
@@ -79,9 +74,7 @@ const ViewerModal = ({
     >
       <div className={`modal-content bg-[#1f2326] flex flex-col rounded-none md:rounded-xl border-0 md:border border-white/10 shadow-2xl overflow-hidden relative ${isMobile ? 'w-full h-full' : 'w-full max-w-4xl max-h-[90vh]'
         }`}>
-        {/* 头部区域 */}
         <div className={`border-b border-white/10 bg-[#252a30] ${isMobile ? 'p-4' : 'p-6'}`}>
-          {/* 移动端：关闭按钮在右上角固定 */}
           {isMobile && (
             <button
               type="button"
@@ -112,7 +105,6 @@ const ViewerModal = ({
               </div>
             </div>
 
-            {/* 操作按钮组 - 移动端可横向滚动 */}
             <div className={`flex items-center gap-2 ${isMobile ? 'overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide' : 'shrink-0'}`}>
               {authorInfo && viewingLineup.sourceLink && (
                 authorInfo.uid ? (
@@ -151,7 +143,6 @@ const ViewerModal = ({
                   <Icon name="Play" size={14} /> 精准空降
                 </a>
               )}
-              {/* 编辑按钮 - 移动端隐藏 */}
               {!handleCopyShared && !isGuest && !isMobile && (
                 <button
                   type="button"
@@ -162,7 +153,6 @@ const ViewerModal = ({
                   <Icon name="Pencil" size={14} /> 编辑
                 </button>
               )}
-              {/* 投稿按钮 - 仅普通用户在个人库显示 */}
               {!handleCopyShared && !isGuest && !isAdmin && onSubmitLineup && (
                 <button
                   type="button"
@@ -173,7 +163,6 @@ const ViewerModal = ({
                   <Icon name="Send" size={14} /> 投稿
                 </button>
               )}
-              {/* 下载按钮 - 移动端隐藏 */}
               {handleCopyShared && !isMobile && (
                 <button
                   type="button"
@@ -185,7 +174,6 @@ const ViewerModal = ({
                   <Icon name="Download" size={14} /> {isSavingShared ? '下载中...' : '下载点位'}
                 </button>
               )}
-              {/* 桌面端关闭按钮在按钮组内 */}
               {!isMobile && (
                 <button
                   type="button"
@@ -200,7 +188,6 @@ const ViewerModal = ({
           </div>
         </div>
 
-        {/* 图片内容区域 */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-[#181b1f]">
           <div className={`grid gap-4 md:gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {imageItems.map((item, idx) =>

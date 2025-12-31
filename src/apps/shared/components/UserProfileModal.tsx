@@ -1,11 +1,12 @@
 /**
- * UserProfileModal - 共享库个人信息编辑弹窗
- * 
+ * UserProfileModal - 共享库用户资料弹窗
+ *
  * 职责：
- * - 允许登录用户修改昵称、头像
- * - 展示用户绑定的邮箱、UUID 及注册日期
- * - 处理用户个人资料的异步更新
+ * - 渲染共享库用户资料弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
@@ -29,30 +30,25 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
     const { user } = useEmailAuth();
     const { profile, updateProfile, isLoading: isProfileLoading } = useUserProfile();
     const [nickname, setNickname] = useState('');
-    // 使用用户邮箱生成确定性随机默认头像（现在使用玩家卡面）
     const defaultAvatar = user?.email ? getPlayerCardByEmail(user.email) : getDefaultPlayerCardAvatar();
     const [currentAvatar, setCurrentAvatar] = useState(defaultAvatar);
-    const [pendingId, setPendingId] = useState<string | null>(null); // 用于补填的 ID
+    const [pendingId, setPendingId] = useState<string | null>(null); // 说明：待补填的 ID。
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
 
-    // 卡面列表状态（异步加载）
     const [playerCards, setPlayerCards] = useState<PlayerCardAvatar[]>([]);
     const [isLoadingCards, setIsLoadingCards] = useState(false);
 
-    // 无限滚动状态
-    const [visibleCount, setVisibleCount] = useState(48); // 初始显示 48 个 (约 4 行x6列 或 12行x4列)
+    const [visibleCount, setVisibleCount] = useState(48); // 说明：初始显示 48 个（约 4x6 或 12x4）。
     const visibleCards = useMemo(() => playerCards.slice(0, visibleCount), [playerCards, visibleCount]);
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    // 监听滚动到底部
     useEffect(() => {
         if (!isAvatarPickerOpen || isLoadingCards || visibleCount >= playerCards.length) return;
 
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting) {
-                    // 加载更多 (增加 48 个)
                     setVisibleCount((prev) => Math.min(prev + 48, playerCards.length));
                 }
             },
@@ -66,7 +62,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
         return () => observer.disconnect();
     }, [isAvatarPickerOpen, isLoadingCards, playerCards.length, visibleCount]);
 
-    // 生成随机 ID：8位 大写字母+数字
     const generateId = () => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let res = '';
@@ -76,12 +71,10 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
 
     useEffect(() => {
         if (isOpen && profile) {
-            // 从 user_profiles 表读取数据
             setNickname(profile.nickname || '');
             setCurrentAvatar(profile.avatar || defaultAvatar);
             setIsAvatarPickerOpen(false);
 
-            // 如果老用户没有 ID，生成一个待保存
             if (!profile.custom_id) {
                 setPendingId(generateId());
             } else {
@@ -90,7 +83,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
         }
     }, [isOpen, profile]);
 
-    // 头像选择器打开时加载卡面列表
     useEffect(() => {
         if (isAvatarPickerOpen && playerCards.length === 0 && !isLoadingCards) {
             setIsLoadingCards(true);
@@ -105,7 +97,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
 
     if (!isOpen) return null;
 
-    // 加载中状态
     if (isProfileLoading) {
         return (
             <div className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -123,14 +114,11 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
             avatar: currentAvatar
         };
 
-        // 如果有待补填的 ID，一起保存
         if (pendingId) {
             updateData.custom_id = pendingId;
-            // 如果之前没有昵称，默认也设为这个 ID
             if (!nickname) updateData.nickname = pendingId;
         }
 
-        // [Admin Override] 如果昵称设置为 VALPOINT，强制将 ID 也改为 VALPOINT
         if (nickname === 'VALPOINT') {
             updateData.custom_id = 'VALPOINT';
         }
@@ -139,7 +127,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
         setIsSubmitting(false);
 
         if (success) {
-            // 更新头像缓存，确保所有组件立即显示新头像
             if (user?.email) {
                 updateAvatarCache(user.email, currentAvatar);
             }
@@ -155,7 +142,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
             className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
         >
             <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden relative">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -175,9 +161,7 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 space-y-6 bg-[#181b1f]">
-                    {/* 头像设置 */}
                     <div className="flex flex-col items-center gap-2">
                         <button
                             onClick={() => setIsAvatarPickerOpen(true)}
@@ -196,7 +180,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                         <span className="text-xs text-gray-500">点击头像更换</span>
                     </div>
 
-                    {/* 昵称设置 */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-sm text-gray-400">用户昵称</label>
@@ -208,7 +191,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                             type="text"
                             value={nickname}
                             onChange={(e) => {
-                                // 强制大写，只允许 A-Z 和 0-9
                                 const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                                 if (val.length <= 8) {
                                     setNickname(val);
@@ -224,7 +206,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                         </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex justify-end gap-2 pt-2">
                         <button
                             onClick={onClose}
@@ -244,7 +225,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                     </div>
                 </div>
 
-                {/* 头像选择器覆盖层 */}
                 {isAvatarPickerOpen && (
                     <div
                         className="absolute inset-0 bg-[#181b1f] z-10 flex flex-col animate-in fade-in slide-in-from-bottom-10 duration-300"
@@ -267,7 +247,7 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                                         <button
                                             key={card.uuid}
                                             onClick={(e) => {
-                                                e.stopPropagation(); // 防止冒泡导致弹窗关闭
+                                                e.stopPropagation(); // 说明：阻止冒泡以保持弹窗打开。
                                                 setCurrentAvatar(card.url);
                                                 setIsAvatarPickerOpen(false);
                                             }}
@@ -280,7 +260,6 @@ const UserProfileModal: React.FC<Props> = ({ isOpen, onClose, setAlertMessage })
                                             <img src={card.url} alt={card.name} className="w-full h-full object-cover" loading="lazy" />
                                         </button>
                                     ))}
-                                    {/* 加载更多触发器 */}
                                     {visibleCount < playerCards.length && (
                                         <div ref={loadMoreRef} className="col-span-4 py-4 flex justify-center">
                                             <div className="w-6 h-6 border-2 border-white/20 border-t-[#ff4655] rounded-full animate-spin" />

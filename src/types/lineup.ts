@@ -1,3 +1,12 @@
+/**
+ * lineup - 点位
+ *
+ * 职责：
+ * - 声明点位相关的数据结构与类型约束。
+ * - 为业务逻辑提供类型安全的契约。
+ * - 集中管理跨模块共享的类型定义。
+ */
+
 export type LineupSide = 'attack' | 'defense';
 export type LibraryMode = 'personal' | 'shared';
 
@@ -45,9 +54,6 @@ export type AgentOption = { displayName: string; displayIcon?: string | null; uu
 export type MapOption = { displayName: string; displayIcon?: string | null };
 
 export type Ability = { slot?: string; displayIcon?: string; name?: string; displayName?: string; keypad?: string };
-/**
- * lineup.ts - 点位核心数据类型定义
- */
 export type AgentData = AgentOption & { abilities?: Ability[] };
 
 export type NewLineupForm = {

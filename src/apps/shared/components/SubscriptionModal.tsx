@@ -1,3 +1,12 @@
+/**
+ * SubscriptionModal - 共享库Subscription弹窗
+ *
+ * 职责：
+ * - 渲染共享库Subscription弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
+ */
+
 import React, { useState } from 'react';
 import { X, Plus, Check, Trash2, Globe, Server, Info, ChevronUp, ChevronDown, Pencil, AlertTriangle, ExternalLink } from 'lucide-react';
 import { Subscription, fetchManifest } from '../logic/subscription';
@@ -85,7 +94,6 @@ export function SubscriptionModal({
     const handleConfirmAdd = () => {
         if (checkResult) {
             if (view === 'edit' && editingId) {
-                // Keep original ID when editing
                 onUpdateSubscription({
                     ...checkResult,
                     id: editingId
@@ -133,7 +141,6 @@ export function SubscriptionModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
             <div className="bg-[#181b1f]/95 w-full max-w-md rounded-2xl border border-white/10 shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028] shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center border bg-[#ff4655]/15 border-[#ff4655]/35 text-[#ff4655]">
@@ -152,10 +159,8 @@ export function SubscriptionModal({
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-[#181b1f]">
                     {view === 'list' ? (
-                        /* List View */
                         <div className="space-y-3">
                             {subscriptions.map((sub, index) => {
                                 const isActive = sub.id === currentSubscription.id;
@@ -170,7 +175,6 @@ export function SubscriptionModal({
                                             }`}
                                     >
                                         <div className="flex items-start gap-4">
-                                            {/* Selection Indicator */}
                                             <div className={`mt-1 w-5 h-5 rounded-full border flex items-center justify-center transition-colors shrink-0 ${isActive
                                                 ? 'border-[#ff4655] bg-[#ff4655]'
                                                 : 'border-white/20 group-hover:border-white/40'
@@ -178,7 +182,6 @@ export function SubscriptionModal({
                                                 {isActive && <Check className="w-3 h-3 text-white" />}
                                             </div>
 
-                                            {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <h3 className={`font-bold text-base truncate ${isActive ? 'text-[#ff4655]' : 'text-gray-200'}`}>
@@ -199,14 +202,12 @@ export function SubscriptionModal({
                                                 )}
                                             </div>
 
-                                            {/* Actions Column */}
                                             {!isLocal && (
                                                 <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity pl-2 border-l border-white/5 shrink-0">
-                                                    {/* Sort Controls */}
                                                     <div className="flex gap-1 mb-1">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); onReorderSubscription(sub.id, 'up'); }}
-                                                            disabled={index <= 1} // Can't move up if it's the first custom item (index 1)
+                                                            disabled={index <= 1} // 说明：第一个自定义项（索引 1）不可上移。
                                                             className="p-1.5 text-gray-400 hover:text-white bg-black/40 rounded hover:bg-black/60 transition-colors disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-black/40"
                                                             title="上移"
                                                         >
@@ -222,7 +223,6 @@ export function SubscriptionModal({
                                                         </button>
                                                     </div>
 
-                                                    {/* Edit/Delete Controls */}
                                                     <div className="flex gap-1">
                                                         <button
                                                             onClick={(e) => {
@@ -259,7 +259,6 @@ export function SubscriptionModal({
                             })}
                         </div>
                     ) : (
-                        /* Add/Edit View */
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">订阅链接 (URL)</label>
@@ -284,7 +283,6 @@ export function SubscriptionModal({
                                 </p>
                             </div>
 
-                            {/* Status Display */}
                             {checkStatus === 'error' && (
                                 <div className="p-3 bg-red-500/5 border border-red-500/10 rounded-lg flex items-start gap-3">
                                     <Info className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
@@ -310,7 +308,6 @@ export function SubscriptionModal({
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="p-5 border-t border-white/10 shrink-0 bg-[#181b1f] flex justify-end gap-3 rounded-b-2xl">
                     {view === 'list' ? (
                         <button

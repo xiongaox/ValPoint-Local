@@ -1,3 +1,12 @@
+/**
+ * AlertModal - Alert弹窗
+ *
+ * 职责：
+ * - 渲染Alert弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
+ */
+
 import React from 'react';
 import Icon from './Icon';
 import { AlertTriangle, Info } from 'lucide-react';
@@ -53,7 +62,6 @@ const AlertModal: React.FC<AlertModalProps> = ({
   return (
     <div className="fixed inset-0 z-[2200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-        {/* 头部 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center border ${isDanger
@@ -76,7 +84,6 @@ const AlertModal: React.FC<AlertModalProps> = ({
           </button>
         </div>
 
-        {/* 内容 */}
         <div className="p-5 space-y-4 bg-[#181b1f]">
           <div className={`rounded-xl border p-4 flex items-start gap-4 ${isDanger
             ? 'bg-[#ff4655]/10 border-[#ff4655]/20'
@@ -96,7 +103,6 @@ const AlertModal: React.FC<AlertModalProps> = ({
             </div>
           </div>
 
-          {/* 按钮 */}
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
               onClick={handleSecondary}

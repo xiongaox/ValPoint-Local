@@ -1,3 +1,12 @@
+/**
+ * useEscapeClose - EscapeClose
+ *
+ * 职责：
+ * - 封装EscapeClose相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { useEffect, useRef } from 'react';
 
 type EscapeHandler = () => void;

@@ -1,30 +1,12 @@
 /**
- * useAppController - 个人库应用主控制器
- * 
- * 整合所有子控制器和 hooks，作为个人库功能的中枢：
- * - 用户认证状态管理（Supabase Auth）
- * - 点位数据的 CRUD 操作
- * - 地图、特工、技能的选择和筛选
- * - 编辑器、弹窗、快捷操作的状态协调
- * - 置顶点位、批量下载等高级功能
- * 
- * 子控制器职责：
- * - useAppState: UI 状态（标签页、选中项、表单数据）
- * - useMapInfo: 地图信息和翻译
- * - useActionMenu: 快捷菜单和配置
- * - useEditorController: 点位编辑逻辑
- * - useDeletionController: 删除和清空逻辑
- * - useShareController: 共享库同步
- * - useViewController: 视图切换和预览
- */
-/**
- * useAppController.ts - 全局应用状态主控制器
- * 
+ * useAppController - 点位应用控制器
+ *
  * 职责：
- * - 协调地图选取、特工选取及点位过滤的顶级状态
- * - 管理全局弹窗（批下载、个人中心等）的开启与关闭
- * - 集成多个子 Hook 提供聚合的业务逻辑对象
+ * - 封装点位应用控制器相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useEmailAuth } from '../../hooks/useEmailAuth';
 import { useLineups } from '../../hooks/useLineups';
@@ -49,7 +31,6 @@ import { useAppState } from './controllers/useAppState';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { supabase } from '../../supabaseClient';
 
-/** 置顶点位数量上限 */
 const DEFAULT_PINNED_COUNT = 8;
 
 export function useAppController() {
@@ -80,20 +61,15 @@ export function useAppController() {
     selectedMap,
     selectedSide,
   });
-  // 使用 Supabase Auth 进行认证
   const { user, signOut } = useEmailAuth();
-  // 将 Supabase UUID 作为用户 ID
   const userId = user?.id || null;
   const { profile, isLoading: profileLoading } = useUserProfile();
 
 
 
-  // 个人信息弹窗状态
   const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
-  // 统一使用登录模式，不再支持游客模式
   const userMode = 'login' as const;
   const isGuest = false;
-  // 旧认证弹窗相关状态（保留以兼容现有 UI）
   const isAuthModalOpen = false;
   const setIsAuthModalOpen = () => { };
   const pendingUserId = '';
@@ -128,13 +104,11 @@ export function useAppController() {
     searchQuery,
   });
 
-  // 切换特工时重置筛选
   const handleSelectAgent = useCallback((agent: AgentOption | null) => {
     setSelectedAgent(agent);
     setSelectedSide('all');
   }, [setSelectedAgent, setSelectedSide]);
 
-  // 切换地图时自动选择默认特工（第一个）并重置筛选
   const handleSelectMap = useCallback((map: MapOption | null) => {
     setSelectedMap(map);
     setSelectedSide('all');
@@ -174,7 +148,7 @@ export function useAppController() {
     setNewLineupData,
     setSelectedSide,
     setSelectedAbilityIndex,
-    setSelectedAgent: handleSelectAgent, // Use the wrapper here too if needed, but view controller typically handles tabs
+    setSelectedAgent: handleSelectAgent, // 说明：视情使用包装函数，视图控制器通常处理 Tab。
     fetchLineups,
     userId,
     setAlertMessage: modal.setAlertMessage,
@@ -296,15 +270,12 @@ export function useAppController() {
 
     for (const lineup of targets) {
       await handleDownload(lineup.id);
-      // Rate limiting
       await new Promise(resolve => setTimeout(resolve, 300));
     }
   }, [selectedMap, selectedAgent, allMapLineups, handleDownload, modal]);
 
-  // 使用 Supabase Auth 更新密码
   const handleChangePasswordSubmit = useCallback(
     async (oldPassword: string, newPassword: string, confirmPassword: string) => {
-      // 1. 基础校验
       if (!newPassword || !confirmPassword) {
         modal.setAlertMessage('请输入新密码');
         return;
@@ -323,8 +294,6 @@ export function useAppController() {
       setIsChangingPassword(true);
 
       try {
-        // 2. 验证旧密码 (通过尝试登录)
-        // 注意：Supabase 没有直接验证旧密码的 API，通常的做法是再次登录验证
         if (!user?.email) throw new Error('用户未登录');
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -339,7 +308,6 @@ export function useAppController() {
           return;
         }
 
-        // 3. 更新密码
         const { error: updateError } = await supabase.auth.updateUser({
           password: newPassword,
         });
@@ -351,8 +319,6 @@ export function useAppController() {
         modal.setIsChangePasswordOpen(false);
         modal.setAlertMessage('密码修改成功！下次登录请使用新密码');
 
-        // 可选：修改成功后登出
-        // await signOut(); 
       } catch (err: any) {
         console.error('Change password failed:', err);
         modal.setAlertMessage(err.message || '修改密码失败，请稍后重试');
@@ -374,8 +340,8 @@ export function useAppController() {
   const mainViewProps = buildMainViewProps({
     activeTab,
     selectedMap,
-    setSelectedMap: handleSelectMap, // 新增：用于移动端地图选择
-    maps, // 新增：地图列表
+    setSelectedMap: handleSelectMap, // 说明：用于移动端地图选择。
+    maps, // 说明：移动端地图列表。
     setIsMapModalOpen: modal.setIsMapModalOpen,
     selectedSide,
     setSelectedSide,
@@ -550,6 +516,6 @@ export function useAppController() {
     modalProps,
     isProfileModalOpen,
     setIsProfileModalOpen,
-    orderedLineups,  // 暴露点位列表供 UserApp 直接投稿用
+    orderedLineups, // 说明：暴露点位列表供 UserApp 直接投稿。
   };
 }

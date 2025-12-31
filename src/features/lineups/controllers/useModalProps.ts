@@ -1,3 +1,12 @@
+/**
+ * useModalProps - 点位弹窗Props
+ *
+ * 职责：
+ * - 封装点位弹窗Props相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import React from 'react';
 import AppModals from '../AppModals';
 import { MapOption, NewLineupForm, SharedLineup, BaseLineup, LibraryMode, LineupDbPayload } from '../../../types/lineup';
@@ -6,7 +15,6 @@ import { ImageProcessingSettings } from '../../../types/imageProcessing';
 import { LightboxImage } from '../../../types/ui';
 
 type Params = {
-  // auth
   isAuthModalOpen: boolean;
   userId: string | null;
   targetUserId: string;
@@ -19,20 +27,17 @@ type Params = {
   handleResetUserId: () => void;
   handleConfirmUserAuth: (pwd?: string) => void;
   handleApplyCustomUserId: () => void;
-  // map
   isMapModalOpen: boolean;
   maps: MapOption[];
   selectedMap: MapOption | null;
   setSelectedMap: (v: MapOption | null) => void;
   setIsMapModalOpen: (v: boolean) => void;
   getMapDisplayName: (name: string) => string;
-  // preview
   isPreviewModalOpen: boolean;
   previewInput: string;
   setPreviewInput: (v: string) => void;
   onPreviewSubmit: () => void;
   setIsPreviewModalOpen: (v: boolean) => void;
-  // alert
   alertMessage: string | null;
   alertActionLabel: string | null;
   alertAction: (() => void) | null;
@@ -43,7 +48,6 @@ type Params = {
   setAlertAction: (v: (() => void) | null) => void;
   setAlertSecondaryLabel: (v: string | null) => void;
   setAlertSecondaryAction: (v: (() => void) | null) => void;
-  // delete
   deleteTargetId: string | null;
   isClearConfirmOpen: boolean;
   performDelete: () => void;
@@ -57,20 +61,16 @@ type Params = {
   setIsChangePasswordOpen: (v: boolean) => void;
   isChangingPassword: boolean;
   onChangePasswordSubmit: (oldPassword: string, newPassword: string, confirmPassword: string) => void;
-  // image bed
   isImageConfigOpen: boolean;
   imageBedConfig: ImageBedConfig;
   onImageConfigSave: (cfg: ImageBedConfig) => void;
   setIsImageConfigOpen: (v: boolean) => void;
-  // advanced settings
   isAdvancedSettingsOpen: boolean;
   imageProcessingSettings: ImageProcessingSettings;
   onImageProcessingSave: (cfg: ImageProcessingSettings) => void;
   setIsAdvancedSettingsOpen: (v: boolean) => void;
-  // png settings
   isPngSettingsOpen: boolean;
   setIsPngSettingsOpen: (v: boolean) => void;
-  // editor/viewer
   isEditorOpen: boolean;
   editingLineupId: string | null;
   newLineupData: NewLineupForm;
@@ -89,13 +89,11 @@ type Params = {
   viewingImage: LightboxImage | null;
   isChangelogOpen: boolean;
   setIsChangelogOpen: (v: boolean) => void;
-  // import
   isImportModalOpen: boolean;
   setIsImportModalOpen: (v: boolean) => void;
   saveNewLineup: (payload: LineupDbPayload) => Promise<BaseLineup>;
   fetchLineups: (userId: string) => void;
   lineups: BaseLineup[];
-  // batch download
   isBatchDownloadModalOpen: boolean;
   onBatchDownloadClose: () => void;
   handleBatchDownload: (scope: 'agent' | 'map') => Promise<void>;

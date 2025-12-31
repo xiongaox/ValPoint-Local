@@ -1,12 +1,12 @@
 /**
- * ImportLineupModal - 点位导入模态框
- * 
- * 支持从 ZIP 文件批量导入点位：
- * - 解析 ZIP 中的元数据及图片文件
- * - 验证图床配置是否就绪
- * - 批量上传图片并保存点位数据到服务端
- * - 实时展示导入进度
+ * ImportLineupModal - Import点位弹窗
+ *
+ * 职责：
+ * - 渲染Import点位弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState, useRef, useCallback } from 'react';
 import Icon from './Icon';
 import { importLineupFromZip, ImportProgress, ImportResult, parseZipMetadata, ZipMetadata } from '../lib/lineupImport';
@@ -64,7 +64,6 @@ const ImportLineupModal: React.FC<Props> = ({
         const newPending: PendingFile[] = [];
 
         for (const file of toAdd) {
-            // Check if already added
             if (pendingFiles.some(p => p.file.name === file.name)) continue;
 
             try {
@@ -77,7 +76,6 @@ const ImportLineupModal: React.FC<Props> = ({
 
         setPendingFiles(prev => [...prev, ...newPending]);
 
-        // Reset file input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -166,7 +164,6 @@ const ImportLineupModal: React.FC<Props> = ({
             className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
         >
             <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -187,7 +184,6 @@ const ImportLineupModal: React.FC<Props> = ({
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 space-y-4 bg-[#181b1f] max-h-[60vh] overflow-y-auto">
                     {!isConfigured ? (
                         <div className="text-center py-6">
@@ -216,7 +212,6 @@ const ImportLineupModal: React.FC<Props> = ({
                         </div>
                     ) : (
                         <>
-                            {/* File list */}
                             {pendingFiles.length > 0 && (
                                 <div className="space-y-2">
                                     {pendingFiles.map((item, index) => (
@@ -245,7 +240,6 @@ const ImportLineupModal: React.FC<Props> = ({
                                 </div>
                             )}
 
-                            {/* Add more area */}
                             {pendingFiles.length < MAX_FILES && (
                                 <div className="py-2">
                                     <input
@@ -282,7 +276,6 @@ const ImportLineupModal: React.FC<Props> = ({
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="px-5 py-4 border-t border-white/10 bg-[#1c2028] flex items-center justify-between">
                     <div className="text-xs text-gray-500">
                         {pendingFiles.length > 0 ? `已选择 ${validFilesCount} 个有效文件` : '提示：导入后图片会上传至您配置的图床'}

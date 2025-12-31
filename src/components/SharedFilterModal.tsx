@@ -1,9 +1,12 @@
 /**
- * SharedFilterModal - 共享库贡献者筛选模态框
- * 
- * 用于在查看共享库时，根据贡献者的 ID 或昵称进行数据过滤。
- * 样式与 UserProfileModal 保持一致。
+ * SharedFilterModal - 共享库筛选弹窗
+ *
+ * 职责：
+ * - 渲染共享库筛选弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from './Icon';
 import { useEscapeClose } from '../hooks/useEscapeClose';
@@ -56,7 +59,6 @@ const SharedFilterModal: React.FC<Props> = ({ isOpen, contributors, selectedUser
       className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
     >
       <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-        {/* Header - 与 UserProfileModal 一致 */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -76,9 +78,7 @@ const SharedFilterModal: React.FC<Props> = ({ isOpen, contributors, selectedUser
           </button>
         </div>
 
-        {/* Body */}
         <div className="p-5 space-y-5 bg-[#181b1f]">
-          {/* 选择共享者 */}
           <div className="space-y-2">
             <label className="text-sm text-gray-400">选择共享者</label>
             <div className="relative" ref={dropdownRef}>
@@ -111,7 +111,6 @@ const SharedFilterModal: React.FC<Props> = ({ isOpen, contributors, selectedUser
             {!contributors.length && <div className="text-sm text-gray-500 text-center py-2">暂无可筛选的共享者</div>}
           </div>
 
-          {/* Actions - 与 UserProfileModal 一致 */}
           <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={handleReset}

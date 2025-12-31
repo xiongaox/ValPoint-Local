@@ -1,9 +1,13 @@
-// @ts-nocheck
 /**
- * Icon - 图标组件包装器
- * 
- * 统一包装 lucide-react 图标，通过 name 字符串动态加载特定的图标组件。
+ * Icon - Icon
+ *
+ * 职责：
+ * - 渲染Icon相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
+// @ts-nocheck
 import React from 'react';
 import * as lucideIcons from 'lucide-react';
 

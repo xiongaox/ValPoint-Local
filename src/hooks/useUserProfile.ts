@@ -1,11 +1,12 @@
 /**
- * useUserProfile.ts - 用户资料管理 Hook
- * 
+ * useUserProfile - 用户资料
+ *
  * 职责：
- * - 维护当前登录用户的 Profile 信息（昵称、头像、投稿额度等）
- * - 提供资料更新、头像修改及 ID 后填等功能
- * - 管理用户图床配置的加载与更新
+ * - 封装用户资料相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useEmailAuth } from './useEmailAuth';
@@ -20,8 +21,8 @@ export interface UserProfile {
     is_banned: boolean;
     ban_reason: string | null;
     download_count: number;
-    can_batch_download?: boolean; // 是否允许批量下载
-    pinned_lineup_ids: string[]; // 置顶点位ID列表
+    can_batch_download?: boolean; // 说明：是否允许批量下载。
+    pinned_lineup_ids: string[]; // 说明：置顶点位 ID 列表。
     created_at: string;
     updated_at: string;
 }
@@ -34,17 +35,12 @@ interface UseUserProfileResult {
     updateProfile: (data: Partial<Pick<UserProfile, 'nickname' | 'avatar' | 'custom_id'>>) => Promise<{ success: boolean; error?: string }>;
 }
 
-/**
- * 用户配置 Hook
- * 从 public.user_profiles 表读取用户业务数据
- */
 export function useUserProfile(): UseUserProfileResult {
     const { user } = useEmailAuth();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // 获取用户配置
     const fetchProfile = useCallback(async () => {
         if (!user) {
             setProfile(null);
@@ -63,7 +59,6 @@ export function useUserProfile(): UseUserProfileResult {
                 .single();
 
             if (fetchError) {
-                // 如果是 404，说明触发器还没跑完，稍后重试
                 if (fetchError.code === 'PGRST116') {
                     console.warn('用户配置尚未同步，2秒后重试...');
                     setTimeout(fetchProfile, 2000);
@@ -81,12 +76,10 @@ export function useUserProfile(): UseUserProfileResult {
         }
     }, [user]);
 
-    // 监听用户变化
     useEffect(() => {
         fetchProfile();
     }, [fetchProfile]);
 
-    // 更新用户配置（写入 user_profiles 表）
     const updateProfile = useCallback(async (
         data: Partial<Pick<UserProfile, 'nickname' | 'avatar' | 'custom_id'>>
     ): Promise<{ success: boolean; error?: string }> => {
@@ -105,7 +98,6 @@ export function useUserProfile(): UseUserProfileResult {
 
             if (updateError) throw updateError;
 
-            // 刷新本地数据
             await fetchProfile();
 
             return { success: true };

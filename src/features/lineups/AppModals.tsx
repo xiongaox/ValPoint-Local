@@ -1,11 +1,12 @@
 /**
- * AppModals.tsx - 全局弹窗聚合宿主
- * 
+ * AppModals - 点位应用Modals
+ *
  * 职责：
- * - 集中管理应用内所有的顶级弹窗 (Modals)
- * - 包括：下载弹窗、个人中心、登录/注册、设置、同步及重置密码等
- * - 根据 useAppController 的状态决定弹窗的可见性
+ * - 渲染点位应用Modals相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React from 'react';
 import MapPickerModal from '../../components/MapPickerModal';
 import PreviewModal from '../../components/PreviewModal';
@@ -30,7 +31,6 @@ import { ImageProcessingSettings } from '../../types/imageProcessing';
 import { LightboxImage } from '../../types/ui';
 
 type Props = {
-  // auth
   isAuthModalOpen: boolean;
   userId: string | null;
   targetUserId: string;
@@ -42,20 +42,17 @@ type Props = {
   onPasswordChange: (val: string) => void;
   onGuestConfirm: () => void;
   onLoginConfirm: () => void;
-  // map picker
   isMapModalOpen: boolean;
   maps: MapOption[];
   selectedMap: MapOption | null;
   setSelectedMap: (v: MapOption | null) => void;
   setIsMapModalOpen: (v: boolean) => void;
   getMapDisplayName: (name: string) => string;
-  // preview
   isPreviewModalOpen: boolean;
   previewInput: string;
   setPreviewInput: (val: string) => void;
   onPreviewClose: () => void;
   onPreviewSubmit: () => void;
-  // alerts
   alertMessage: string | null;
   alertActionLabel: string | null;
   alertAction: (() => void) | null;
@@ -63,7 +60,6 @@ type Props = {
   alertSecondaryAction: (() => void) | null;
   onAlertClose: () => void;
   setAlertMessage: React.Dispatch<React.SetStateAction<string | null>>;
-  // delete
   deleteTargetId: string | null;
   isClearConfirmOpen: boolean;
   selectedAgentName: string | null;
@@ -77,19 +73,16 @@ type Props = {
   isChangingPassword: boolean;
   onChangePasswordSubmit: (oldPassword: string, newPassword: string, confirmPassword: string) => void;
   setIsChangePasswordOpen: (v: boolean) => void;
-  // image bed
   isImageConfigOpen: boolean;
   imageBedConfig: ImageBedConfig;
   onImageConfigClose: () => void;
   onImageConfigSave: (cfg: ImageBedConfig) => void;
-  // advanced settings & image processing
   isAdvancedSettingsOpen: boolean;
   onAdvancedSettingsClose: () => void;
   isPngSettingsOpen: boolean;
   onPngSettingsClose: () => void;
   imageProcessingSettings: ImageProcessingSettings;
   onImageProcessingSave: (cfg: ImageProcessingSettings) => void;
-  // editor/viewer
   isEditorOpen: boolean;
   editingLineupId: string | null;
   newLineupData: NewLineupForm;
@@ -104,19 +97,15 @@ type Props = {
   setViewingImage: (val: LightboxImage | null) => void;
   getMapEnglishName: (name: string) => string;
   isGuest: boolean;
-  // lightbox
   viewingImage: LightboxImage | null;
-  // changelog
   isChangelogOpen: boolean;
   onChangelogClose: () => void;
-  // import
   isImportModalOpen: boolean;
   onImportClose: () => void;
   onImportSuccess: (payload: LineupDbPayload) => Promise<BaseLineup>;
   onOpenImageConfig: () => void;
   fetchLineups: (userId: string) => void;
   lineups: BaseLineup[];
-  // batch download
   isBatchDownloadModalOpen: boolean;
   onBatchDownloadClose: () => void;
   handleBatchDownload: (scope: 'agent' | 'map') => Promise<void>;

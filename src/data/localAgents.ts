@@ -1,12 +1,14 @@
+/**
+ * localAgents - local英雄
+ *
+ * 职责：
+ * - 承载local英雄相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
+ */
+
 import { AgentData } from '../types/lineup';
 
-/**
- * localAgents.ts - 本地特工数据配置
- * 
- * 职责：
- * - 定义所有特工的静态元数据（ID、名称、角色、图标等）
- * - 如果无法连接到线上 API，作为回退数据使用
- */
 export const LOCAL_AGENTS: AgentData[] = [
   {
     "displayName": "盖可",

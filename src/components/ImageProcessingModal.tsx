@@ -1,3 +1,12 @@
+/**
+ * ImageProcessingModal - ImageProcessing弹窗
+ *
+ * 职责：
+ * - 渲染ImageProcessing弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
+ */
+
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { ImageProcessingSettings } from '../types/imageProcessing';

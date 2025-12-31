@@ -1,11 +1,12 @@
 /**
- * lineupImport - 点位导入服务
- * 
+ * lineupImport - 点位Import
+ *
  * 职责：
- * - 解析 ValPoint 导出的 ZIP 压缩包
- * - 将压缩包内的图片上传到用户配置的图床
- * - 构建用于持久化的数据库 Payload
+ * - 承载点位Import相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
  */
+
 import { unzipSync, strFromU8 } from 'fflate';
 import { uploadImage } from './imageBed';
 import { ImageBedConfig } from '../types/imageBed';
@@ -14,7 +15,6 @@ import { generateUniqueTitle } from '../features/lineups/lineupHelpers';
 
 type LineupImageField = 'stand_img' | 'stand2_img' | 'aim_img' | 'aim2_img' | 'land_img';
 
-// JSON payload format from exported ZIP
 type LineupJsonPayload = {
     id: string;
     user_id: string | null;
@@ -59,7 +59,6 @@ export type ImportResult = {
     failedImages: LineupImageField[];
 };
 
-// Metadata type for preview before import
 export type ZipMetadata = {
     title: string;
     mapName: string;
@@ -68,21 +67,16 @@ export type ZipMetadata = {
 };
 
 
-/**
- * 解析 ZIP 文件元数据（用于预览，不上传图片）
- */
 export const parseZipMetadata = async (zipFile: File): Promise<ZipMetadata> => {
     const arrayBuffer = await zipFile.arrayBuffer();
     const zipData = new Uint8Array(arrayBuffer);
     const unzipped = unzipSync(zipData);
 
-    // Find JSON file
     const jsonFileName = Object.keys(unzipped).find((name) => name.endsWith('.json'));
     if (!jsonFileName) {
         throw new Error('ZIP 文件中未找到 JSON 元数据');
     }
 
-    // Parse JSON
     const jsonContent = strFromU8(unzipped[jsonFileName]);
     const jsonPayload: LineupJsonPayload = JSON.parse(jsonContent);
 
@@ -104,7 +98,6 @@ const imageSlots: { field: LineupImageField; fileName: string }[] = [
 
 const isValidImageBedConfig = (config: ImageBedConfig): boolean => {
     if (!config?.provider) return false;
-    // Check basic required fields based on provider
     if (config.provider === 'aliyun') {
         return !!(config.accessKeyId && config.accessKeySecret && config.bucket && config.area);
     }
@@ -117,13 +110,6 @@ const isValidImageBedConfig = (config: ImageBedConfig): boolean => {
     return false;
 };
 
-/**
- * 解析并导入 ZIP 文件中的点位数据
- * @param zipFile 用户选择的 ZIP 文件
- * @param config 图床配置
- * @param userId 当前用户 ID
- * @param onProgress 进度回调
- */
 export const importLineupFromZip = async (
     zipFile: File,
     config: ImageBedConfig,
@@ -133,7 +119,6 @@ export const importLineupFromZip = async (
 ): Promise<ImportResult> => {
     const failedImages: LineupImageField[] = [];
 
-    // Check image bed config
     if (!isValidImageBedConfig(config)) {
         return {
             success: false,
@@ -143,23 +128,19 @@ export const importLineupFromZip = async (
     }
 
     try {
-        // Read ZIP file
         onProgress?.({ status: 'reading', uploadedCount: 0, totalImages: 0 });
         const arrayBuffer = await zipFile.arrayBuffer();
         const zipData = new Uint8Array(arrayBuffer);
         const unzipped = unzipSync(zipData);
 
-        // Find JSON file
         const jsonFileName = Object.keys(unzipped).find((name) => name.endsWith('.json'));
         if (!jsonFileName) {
             return { success: false, errorMessage: 'ZIP 文件中未找到 JSON 元数据', failedImages: [] };
         }
 
-        // Parse JSON
         const jsonContent = strFromU8(unzipped[jsonFileName]);
         const jsonPayload: LineupJsonPayload = JSON.parse(jsonContent);
 
-        // Collect images to upload
         const imagesToUpload: { field: LineupImageField; data: Uint8Array }[] = [];
         for (const slot of imageSlots) {
             const imagePath = `images/${slot.fileName}`;
@@ -168,7 +149,6 @@ export const importLineupFromZip = async (
             }
         }
 
-        // Upload images
         const uploadedUrls: Partial<Record<LineupImageField, string>> = {};
         const totalImages = imagesToUpload.length;
 
@@ -193,7 +173,6 @@ export const importLineupFromZip = async (
             }
         }
 
-        // Build payload for database
         const uniqueTitle = generateUniqueTitle(jsonPayload.title, existingLineups, jsonPayload.agent_name);
         const payload: LineupDbPayload = {
             title: uniqueTitle,
@@ -220,7 +199,7 @@ export const importLineupFromZip = async (
             author_avatar: jsonPayload.author_avatar ?? null,
             author_uid: jsonPayload.author_uid ?? null,
             user_id: userId,
-            cloned_from: jsonPayload.id, // Use original ID as cloned_from reference
+            cloned_from: jsonPayload.id, // 说明：使用原始 ID 作为 cloned_from。
             created_at: new Date().toISOString(),
         };
 

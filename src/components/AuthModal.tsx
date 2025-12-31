@@ -1,11 +1,12 @@
 /**
- * AuthModal - 应用入口身份验证模态框
- * 
- * 处理用户 ID 输入和身份验证模式选择：
- * - 随机 ID 生成
- * - 登录模式（输入密码）：支持完整编辑操作
- * - 游客模式（留空密码）：仅支持查看和分享
+ * AuthModal - 认证弹窗
+ *
+ * 职责：
+ * - 渲染认证弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState } from 'react';
 import Icon from './Icon';
 import { useEscapeClose } from '../hooks/useEscapeClose';

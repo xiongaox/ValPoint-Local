@@ -1,15 +1,12 @@
 /**
- * SharedManagePage - 共享库内容管理页
- * 
+ * SharedManagePage - 管理端共享库Manage页面
+ *
  * 职责：
- * - 列表展示共享库中所有已通过的点位
- * - 支持按标题、地图、特工、攻防进行多级筛选
- * - 允许管理员直接删除共享库点位
+ * - 组织管理端共享库Manage页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
-/**
- * 共享库管理页面
- * 允许管理员查看和删除共享库中的点位
- */
+
 import React, { useEffect, useState, useMemo } from 'react';
 import Icon from '../../../components/Icon';
 import AlertModal from '../../../components/AlertModal';
@@ -26,12 +23,10 @@ const SharedManagePage: React.FC = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    // 筛选条件
     const [filterAgent, setFilterAgent] = useState('');
     const [filterMap, setFilterMap] = useState('');
     const [filterSide, setFilterSide] = useState<'' | 'attack' | 'defense'>('');
 
-    // 加载数据
     const loadData = async () => {
         setIsLoading(true);
         const data = await getSharedLineups();
@@ -43,7 +38,6 @@ const SharedManagePage: React.FC = () => {
         loadData();
     }, []);
 
-    // 动态获取特工列表和地图列表
     const agentList = useMemo(() => {
         const agents = [...new Set(lineups.map((l) => l.agent_name))].filter(Boolean).sort();
         return agents;
@@ -54,9 +48,7 @@ const SharedManagePage: React.FC = () => {
         return maps;
     }, [lineups]);
 
-    // 筛选
     const filteredLineups = lineups.filter((item) => {
-        // 搜索关键词筛选
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             const matchQuery =
@@ -66,16 +58,12 @@ const SharedManagePage: React.FC = () => {
                 (item.user_id?.toLowerCase().includes(query) ?? false);
             if (!matchQuery) return false;
         }
-        // 特工筛选
         if (filterAgent && item.agent_name !== filterAgent) return false;
-        // 地图筛选
         if (filterMap && item.map_name !== filterMap) return false;
-        // 攻防筛选
         if (filterSide && item.side !== filterSide) return false;
         return true;
     });
 
-    // 切换选择
     const toggleSelect = (id: string) => {
         const newSelected = new Set(selectedIds);
         if (newSelected.has(id)) {
@@ -86,7 +74,6 @@ const SharedManagePage: React.FC = () => {
         setSelectedIds(newSelected);
     };
 
-    // 全选/取消全选
     const toggleSelectAll = () => {
         if (selectedIds.size === filteredLineups.length) {
             setSelectedIds(new Set());
@@ -95,7 +82,6 @@ const SharedManagePage: React.FC = () => {
         }
     };
 
-    // 执行删除
     const executeDelete = async () => {
         if (!deleteConfirm) return;
 
@@ -114,7 +100,7 @@ const SharedManagePage: React.FC = () => {
         if (result.success) {
             setMessage({ type: 'success', text: '删除成功' });
             setLineups((prev) => prev.filter((l) => !deleteConfirm.ids.includes(l.id)));
-            setSelectedIds(new Set()); // 清空选择
+            setSelectedIds(new Set()); // 说明：清空选择。
         } else {
             setMessage({ type: 'error', text: `删除失败: ${result.error}` });
         }
@@ -124,7 +110,6 @@ const SharedManagePage: React.FC = () => {
 
 
 
-    // 重置筛选
     const resetFilters = () => {
         setSearchQuery('');
         setFilterAgent('');
@@ -136,7 +121,6 @@ const SharedManagePage: React.FC = () => {
 
     return (
         <div className="space-y-6">
-            {/* 消息提示 */}
             {message && (
                 <div
                     className={`p-4 rounded-lg ${message.type === 'success'
@@ -148,7 +132,6 @@ const SharedManagePage: React.FC = () => {
                 </div>
             )}
 
-            {/* 统计卡片 */}
             <div className="grid grid-cols-3 gap-4">
                 <div className="bg-[#1f2326] rounded-xl p-6 border border-white/5">
                     <div className="text-3xl font-bold text-white">{lineups.length}</div>
@@ -168,9 +151,7 @@ const SharedManagePage: React.FC = () => {
                 </div>
             </div>
 
-            {/* 筛选区 */}
             <div className="bg-[#1f2326] rounded-xl border border-white/5">
-                {/* 顶部搜索和刷新 */}
                 <div className="p-4 border-b border-white/5">
                     <div className="flex items-center gap-3">
                         <div className="relative flex-1">
@@ -193,9 +174,7 @@ const SharedManagePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* 筛选条件区 */}
                 <div className="p-4 flex items-center gap-4">
-                    {/* 特工筛选 */}
                     <Select
                         value={filterAgent}
                         onChange={setFilterAgent}
@@ -204,7 +183,6 @@ const SharedManagePage: React.FC = () => {
                         icon="User"
                     />
 
-                    {/* 地图筛选 */}
                     <Select
                         value={filterMap}
                         onChange={setFilterMap}
@@ -213,10 +191,8 @@ const SharedManagePage: React.FC = () => {
                         icon="Map"
                     />
 
-                    {/* 分隔线 */}
                     <div className="w-px h-6 bg-white/10" />
 
-                    {/* 攻防筛选 - 按钮组 */}
                     <div className="flex items-center gap-1 bg-[#0f1923] rounded-lg p-1">
                         <button
                             onClick={() => setFilterSide(filterSide === 'attack' ? '' : 'attack')}
@@ -238,9 +214,7 @@ const SharedManagePage: React.FC = () => {
                         </button>
                     </div>
 
-                    {/* 右侧区域 */}
                     <div className="ml-auto flex items-center gap-4">
-                        {/* 批量删除按钮 */}
                         {selectedIds.size > 0 && (
                             <button
                                 onClick={() => setDeleteConfirm({ type: 'batch', ids: Array.from(selectedIds) })}
@@ -250,7 +224,6 @@ const SharedManagePage: React.FC = () => {
                                 批量删除 ({selectedIds.size})
                             </button>
                         )}
-                        {/* 重置按钮 */}
                         {hasFilters && (
                             <button
                                 onClick={resetFilters}
@@ -261,7 +234,6 @@ const SharedManagePage: React.FC = () => {
                             </button>
                         )}
 
-                        {/* 筛选结果 */}
                         <div className="text-sm">
                             {hasFilters ? (
                                 <span className="text-[#ff4655]">{filteredLineups.length}</span>
@@ -274,7 +246,6 @@ const SharedManagePage: React.FC = () => {
                 </div>
             </div>
 
-            {/* 点位列表 */}
             <div className="bg-[#1f2326] rounded-xl border border-white/5 overflow-hidden">
                 {isLoading ? (
                     <div className="flex items-center justify-center py-12">
@@ -373,7 +344,6 @@ const SharedManagePage: React.FC = () => {
                 )}
             </div>
 
-            {/* 删除确认弹窗 */}
             {deleteConfirm && (
                 <AlertModal
                     variant="danger"

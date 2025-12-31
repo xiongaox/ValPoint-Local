@@ -1,10 +1,12 @@
 /**
- * ClearLineupsModal - 清空点位确认模态框
- * 
- * 提供两种级别的删除确认：
- * 1. 清空所有点位（当前登录账号下）
- * 2. 仅清空当前选中特工的点位
+ * ClearLineupsModal - Clear点位弹窗
+ *
+ * 职责：
+ * - 渲染Clear点位弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React from 'react';
 import Icon from './Icon';
 import { useEscapeClose } from '../hooks/useEscapeClose';

@@ -1,10 +1,10 @@
 /**
- * imageBed/utils - 图床通用工具函数
- * 
+ * utils - 工具
+ *
  * 职责：
- * - 文件名与路径处理 (trimSlashes, buildTimestampName)
- * - 扩展名推断与 URL 增强 (inferExtension, appendTimestamp)
- * - 基础图片下载 Blob 处理
+ * - 承载工具相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
  */
 
 export const trimSlashes = (value = '') => value.replace(/^\/+|\/+$/g, '');
@@ -37,17 +37,10 @@ export const buildTimestampName = () => {
   );
 };
 
-/**
- * 生成 32 位 UUID（无连字符）
- */
 export const generateUUID = (): string => {
   return crypto.randomUUID().replace(/-/g, '');
 };
 
-/**
- * 构建安全的对象存储路径：/{uuid}
- * - uuid: 随机生成的 32 位十六进制字符串，不可预测
- */
 export const buildSecureObjectKey = (basePath: string | undefined): string => {
   const prefix = trimSlashes(basePath || '');
   const fileName = generateUUID();

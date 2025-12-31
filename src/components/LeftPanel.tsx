@@ -1,12 +1,12 @@
 /**
- * LeftPanel - 左侧导航面板组件
- * 
- * 显示当前选中的地图和特工列表：
- * - 地图预览卡片（点击可切换地图）
- * - 特工网格（带点位数量角标）
- * - 技能筛选按钮（选中特工后显示）
- * - 更新日志入口
+ * LeftPanel - 左侧面板
+ *
+ * 职责：
+ * - 承载左侧面板相关信息与操作入口。
+ * - 组织内部子模块的布局与显示状态。
+ * - 向父级汇报用户操作或选择。
  */
+
 import React from 'react';
 import Icon from './Icon';
 import { getAbilityIcon, getAbilityTitle } from '../utils/abilityIcons';

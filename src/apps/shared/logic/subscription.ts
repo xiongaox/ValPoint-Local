@@ -1,10 +1,19 @@
+/**
+ * subscription - 共享库subscription
+ *
+ * 职责：
+ * - 承载共享库subscription的核心业务逻辑。
+ * - 组合数据处理与决策流程。
+ * - 与上层 UI 或服务模块对接。
+ */
+
 export interface Subscription {
-    id: string; // UUID or generated ID
+    id: string; // 说明：UUID 或生成的 ID。
     name: string;
     description?: string;
-    url: string; // The base URL (e.g. https://val.example.com)
-    mode: 'embed' | 'redirect'; // embed=在当前域名加载数据, redirect=跳转到对方网站
-    api?: {  // redirect 模式不需要 api 配置
+    url: string; // 说明：基础 URL（例如 https://val.example.com）。
+    mode: 'embed' | 'redirect'; // 说明：embed 在当前页面加载，redirect 跳转到外部站点。
+    api?: { // 说明：redirect 模式不需要 api 配置。
         supabaseUrl: string;
         supabaseAnonKey: string;
     };
@@ -13,7 +22,6 @@ export interface Subscription {
 
 const STORAGE_KEY = 'valpoint_subscriptions';
 
-// Helper to get local config from env
 const getLocalSubscription = (): Subscription => {
     return {
         id: 'local',
@@ -33,7 +41,6 @@ export const getSubscriptionList = (): Subscription[] => {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         const list: Subscription[] = stored ? JSON.parse(stored) : [];
-        // Always prepend local/official subscription
         return [getLocalSubscription(), ...list];
     } catch (e) {
         console.error('Failed to parse subscriptions', e);
@@ -42,8 +49,7 @@ export const getSubscriptionList = (): Subscription[] => {
 };
 
 export const addSubscription = (sub: Subscription) => {
-    const list = getSubscriptionList().filter(s => s.id !== 'local'); // Exclude virtual local
-    // Check duplicates by URL
+    const list = getSubscriptionList().filter(s => s.id !== 'local'); // 说明：排除本地虚拟项。
     if (list.some(s => s.url === sub.url)) {
         throw new Error('This library is already subscribed.');
     }
@@ -82,8 +88,7 @@ export const reorderSubscription = (id: string, direction: 'up' | 'down') => {
 };
 
 export const fetchManifest = async (url: string): Promise<Subscription> => {
-    // Normalize URL
-    let baseUrl = url.replace(/\/$/, ''); // Remove trailing slash
+    let baseUrl = url.replace(/\/$/, ''); // 说明：移除末尾斜杠。
     if (!baseUrl.startsWith('http')) {
         baseUrl = `https://${baseUrl}`;
     }
@@ -95,12 +100,10 @@ export const fetchManifest = async (url: string): Promise<Subscription> => {
         }
         const data = await response.json();
 
-        // Validate manifest
         if (!data.api || !data.api.supabaseUrl || !data.api.supabaseAnonKey) {
             throw new Error('Invalid manifest: Missing API configuration');
         }
 
-        // 确定订阅模式：默认为 embed，如果清单指定 redirect 则使用跳转模式
         const mode = data.mode === 'redirect' ? 'redirect' : 'embed';
 
         const subscription: Subscription = {
@@ -112,7 +115,6 @@ export const fetchManifest = async (url: string): Promise<Subscription> => {
             addedAt: Date.now()
         };
 
-        // embed 模式需要 API 配置，redirect 模式不需要
         if (mode === 'embed') {
             subscription.api = {
                 supabaseUrl: data.api.supabaseUrl,

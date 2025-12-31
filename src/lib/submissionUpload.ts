@@ -1,24 +1,21 @@
 /**
- * submissionUpload - 用户投稿上传服务
- * 
+ * submissionUpload - 投稿上传
+ *
  * 职责：
- * - 处理用户提交的点位 ZIP 包解析
- * - 将图片暂存至 Supabase Storage 的 submissions 桶
- * - 实施每日投稿限额检查（防止恶意刷屏）
- * - 记录投稿元数据至待审表
+ * - 承载投稿上传相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
  */
 
 import { unzipSync, strFromU8 } from 'fflate';
 import { supabase } from '../supabaseClient';
 import { SubmissionFormData, SubmissionProgress, SubmissionResult, LineupSubmission } from '../types/submission';
 
-/** ZIP 解析后的图片数据 */
 interface ParsedZipData {
     jsonPayload: any;
-    images: Map<string, Uint8Array>; // 文件名 -> 二进制数据
+    images: Map<string, Uint8Array>; // 说明：文件名到二进制数据的映射。
 }
 
-/** 图片字段映射 */
 const IMAGE_FIELDS = [
     { jsonKey: 'stand_img', field: 'stand_img' },
     { jsonKey: 'aim_img', field: 'aim_img' },
@@ -26,25 +23,19 @@ const IMAGE_FIELDS = [
     { jsonKey: 'land_img', field: 'land_img' },
 ] as const;
 
-/**
- * 解析 ZIP 文件
- */
 export const parseSubmissionZip = async (zipFile: File): Promise<ParsedZipData> => {
     const arrayBuffer = await zipFile.arrayBuffer();
     const zipData = new Uint8Array(arrayBuffer);
     const unzipped = unzipSync(zipData);
 
-    // 查找 JSON 文件
     const jsonFileName = Object.keys(unzipped).find((name) => name.endsWith('.json'));
     if (!jsonFileName) {
         throw new Error('ZIP 文件中未找到 JSON 元数据');
     }
 
-    // 解析 JSON
     const jsonContent = strFromU8(unzipped[jsonFileName]);
     const jsonPayload = JSON.parse(jsonContent);
 
-    // 收集图片文件
     const images = new Map<string, Uint8Array>();
     for (const [fileName, data] of Object.entries(unzipped)) {
         if (/\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
@@ -55,9 +46,6 @@ export const parseSubmissionZip = async (zipFile: File): Promise<ParsedZipData> 
     return { jsonPayload, images };
 };
 
-/**
- * 上传图片到 Supabase Storage
- */
 const uploadImageToStorage = async (
     imageData: Uint8Array,
     fileName: string,
@@ -66,12 +54,10 @@ const uploadImageToStorage = async (
 ): Promise<string> => {
     const bucket = 'submissions';
 
-    // 提取扩展名并生成安全的文件名（避免中文字符导致错误）
     const ext = fileName.split('.').pop()?.toLowerCase() || 'jpg';
     const safeFileName = `${crypto.randomUUID()}.${ext}`;
     const path = `${userId}/${submissionId}/${safeFileName}`;
 
-    // 确定 MIME 类型
     const mimeTypes: Record<string, string> = {
         jpg: 'image/jpeg',
         jpeg: 'image/jpeg',
@@ -81,10 +67,8 @@ const uploadImageToStorage = async (
     };
     const contentType = mimeTypes[ext] || 'image/jpeg';
 
-    // 转换为 Blob（创建新的 Uint8Array 确保类型兼容）
     const blob = new Blob([new Uint8Array(imageData)], { type: contentType });
 
-    // 上传到 Supabase Storage
     const { error } = await supabase.storage.from(bucket).upload(path, blob, {
         contentType,
         upsert: true,
@@ -94,16 +78,11 @@ const uploadImageToStorage = async (
         throw new Error(`上传图片失败: ${error.message}`);
     }
 
-    // 获取公开 URL
     const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
     return urlData.publicUrl;
 };
 
-/**
- * 检查今日投稿次数
- */
 export const checkDailySubmissionLimit = async (userId: string): Promise<{ allowed: boolean; remaining: number }> => {
-    // 获取限制配置
     const { data: settings } = await supabase
         .from('system_settings')
         .select('daily_submission_limit')
@@ -112,7 +91,6 @@ export const checkDailySubmissionLimit = async (userId: string): Promise<{ allow
 
     const limit = settings?.daily_submission_limit || 10;
 
-    // 查询今日投稿数
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -131,9 +109,6 @@ export const checkDailySubmissionLimit = async (userId: string): Promise<{ allow
     };
 };
 
-/**
- * 提交点位投稿
- */
 export const submitLineup = async (
     zipFile: File,
     userId: string,
@@ -141,7 +116,6 @@ export const submitLineup = async (
     onProgress?: (progress: SubmissionProgress) => void,
 ): Promise<SubmissionResult> => {
     try {
-        // 1. 检查投稿限制
         const { allowed, remaining } = await checkDailySubmissionLimit(userId);
         if (!allowed) {
             return {
@@ -152,14 +126,11 @@ export const submitLineup = async (
 
         onProgress?.({ status: 'uploading', uploadedCount: 0, totalImages: 0 });
 
-        // 2. 解析 ZIP 文件
         const { jsonPayload, images } = await parseSubmissionZip(zipFile);
         const totalImages = images.size;
 
-        // 3. 生成投稿 ID
         const submissionId = crypto.randomUUID();
 
-        // 4. 上传图片到 Supabase Storage
         const imageUrls: Record<string, string> = {};
         let uploadedCount = 0;
 
@@ -176,7 +147,6 @@ export const submitLineup = async (
 
         onProgress?.({ status: 'saving', uploadedCount, totalImages });
 
-        // 5. 保存投稿记录
         const submissionData: Partial<LineupSubmission> = {
             id: submissionId,
             submitter_id: userId,
@@ -230,9 +200,6 @@ export const submitLineup = async (
     }
 };
 
-/**
- * 从 URL 下载图片并转换为 Uint8Array
- */
 const downloadImageAsBuffer = async (imageUrl: string): Promise<{ data: Uint8Array; ext: string } | null> => {
     try {
         const response = await fetch(imageUrl);
@@ -243,14 +210,12 @@ const downloadImageAsBuffer = async (imageUrl: string): Promise<{ data: Uint8Arr
         const arrayBuffer = await response.arrayBuffer();
         const data = new Uint8Array(arrayBuffer);
 
-        // 从 URL 或 Content-Type 推断扩展名
         const contentType = response.headers.get('content-type') || '';
         let ext = 'jpg';
         if (contentType.includes('png')) ext = 'png';
         else if (contentType.includes('webp')) ext = 'webp';
         else if (contentType.includes('gif')) ext = 'gif';
         else {
-            // 从 URL 提取扩展名
             const urlExt = imageUrl.split('.').pop()?.split('?')[0]?.toLowerCase();
             if (urlExt && ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(urlExt)) {
                 ext = urlExt === 'jpeg' ? 'jpg' : urlExt;
@@ -264,9 +229,6 @@ const downloadImageAsBuffer = async (imageUrl: string): Promise<{ data: Uint8Arr
     }
 };
 
-/**
- * 直接从本地点位数据投稿（图片会重新上传到 Supabase Storage）
- */
 export const submitLineupDirectly = async (
     lineup: {
         id: string;
@@ -299,7 +261,6 @@ export const submitLineupDirectly = async (
     onProgress?: (progress: SubmissionProgress) => void,
 ): Promise<SubmissionResult> => {
     try {
-        // 1. 检查投稿限制
         const { allowed } = await checkDailySubmissionLimit(userId);
         if (!allowed) {
             return {
@@ -308,7 +269,6 @@ export const submitLineupDirectly = async (
             };
         }
 
-        // 2. 收集需要上传的图片
         const imageFields = [
             { key: 'stand_img', url: lineup.standImg },
             { key: 'stand2_img', url: lineup.stand2Img },
@@ -320,10 +280,8 @@ export const submitLineupDirectly = async (
         const totalImages = imageFields.length;
         onProgress?.({ status: 'uploading', uploadedCount: 0, totalImages });
 
-        // 3. 生成投稿 ID
         const submissionId = crypto.randomUUID();
 
-        // 4. 下载并重新上传图片到 Supabase Storage
         const imageUrls: Record<string, string> = {};
         let uploadedCount = 0;
 
@@ -342,7 +300,6 @@ export const submitLineupDirectly = async (
 
         onProgress?.({ status: 'saving', uploadedCount, totalImages });
 
-        // 5. 保存投稿记录
         const submissionData: Partial<LineupSubmission> = {
             id: submissionId,
             submitter_id: userId,
@@ -395,9 +352,6 @@ export const submitLineupDirectly = async (
     }
 };
 
-/**
- * 获取用户的投稿列表
- */
 export const getUserSubmissions = async (userId: string): Promise<LineupSubmission[]> => {
     const { data, error } = await supabase
         .from('lineup_submissions')
@@ -413,11 +367,7 @@ export const getUserSubmissions = async (userId: string): Promise<LineupSubmissi
     return data || [];
 };
 
-/**
- * 删除单个投稿记录（只允许删除 approved 或 rejected 状态的）
- */
 export const deleteSubmission = async (submissionId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
-    // 先查询验证状态
     const { data: submission, error: fetchError } = await supabase
         .from('lineup_submissions')
         .select('status, submitter_id')
@@ -448,9 +398,6 @@ export const deleteSubmission = async (submissionId: string, userId: string): Pr
     return { success: true };
 };
 
-/**
- * 取消审核中的投稿（将状态改为 rejected 并标记为用户取消）
- */
 export const cancelSubmission = async (submissionId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
     const { data: submission, error: fetchError } = await supabase
         .from('lineup_submissions')
@@ -482,14 +429,10 @@ export const cancelSubmission = async (submissionId: string, userId: string): Pr
     return { success: true };
 };
 
-/**
- * 按状态批量删除投稿
- */
 export const deleteSubmissionsByStatus = async (
     userId: string,
     statusFilter: 'all' | 'approved' | 'rejected'
 ): Promise<{ success: boolean; deletedCount: number; error?: string }> => {
-    // 先查询要删除的记录数
     let countQuery = supabase
         .from('lineup_submissions')
         .select('id', { count: 'exact', head: true })
@@ -504,7 +447,6 @@ export const deleteSubmissionsByStatus = async (
 
     const { count } = await countQuery;
 
-    // 执行删除
     let deleteQuery = supabase
         .from('lineup_submissions')
         .delete()

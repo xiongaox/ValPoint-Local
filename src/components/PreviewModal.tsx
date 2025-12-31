@@ -1,9 +1,13 @@
-// @ts-nocheck
 /**
- * PreviewModal - 预览加载模块
- * 
- * 用于处理用户粘贴分享 ID 或链接，从而加载和预览特定点位的详细信息。
+ * PreviewModal - Preview弹窗
+ *
+ * 职责：
+ * - 渲染Preview弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
+// @ts-nocheck
 import React from 'react';
 import { useEscapeClose } from '../hooks/useEscapeClose';
 

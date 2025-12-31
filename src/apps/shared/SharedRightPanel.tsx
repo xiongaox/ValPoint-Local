@@ -1,11 +1,12 @@
 /**
- * SharedRightPanel - 共享库右侧列表面板
- * 
+ * SharedRightPanel - 共享库右侧面板
+ *
  * 职责：
- * - 显示搜索框、切换攻防侧和点位列表
- * - 支持点位搜索与作者筛选状态展示
- * - 指导用户进行在线投稿
+ * - 承载共享库右侧面板相关信息与操作入口。
+ * - 组织内部子模块的布局与显示状态。
+ * - 向父级汇报用户操作或选择。
  */
+
 import React, { useEffect, useMemo, useState } from 'react';
 import Icon from '../../components/Icon';
 import { BaseLineup } from '../../types/lineup';
@@ -26,13 +27,9 @@ interface SharedRightPanelProps {
     getMapDisplayName: (name: string) => string;
     onOpenFilter: () => void;
     userId?: string | null;
-    submissionEnabled?: boolean; // 投稿开关
+    submissionEnabled?: boolean; // 说明：投稿开关。
 }
 
-/**
- * 共享库右侧面板
- * 与个人库共享模式样式一致
- */
 function SharedRightPanel({
     activeTab,
     onTabSwitch,
@@ -71,7 +68,6 @@ function SharedRightPanel({
 
     return (
         <div className="w-96 flex-shrink-0 flex flex-col bg-[#1f2326] border-l border-white/10 z-20 shadow-2xl">
-            {/* 顶部标题栏 - 与个人库一致 */}
             <div className="flex border-b border-white/10">
                 <button
                     onClick={() => onTabSwitch?.('view')}
@@ -100,13 +96,10 @@ function SharedRightPanel({
                 )}
             </div>
 
-            {/* 根据 activeTab 显示不同内容 */}
-            {/* submit 时保持之前的界面，因为投稿是弹窗形式 */}
             {activeTab === 'pending' ? (
                 <PendingSubmissionsTab userId={userId || null} />
             ) : (
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
-                    {/* 搜索和筛选 */}
                     <div className="flex items-center gap-2">
                         <div className="relative flex-1">
                             <input
@@ -130,7 +123,6 @@ function SharedRightPanel({
                         </button>
                     </div>
 
-                    {/* 攻/防筛选按钮 */}
                     <div className="flex bg-[#0f1923] p-1 rounded-lg border border-white/10">
                         <button
                             onClick={() => setSelectedSide('all')}
@@ -157,7 +149,6 @@ function SharedRightPanel({
                         </button>
                     </div>
 
-                    {/* 点位列表 */}
                     <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                         {isLoading ? (
                             <div className="flex items-center justify-center h-40">
@@ -223,7 +214,6 @@ function SharedRightPanel({
                         )}
                     </div>
 
-                    {/* 分页 */}
                     {showPagination && (
                         <div className="mt-4 flex items-center justify-center gap-3 text-sm text-gray-200">
                             <button

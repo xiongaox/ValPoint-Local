@@ -1,11 +1,12 @@
 /**
- * LineupUploadPage - 批量点位上传页
- * 
+ * LineupUploadPage - 管理端点位上传页面
+ *
  * 职责：
- * - 允许管理员通过批量选择 ZIP 文件直接创建点位
- * - 自动从 ZIP 文件名/内容中提取元数据，并在上传前提供预览
- * - 调用 adminUpload 服务完成大规模点位导入
+ * - 组织管理端点位上传页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '../../../components/Icon';
 import { parseZipMetadata, adminUploadLineup, AdminUploadProgress } from '../../../lib/adminUpload';
@@ -42,7 +43,6 @@ const LineupUploadPage: React.FC<LineupUploadPageProps> = ({ setAlertMessage }) 
     const [imageBedConfig, setImageBedConfig] = useState<ImageBedConfig | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // 加载图床配置
     useEffect(() => {
         const loadConfig = async () => {
             const settings = await getSystemSettings();
@@ -106,7 +106,6 @@ const LineupUploadPage: React.FC<LineupUploadPageProps> = ({ setAlertMessage }) 
         for (const item of filesToUpload) {
             const index = pendingFiles.findIndex(f => f === item);
 
-            // 更新状态为上传中
             setPendingFiles(prev => {
                 const next = [...prev];
                 next[index] = { ...next[index], status: 'uploading', progress: 0 };
@@ -114,7 +113,6 @@ const LineupUploadPage: React.FC<LineupUploadPageProps> = ({ setAlertMessage }) 
             });
 
             try {
-                // 获取当前管理员用户信息
                 const { data: { user } } = await adminSupabase.auth.getUser();
 
                 const result = await adminUploadLineup(

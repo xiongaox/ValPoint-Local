@@ -1,15 +1,13 @@
-// @ts-nocheck
 /**
- * LeafletMap - 基于 Leaflet 的地图交互组件
- * 
- * 渲染 Valorant 游戏地图并支持：
- * - 点位标记的显示和交互（hover、click、选中高亮）
- * - 创建模式下的拖拽定位（站位点、技能落点）
- * - 攻防视角翻转（180度旋转）
- * - 站位-落点连线绘制
- * 
- * 使用 CRS.Simple 坐标系，地图范围固定为 [0,0] - [1000,1000]
+ * LeafletMap - Leaflet地图
+ *
+ * 职责：
+ * - 渲染Leaflet地图相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
+// @ts-nocheck
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { getAbilityIcon } from '../utils/abilityIcons';
@@ -87,7 +85,6 @@ const LeafletMap: React.FC<Props> = ({
     return pos;
   };
 
-  // 当 lineups 变化或 selectedLineupId 清除时，重置悬停状态
   useEffect(() => {
     setHoveredLineupId(null);
   }, [lineups, selectedLineupId]);
@@ -151,11 +148,9 @@ const LeafletMap: React.FC<Props> = ({
     map.fitBounds(bounds, fitBoundsOptions);
   }, [mapIcon, fitBoundsOptions]);
 
-  // 当切换攻防视角时，强制刷新地图尺寸，避免地图缩小到左上角
   useEffect(() => {
     const map = mapInstance.current;
     if (!map) return;
-    // 延迟执行以确保 DOM 已更新
     if (!hasAppliedFlip.current) {
       hasAppliedFlip.current = true;
       return;
@@ -216,7 +211,6 @@ const LeafletMap: React.FC<Props> = ({
     }
 
     if (activeTab === 'shared' && sharedLineup) {
-      // 清理之前可能残留的 marker/line，避免叠加
       Object.values(markerMap.current).forEach(({ agent, skill }) => {
         map.removeLayer(agent);
         map.removeLayer(skill);

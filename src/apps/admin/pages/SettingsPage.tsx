@@ -1,12 +1,12 @@
 /**
- * SettingsPage - 全局系统设置页
- * 
+ * SettingsPage - 管理端设置页面
+ *
  * 职责：
- * - 配置官方图床 (OSS) 参数
- * - 维护投稿功能开关及每日限额
- * - 管理员名单维护 (仅超级管理员可见)
- * - 域名及下载限制等基础参数配置
+ * - 组织管理端设置页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect, useMemo } from 'react';
 import Icon from '../../../components/Icon';
 import AlertModal from '../../../components/AlertModal';
@@ -29,7 +29,6 @@ interface Settings {
 }
 
 
-// Tab 配置
 type SettingsTab = 'imageBed' | 'submission' | 'download' | 'features' | 'authorInfo' | 'admins';
 
 const TABS: { id: SettingsTab; label: string; icon: 'Cloud' | 'Send' | 'Download' | 'ToggleLeft' | 'Globe' | 'Shield' | 'User'; superAdminOnly?: boolean }[] = [
@@ -41,9 +40,6 @@ const TABS: { id: SettingsTab; label: string; icon: 'Cloud' | 'Send' | 'Download
     { id: 'admins', label: '管理员', icon: 'Shield', superAdminOnly: true },
 ];
 
-/**
- * 系统设置页面 - Tab 布局
- */
 function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
     const [activeTab, setActiveTab] = useState<SettingsTab>('imageBed');
     const [settings, setSettings] = useState<Settings>({
@@ -52,14 +48,11 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
         enableDownloadLogs: true,
         maintenanceMode: false,
     });
-    // 官方图床配置
     const [ossConfig, setOssConfig] = useState<ImageBedConfig>(defaultImageBedConfig);
     const [submissionEnabled, setSubmissionEnabled] = useState(false);
     const [dailySubmissionLimit, setDailySubmissionLimit] = useState(10);
-    // 作者信息链接
     const [authorLinks, setAuthorLinks] = useState<AuthorLinks>(defaultAuthorLinks);
 
-    // 管理员管理
     const [adminList, setAdminList] = useState<AdminUser[]>([]);
     const [newAdminEmail, setNewAdminEmail] = useState('');
     const [newAdminNickname, setNewAdminNickname] = useState('');
@@ -76,7 +69,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
     const [isOssConfigValid, setIsOssConfigValid] = useState(false);
 
 
-    // 从 Supabase 加载设置
     useEffect(() => {
         async function loadSettings() {
             setIsLoading(true);
@@ -91,7 +83,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                     ...prev,
                     dailyDownloadLimit: data.daily_download_limit ?? 50
                 }));
-                // 加载作者信息链接
                 if (data.author_links) {
                     setAuthorLinks(data.author_links);
                 }
@@ -101,14 +92,12 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
         loadSettings();
     }, []);
 
-    // 加载管理员列表
     useEffect(() => {
         if (isSuperAdmin) {
             getAdminList().then(setAdminList);
         }
     }, [isSuperAdmin]);
 
-    // 添加管理员
     const handleAddAdmin = async () => {
         if (!newAdminEmail.trim()) return;
         setIsAddingAdmin(true);
@@ -124,7 +113,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
         setIsAddingAdmin(false);
     };
 
-    // 移除管理员
     const handleRemoveAdmin = async (adminId: string) => {
         setConfirmState({
             message: '确定要移除该管理员吗？',
@@ -172,7 +160,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
         );
     }
 
-    // 渲染各 Tab 内容
     const renderTabContent = () => {
         switch (activeTab) {
             case 'imageBed':
@@ -208,7 +195,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                             <p className="text-xs text-gray-500 mb-4">管理用户投稿点位的相关设置</p>
 
                             <div className="space-y-4">
-                                {/* 投稿开关 */}
                                 <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
                                     <div>
                                         <div className="text-sm text-white font-medium">开启投稿功能</div>
@@ -235,7 +221,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                                     </button>
                                 </div>
 
-                                {/* 每日投稿限制 */}
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-2">每日投稿次数限制</label>
                                     <div className="flex items-center gap-4">
@@ -299,7 +284,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                             <p className="text-xs text-gray-500 mb-4">管理系统各项功能的开启与关闭</p>
 
                             <div className="space-y-3">
-                                {/* 邮箱验证 */}
                                 <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
                                     <div>
                                         <div className="text-sm text-white font-medium">强制邮箱验证</div>
@@ -322,7 +306,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                                     </button>
                                 </div>
 
-                                {/* 下载日志 */}
                                 <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
                                     <div>
                                         <div className="text-sm text-white font-medium">记录下载日志</div>
@@ -345,7 +328,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                                     </button>
                                 </div>
 
-                                {/* 维护模式 */}
                                 <div className="flex items-center justify-between p-4 bg-[#0f1923] rounded-lg border border-white/10">
                                     <div>
                                         <div className="text-sm text-white font-medium">维护模式</div>
@@ -384,7 +366,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                             <p className="text-xs text-gray-500 mb-4">添加或移除系统管理员权限</p>
                         </div>
 
-                        {/* 添加管理员 */}
                         <div className="bg-[#0f1923] rounded-xl p-4 border border-white/10">
                             <h4 className="text-white font-medium mb-4">添加管理员</h4>
                             <div className="flex gap-3">
@@ -420,7 +401,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                             </p>
                         </div>
 
-                        {/* 管理员列表 */}
                         <div className="bg-[#0f1923] rounded-xl border border-white/10 overflow-hidden">
                             <div className="px-4 py-3 border-b border-white/10">
                                 <h4 className="text-white font-medium">管理员列表</h4>
@@ -550,12 +530,10 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
         }
     };
 
-    // 过滤标签页（超级管理员才能看到管理员标签）
     const visibleTabs = TABS.filter((tab) => !tab.superAdminOnly || isSuperAdmin);
 
     return (
         <div className="w-full">
-            {/* Tab 栏 - 使用负边距抵消父容器padding */}
             <div className="flex items-center mb-6 bg-[#1f2326] -mx-6 -mt-6">
                 {visibleTabs.map((tab) => (
                     <button
@@ -572,14 +550,11 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                 ))}
             </div>
 
-            {/* 内容区域 - 保持原有宽度 */}
             <div className="max-w-4xl mx-auto">
-                {/* Tab 内容区域 */}
                 <div className="bg-[#1f2326] rounded-xl border border-white/10 p-6 min-h-[300px]">
                     {renderTabContent()}
                 </div>
 
-                {/* 保存按钮 */}
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
@@ -598,7 +573,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                     )}
                 </button>
 
-                {/* 确认弹窗 */}
                 <AlertModal
                     message={confirmState?.message ?? null}
                     onClose={() => setConfirmState(null)}
@@ -607,7 +581,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                     secondaryLabel="取消"
                 />
 
-                {/* 消息弹窗 */}
                 <AlertModal
                     message={alertMessage}
                     onClose={() => setAlertMessage(null)}

@@ -1,11 +1,12 @@
 /**
- * Select - 自定义下拉选择组件
- * 
+ * Select - 选择
+ *
  * 职责：
- * - 提供统一的暗色主题下拉菜单样式
- * - 支持图标、占位符及选中状态显示
- * - 替代原生 select 元素以提升 UI 美观度
+ * - 渲染选择相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState, useRef, useEffect } from 'react';
 import Icon, { IconName } from './Icon';
 
@@ -34,7 +35,6 @@ const Select: React.FC<SelectProps> = ({
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // 点击外部关闭
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -58,7 +58,6 @@ const Select: React.FC<SelectProps> = ({
             className={`relative min-w-[140px] ${className}`}
             ref={containerRef}
         >
-            {/* 触发器按钮 */}
             <div
                 onClick={() => setIsOpen(!isOpen)}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all border ${isOpen || value
@@ -85,11 +84,9 @@ const Select: React.FC<SelectProps> = ({
                 />
             </div>
 
-            {/* 下拉菜单 */}
             {isOpen && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-[#1f2326] border border-white/10 rounded-lg shadow-xl z-50 animate-in fade-in slide-in-from-top-1 duration-100 max-h-60 overflow-y-auto custom-scrollbar">
                     <div className="p-1">
-                        {/* 默认选项 (全部) */}
                         <div
                             onClick={() => handleSelect('')}
                             className={`px-3 py-2 rounded-md text-sm cursor-pointer transition-colors ${value === ''

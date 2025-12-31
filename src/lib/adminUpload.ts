@@ -1,9 +1,10 @@
 /**
- * adminUpload - 管理员快速上传服务
- * 
+ * adminUpload - 管理端上传
+ *
  * 职责：
- * - 支持管理员跳过审核流程，直接从 ZIP 文件批量导入点位到共享库
- * - 处理图片上传至官方 OSS，并同步写入 `valorant_shared` 数据表
+ * - 承载管理端上传相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
  */
 
 import { unzipSync, strFromU8 } from 'fflate';
@@ -22,13 +23,11 @@ export interface AdminProfile {
 
 
 
-/** ZIP 解析后的图片数据 */
 interface ParsedZipData {
     jsonPayload: any;
     images: Map<string, Uint8Array>;
 }
 
-/** 上传进度 */
 export interface AdminUploadProgress {
     status: 'parsing' | 'uploading' | 'saving' | 'done' | 'error';
     current: number;
@@ -37,14 +36,12 @@ export interface AdminUploadProgress {
     errorMessage?: string;
 }
 
-/** 上传结果 */
 export interface AdminUploadResult {
     success: boolean;
     id?: string;
     errorMessage?: string;
 }
 
-/** 图片字段映射 */
 const IMAGE_FIELDS = [
     { jsonKey: 'stand_img', field: 'stand_img' },
     { jsonKey: 'aim_img', field: 'aim_img' },
@@ -52,25 +49,19 @@ const IMAGE_FIELDS = [
     { jsonKey: 'land_img', field: 'land_img' },
 ] as const;
 
-/**
- * 解析 ZIP 文件
- */
 export const parseZipFile = async (zipFile: File): Promise<ParsedZipData> => {
     const arrayBuffer = await zipFile.arrayBuffer();
     const zipData = new Uint8Array(arrayBuffer);
     const unzipped = unzipSync(zipData);
 
-    // 查找 JSON 文件
     const jsonFileName = Object.keys(unzipped).find((name) => name.endsWith('.json'));
     if (!jsonFileName) {
         throw new Error('ZIP 文件中未找到 JSON 元数据');
     }
 
-    // 解析 JSON
     const jsonContent = strFromU8(unzipped[jsonFileName]);
     const jsonPayload = JSON.parse(jsonContent);
 
-    // 收集图片文件
     const images = new Map<string, Uint8Array>();
     for (const [fileName, data] of Object.entries(unzipped)) {
         if (/\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
@@ -81,9 +72,6 @@ export const parseZipFile = async (zipFile: File): Promise<ParsedZipData> => {
     return { jsonPayload, images };
 };
 
-/**
- * 从 ZIP 文件预解析元数据（用于预览）
- */
 export const parseZipMetadata = async (zipFile: File): Promise<{
     title: string;
     mapName: string;
@@ -105,10 +93,6 @@ export const parseZipMetadata = async (zipFile: File): Promise<{
     }
 };
 
-/**
- * 管理员直接上传点位到共享库
- * 跳过审核流程，图片直接上传到 OSS
- */
 export const adminUploadLineup = async (
     zipFile: File,
     adminProfile: AdminProfile,
@@ -118,11 +102,9 @@ export const adminUploadLineup = async (
     try {
         onProgress?.({ status: 'parsing', current: 0, total: 0 });
 
-        // 1. 解析 ZIP 文件
         const { jsonPayload, images } = await parseZipFile(zipFile);
         const totalImages = images.size;
 
-        // 2. 上传图片到 OSS
         const imageUrls: Record<string, string> = {};
         let uploadedCount = 0;
 
@@ -139,7 +121,6 @@ export const adminUploadLineup = async (
                 const imageData = images.get(imageFileName)!;
                 const ext = imageFileName.split('.').pop()?.toLowerCase() || 'jpg';
 
-                // 转换为 Blob
                 const mimeTypes: Record<string, string> = {
                     jpg: 'image/jpeg',
                     jpeg: 'image/jpeg',
@@ -149,7 +130,6 @@ export const adminUploadLineup = async (
                 };
                 const blob = new Blob([new Uint8Array(imageData)], { type: mimeTypes[ext] || 'image/jpeg' });
 
-                // 上传到 OSS
                 try {
                     const result = await uploadImage(blob, ossConfig, {
                         extensionHint: ext,
@@ -165,11 +145,8 @@ export const adminUploadLineup = async (
 
         onProgress?.({ status: 'saving', current: uploadedCount, total: totalImages });
 
-        // 3. 直接写入 valorant_shared 表
         const newId = crypto.randomUUID();
 
-        // 优先使用 ZIP 中的作者信息，如果没有则使用管理员信息
-        // author_uid 优先使用 customId (Z74X...), 其次使用 UUID
         const authorUid = jsonPayload.author_uid || adminProfile.customId || adminProfile.id;
         const authorName = jsonPayload.author_name || adminProfile.nickname || authorUid;
         const authorAvatar = jsonPayload.author_avatar || adminProfile.avatar || '';
@@ -223,9 +200,6 @@ export const adminUploadLineup = async (
     }
 };
 
-/**
- * 批量上传多个 ZIP 文件
- */
 export const adminUploadMultiple = async (
     zipFiles: File[],
     adminProfile: AdminProfile,

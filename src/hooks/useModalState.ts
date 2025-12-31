@@ -1,14 +1,15 @@
 /**
- * useModalState.ts - 弹窗状态管理 Hook
- * 
+ * useModalState - 弹窗State
+ *
  * 职责：
- * - 提供通用的弹窗开启/关闭/切换状态管理
- * - 支持弹窗传参及异步关闭后的回调处理
+ * - 封装弹窗State相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useState, useCallback } from 'react';
 import { LightboxImage } from '../types/ui';
 
-// 统一管理弹窗与提醒相关的状态
 export function useModalState() {
   const [isMapModalOpen, setIsMapModalOpen] = useState<boolean>(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState<boolean>(false);

@@ -1,11 +1,12 @@
 /**
- * AdminProfileModal - 后台管理员个人信息编辑弹窗
- * 
+ * AdminProfileModal - 管理端资料弹窗
+ *
  * 职责：
- * - 允许管理员修改昵称、头像
- * - 使用 adminSupabase 客户端保持 session 隔离
- * - 基于 UserProfileModal 简化实现
+ * - 渲染管理端资料弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Icon from '../../../components/Icon';
 import { updateAvatarCache } from '../../../components/UserAvatar';
@@ -43,14 +44,12 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAvatarPickerOpen, setIsAvatarPickerOpen] = useState(false);
 
-    // 卡面列表状态
     const [playerCards, setPlayerCards] = useState<PlayerCardAvatar[]>([]);
     const [isLoadingCards, setIsLoadingCards] = useState(false);
     const [visibleCount, setVisibleCount] = useState(48);
     const visibleCards = useMemo(() => playerCards.slice(0, visibleCount), [playerCards, visibleCount]);
     const loadMoreRef = useRef<HTMLDivElement>(null);
 
-    // 加载管理员 profile
     useEffect(() => {
         if (!isOpen || !adminEmail) return;
 
@@ -84,7 +83,6 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
         loadProfile();
     }, [isOpen, adminEmail]);
 
-    // 监听滚动到底部
     useEffect(() => {
         if (!isAvatarPickerOpen || isLoadingCards || visibleCount >= playerCards.length) return;
 
@@ -104,7 +102,6 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
         return () => observer.disconnect();
     }, [isAvatarPickerOpen, isLoadingCards, playerCards.length, visibleCount]);
 
-    // 头像选择器打开时加载卡面列表
     useEffect(() => {
         if (isAvatarPickerOpen && playerCards.length === 0 && !isLoadingCards) {
             setIsLoadingCards(true);
@@ -172,7 +169,6 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
     return (
         <div className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden relative">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -192,9 +188,7 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 space-y-6 bg-[#181b1f]">
-                    {/* 头像设置 */}
                     <div className="flex flex-col items-center gap-2">
                         <button
                             onClick={() => setIsAvatarPickerOpen(true)}
@@ -213,7 +207,6 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
                         <span className="text-xs text-gray-500">点击头像更换</span>
                     </div>
 
-                    {/* 昵称设置 */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-sm text-gray-400">用户昵称</label>
@@ -240,7 +233,6 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
                         </div>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex justify-end gap-2 pt-2">
                         <button
                             onClick={onClose}
@@ -260,7 +252,6 @@ const AdminProfileModal: React.FC<Props> = ({ isOpen, onClose, adminEmail, setAl
                     </div>
                 </div>
 
-                {/* 头像选择器覆盖层 */}
                 {isAvatarPickerOpen && (
                     <div
                         className="absolute inset-0 bg-[#181b1f] z-10 flex flex-col animate-in fade-in slide-in-from-bottom-10 duration-300"

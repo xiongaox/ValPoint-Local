@@ -1,12 +1,12 @@
 /**
- * ImageBedConfigForm - 图床配置表单组件
- * 
- * 用于配置和保存图床信息，支持：
- * - 阿里云 OSS、腾讯云 COS、七牛云等多个平台
- * - 配置的导入、导出（复制）和重置
- * - 多布局模式支持（紧凑/完整）
- * - 个人库设置弹窗和管理后台通用
+ * ImageBedConfigForm - ImageBed配置表单
+ *
+ * 职责：
+ * - 渲染ImageBed配置表单表单字段与验证提示。
+ * - 管理表单状态并组装提交数据。
+ * - 处理提交、重置或取消等交互。
  */
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from './Icon';
 import { ImageBedConfig, ImageBedProvider } from '../types/imageBed';
@@ -17,7 +17,6 @@ import {
     ImageBedField,
 } from '../lib/imageBed';
 
-// ============ 工具函数 ============
 export const normalizeConfig = (incoming?: ImageBedConfig): ImageBedConfig => {
     const providerCandidate = incoming?.provider;
     const provider = providerCandidate && imageBedProviderMap[providerCandidate] ? providerCandidate : defaultImageBedConfig.provider;
@@ -28,7 +27,6 @@ export const normalizeConfig = (incoming?: ImageBedConfig): ImageBedConfig => {
         _configName: incoming?._configName || (incoming as { name?: string })?.name || base._configName,
         provider,
     };
-    // 阿里云兼容处理
     if (provider === 'aliyun') {
         if (!merged.area && merged.region) merged.area = merged.region;
         if (merged.area && !merged.region) merged.region = merged.area;
@@ -38,25 +36,16 @@ export const normalizeConfig = (incoming?: ImageBedConfig): ImageBedConfig => {
     return merged;
 };
 
-// ============ Props 类型 ============
 export interface ImageBedConfigFormProps {
-    /** 当前配置 */
     config: ImageBedConfig;
-    /** 配置变更回调 */
     onChange: (config: ImageBedConfig) => void;
-    /** 是否显示平台切换器 */
     showProviderSwitch?: boolean;
-    /** 是否显示复制/导入按钮 */
     showCopyImport?: boolean;
-    /** 是否显示重置按钮 */
     showReset?: boolean;
-    /** 配置有效性变更回调 */
     onValidChange?: (isValid: boolean) => void;
-    /** 布局模式 */
     layout?: 'compact' | 'full';
 }
 
-// ============ 主组件 ============
 const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
     config,
     onChange,
@@ -70,18 +59,15 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
     const [isCopied, setIsCopied] = useState(false);
     const [showProviderMenu, setShowProviderMenu] = useState(false);
 
-    // 同步外部配置
     useEffect(() => {
         setLocalConfig(normalizeConfig(config));
     }, [config]);
 
-    // 当前平台定义
     const currentDefinition = useMemo(
         () => imageBedProviderMap[localConfig.provider] || imageBedProviderDefinitions[0],
         [localConfig.provider],
     );
 
-    // 验证配置是否完整
     const isConfigValid = useMemo(() => {
         if (!localConfig.provider) return false;
         const definition = imageBedProviderMap[localConfig.provider];
@@ -94,16 +80,13 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
             });
     }, [localConfig]);
 
-    // 通知有效性变化
     useEffect(() => {
         onValidChange?.(isConfigValid);
     }, [isConfigValid, onValidChange]);
 
-    // 更新字段
     const updateField = (key: keyof ImageBedConfig, value: string | boolean) => {
         setLocalConfig((prev) => {
             const next: ImageBedConfig = { ...prev, [key]: value };
-            // 阿里云兼容
             if (prev.provider === 'aliyun') {
                 if (key === 'area') next.region = typeof value === 'string' ? value : '';
                 if (key === 'path') next.basePath = typeof value === 'string' ? value : '';
@@ -114,7 +97,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
         });
     };
 
-    // 复制配置
     const handleCopy = async () => {
         try {
             const cleanConfig: Record<string, string | boolean> = {
@@ -136,7 +118,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
         }
     };
 
-    // 导入配置
     const handleImport = async () => {
         const text = prompt('粘贴配置 JSON？');
         if (!text) return;
@@ -150,7 +131,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
         }
     };
 
-    // 重置配置
     const handleReset = () => {
         const base = imageBedProviderMap[localConfig.provider]?.defaultConfig || defaultImageBedConfig;
         const reset = { ...base, _configName: localConfig._configName, provider: localConfig.provider };
@@ -158,14 +138,12 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
         onChange(reset);
     };
 
-    // 切换平台
     const handleProviderSwitch = (provider: ImageBedProvider) => {
         if (provider === localConfig.provider) {
             setShowProviderMenu(false);
             return;
         }
 
-        // 尝试从 localStorage 加载该平台的配置
         try {
             const multiConfigStr = localStorage.getItem('valpoint_imagebed_configs');
             if (multiConfigStr) {
@@ -183,7 +161,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
             console.error('[ImageBedConfigForm] failed to load saved config:', e);
         }
 
-        // 如果没有保存的配置，使用默认配置
         const base = imageBedProviderMap[provider]?.defaultConfig || defaultImageBedConfig;
         const newConfig = { ...base, _configName: '', provider };
         setLocalConfig(newConfig);
@@ -193,9 +170,7 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
 
     return (
         <div className="space-y-4">
-            {/* 工具栏 */}
             <div className="flex items-center justify-between flex-wrap gap-2">
-                {/* 平台切换 */}
                 {showProviderSwitch && (
                     <div className="relative">
                         <button
@@ -228,7 +203,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
                     </div>
                 )}
 
-                {/* 复制/导入按钮 */}
                 {showCopyImport && (
                     <div className="flex items-center gap-2">
                         <button
@@ -258,7 +232,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
                 )}
             </div>
 
-            {/* 配置表单 */}
             <div className={`grid gap-4 ${layout === 'compact' ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
                 {currentDefinition.fields.map((field) => (
                     <Field
@@ -270,7 +243,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
                 ))}
             </div>
 
-            {/* 配置状态提示 */}
             <div className={`p-3 rounded-lg border ${isConfigValid ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
                 <div className="flex items-center gap-2">
                     <Icon name={isConfigValid ? 'CheckCircle' : 'AlertTriangle'} size={16} className={isConfigValid ? 'text-emerald-400' : 'text-amber-400'} />
@@ -283,7 +255,6 @@ const ImageBedConfigForm: React.FC<ImageBedConfigFormProps> = ({
     );
 };
 
-// ============ 字段组件 ============
 type FieldProps = {
     field: ImageBedField;
     value: ImageBedConfig[keyof ImageBedConfig];

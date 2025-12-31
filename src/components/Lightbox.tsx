@@ -1,13 +1,12 @@
 /**
- * Lightbox - 图片全屏预览组件
- * 
- * 支持：
- * - Carousel 模式：无缝滑动切换，支持甩动 (Flick)
- * - 双指缩放 & 拖拽 (Pivot Zoom)
- * - 双击缩放 (Double Tap)
- * - 下拉关闭 (Pull to Dismiss)
- * - 键盘快捷键（A: 上一张, D: 下一张, ESC/Q: 关闭）
+ * Lightbox - 灯箱
+ *
+ * 职责：
+ * - 渲染灯箱相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useMemo, useEffect, useLayoutEffect, useCallback, useState, useRef } from 'react';
 import Icon from './Icon';
 import { LightboxImage } from '../types/ui';
@@ -62,7 +61,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
 
   useEscapeClose(Boolean(viewingImage), close);
 
-  // 键盘支持
   useEffect(() => {
     if (!viewingImage) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,23 +75,19 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [viewingImage, goPrev, goNext, close]);
 
-  // Touch & Gesture State
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const touchStartTime = useRef<number>(0);
   const lastValidTapEndTime = useRef<number>(0);
 
   const [isPinching, setIsPinching] = useState(false);
 
-  // Carousel State
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  // Vertical Dismiss State
   const [dragY, setDragY] = useState(0);
   const [isDraggingVertical, setIsDraggingVertical] = useState(false);
 
-  // Zoom State
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [startPinchDist, setStartPinchDist] = useState<number | null>(null);
@@ -103,10 +97,8 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
 
   const MAX_SCALE = 3;
 
-  // Hint State
   const [showHint, setShowHint] = useState(false);
 
-  // Persistent Hints: 只有切图时(viewingImage 变化)且是移动端，才重置显示
   useEffect(() => {
     if (isMobile && viewingImage) {
       setShowHint(true);
@@ -114,7 +106,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
   }, [isMobile, viewingImage]);
 
 
-  // 重置状态
   useLayoutEffect(() => {
     setScale(1);
     setPan({ x: 0, y: 0 });
@@ -131,7 +122,7 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
     });
   }, [src]);
 
-  const minFlickVelocity = 0.5; // px/ms
+  const minFlickVelocity = 0.5; // 说明：单位为 px/ms。
 
   const getDistance = (touches: React.TouchList) => {
     return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
@@ -162,7 +153,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
-    // 只要有交互，就隐藏提示 (Persistent until interaction)
     if (showHint) setShowHint(false);
 
     const now = Date.now();
@@ -180,7 +170,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
       if (scale > 1) {
         setStartPan({ ...pan });
       } else {
-        // FIX: 不急着设置为 Swiping，等待 Move 判断方向
         setIsResetting(false);
       }
     } else if (e.touches.length === 2) {
@@ -196,7 +185,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
 
   const onTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2 && startPinchDist && startPinchCenter) {
-      // Pinch Zoom Logic (Omitted for brevity - same as before)
       const dist = getDistance(e.touches);
       const center = getCenter(e.touches);
 
@@ -225,12 +213,11 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
       const deltaY = currentY - touchStart.y;
 
       if (scale === 1) {
-        // 判定方向锁定
         if (!isDraggingVertical && !isSwiping) {
           if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 10) {
-            setIsDraggingVertical(true); // 锁定为垂直
+            setIsDraggingVertical(true); // 说明：锁定为垂直方向。
           } else if (Math.abs(deltaX) > 10) {
-            setIsSwiping(true); // 锁定为水平
+            setIsSwiping(true); // 说明：锁定为水平方向。
           }
         }
 
@@ -238,7 +225,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
           setDragY(deltaY);
           e.preventDefault();
         } else if (isSwiping) {
-          // 水平滑动 -> Carousel
           if ((deltaX > 0 && !prevSrc) || (deltaX < 0 && !nextSrc)) {
             setSwipeOffset(deltaX * 0.3);
           } else {
@@ -292,7 +278,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
     const now = Date.now();
     const touchDuration = now - touchStartTime.current;
 
-    // 0. 处理缩放回弹
     if (scale > MAX_SCALE) setScale(MAX_SCALE);
     else if (scale < 1) {
       setScale(1);
@@ -304,7 +289,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
       lastValidTapEndTime.current = now;
     }
 
-    // 1. 处理垂直关闭
     if (isDraggingVertical) {
       if (Math.abs(dragY) > 100) {
         close();
@@ -315,18 +299,12 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
       return;
     }
 
-    // 2. 处理 Carousel Swipe
     let finalSwipeOffset = swipeOffset;
 
-    // 只有当真正触发了 Swipe (Start + Move锁定了Swipe) 或者是还没锁定但瞬时 flick 才处理
-    // 如果 touchStart 但没有 move (点击)，不处理 flick
     if (scale <= 1 && touchStart) {
-      // Flick Detection
       const distanceX = e.changedTouches[0].clientX - touchStart.x;
       const velocity = Math.abs(distanceX) / touchDuration;
 
-      // 如果已经锁定了 Swiping 且速度够快
-      // 或者还没锁定(距离短)但速度极快 (Flick)
       if ((isSwiping || Math.abs(distanceX) > 20) && velocity > minFlickVelocity) {
         if (distanceX > 0) finalSwipeOffset = window.innerWidth;
         else finalSwipeOffset = -window.innerWidth;
@@ -368,7 +346,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
       onClick={close}
     >
 
-      {/* Carousel Container */}
       <div
         className="absolute inset-0 flex items-center justify-center transition-transform ease-out will-change-transform"
         style={{
@@ -379,14 +356,12 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* 上一张 */}
         {prevSrc && (
           <div className="absolute left-0 top-0 w-full h-full -translate-x-full flex items-center justify-center p-4">
             <img src={prevSrc} className="max-h-[80vh] max-w-full object-contain pointer-events-none" />
           </div>
         )}
 
-        {/* 当前张 */}
         <div className="relative w-full h-full flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
           <img
             src={src}
@@ -398,7 +373,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
           />
         </div>
 
-        {/* 下一张 */}
         {nextSrc && (
           <div className="absolute left-0 top-0 w-full h-full translate-x-full flex items-center justify-center p-4">
             <img src={nextSrc} className="max-h-[80vh] max-w-full object-contain pointer-events-none" />
@@ -406,7 +380,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
         )}
       </div>
 
-      {/* 缩略图烂 & 按钮 */}
       <div
         className={`shrink-0 flex items-center justify-center gap-6 z-20 transition-opacity duration-200 ${isDraggingVertical ? 'opacity-0' : 'opacity-100'} ${isMobile
           ? 'fixed bottom-0 w-full px-2 pb-6 pt-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent'
@@ -475,7 +448,6 @@ const Lightbox: React.FC<Props> = ({ viewingImage, setViewingImage }) => {
         <Icon name="X" size={28} />
       </button>
 
-      {/* 底部操作提示 (仅移动端) */}
       <div
         className={`fixed bottom-24 left-0 right-0 flex justify-center pointer-events-none transition-opacity duration-500 z-30 ${showHint ? 'opacity-100' : 'opacity-0'}`}
       >

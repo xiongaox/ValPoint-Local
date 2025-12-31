@@ -1,3 +1,12 @@
+/**
+ * useMapInfo - 点位地图Info
+ *
+ * 职责：
+ * - 封装点位地图Info相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { useMemo } from 'react';
 import { CUSTOM_MAP_URLS, MAP_TRANSLATIONS } from '../../../constants/maps';
 import { ActiveTab } from '../../../types/app';

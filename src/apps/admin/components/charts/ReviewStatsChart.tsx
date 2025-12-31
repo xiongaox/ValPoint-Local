@@ -1,3 +1,12 @@
+/**
+ * ReviewStatsChart - 管理端审核统计图表
+ *
+ * 职责：
+ * - 渲染管理端审核统计图表相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
+ */
+
 import React, { useEffect, useState } from 'react';
 import {
     BarChart,
@@ -25,8 +34,6 @@ export default function ReviewStatsChart() {
             try {
                 const { data: stats, error } = await adminSupabase.rpc('get_weekly_review_stats');
                 if (error) throw error;
-                // Rename keys to match chart dataKey if needed, or just use raw
-                // RPC returns: week_label, approved_count, rejected_count
                 setData(stats || []);
             } catch (error) {
                 console.error('Error fetching review stats:', error);

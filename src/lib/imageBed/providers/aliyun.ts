@@ -1,8 +1,12 @@
 /**
- * aliyun provider - 阿里云 OSS 图床适配器
- * 
- * 实现阿里云 OSS 的直传和 URL 转存功能。
+ * aliyun - aliyun
+ *
+ * 职责：
+ * - 承载aliyun相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
  */
+
 import OSS from 'ali-oss';
 import { ImageBedProviderDefinition, UploadOptions, TransferOptions, UploadResult } from '../types';
 import { ImageBedConfig } from '../../../types/imageBed';
@@ -15,7 +19,6 @@ import {
   downloadImageBlob,
 } from '../utils';
 
-/** 构建对象存储路径：使用 /{uuid} 格式 */
 const buildObjectKey = (basePath: string | undefined) => {
   return buildSecureObjectKey(basePath);
 };

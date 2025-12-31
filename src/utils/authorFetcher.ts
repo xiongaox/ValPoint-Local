@@ -1,23 +1,24 @@
+/**
+ * authorFetcher - 作者Fetcher
+ *
+ * 职责：
+ * - 提供作者Fetcher相关的纯函数工具。
+ * - 封装常用转换或格式化逻辑。
+ * - 降低重复代码并提升可复用性。
+ */
+
 export type AuthorInfo = {
   name: string;
   avatar: string;
-  uid?: string; // 用户ID
-  homeUrl?: string; // 用户主页链接
-  coverImage?: string; // 视频封面图
-  isCover?: boolean; // 是否使用封面图代替头像
-  source?: 'bilibili' | 'douyin'; // 平台来源
+  uid?: string; // 说明：用户 ID。
+  homeUrl?: string; // 说明：用户主页链接。
+  coverImage?: string; // 说明：视频封面图。
+  isCover?: boolean; // 说明：用封面图代替头像。
+  source?: 'bilibili' | 'douyin'; // 说明：平台来源。
 };
 
-/**
- * authorFetcher.ts - 点位作者信息获取工具
- * 
- * 职责：
- * - 通过 user_id 批量或单个查询作者的昵称和头像
- * - 提供缓存机制以减少对 user_profiles 表的频繁查询
- */
 import { supabase } from '../supabaseClient';
 
-// Edge Function 响应类型
 interface EdgeFunctionResponse {
   status: 'success' | 'error';
   data?: {
@@ -55,12 +56,10 @@ export async function fetchAuthorInfo(sourceLink: string): Promise<AuthorInfo | 
   try {
     const url = new URL(sourceLink);
 
-    // 检查是否为支持的平台
     if (!url.hostname.includes('bilibili.com') && !url.hostname.includes('douyin.com') && !url.hostname.includes('b23.tv')) {
       return null;
     }
 
-    // 使用统一的 Edge Function
     return await fetchAuthorViaEdgeFunction(sourceLink);
   } catch (error) {
     console.error('获取作者信息失败:', error);
@@ -80,7 +79,6 @@ async function fetchAuthorViaEdgeFunction(url: string): Promise<AuthorInfo | nul
 
     const bearerToken = await getEdgeFunctionBearerToken(SUPABASE_ANON_KEY);
 
-    // 调用统一的 get-video-author 接口（同时支持抖音和 B 站）
     const response = await fetch(`${SUPABASE_URL}/functions/v1/get-video-author`, {
       method: 'POST',
       headers: {
@@ -104,22 +102,18 @@ async function fetchAuthorViaEdgeFunction(url: string): Promise<AuthorInfo | nul
 
     const result: EdgeFunctionResponse = await response.json();
 
-    // 处理错误响应
     if (result.status === 'error' || result.error) {
       console.error('获取作者信息失败:', result.message || result.error);
       return null;
     }
 
     if (result.status === 'success' && result.data) {
-      // 提取用户 ID
       let uid: string | undefined;
 
       if (result.data.source === 'bilibili') {
-        // B 站：从主页链接提取 mid
         const midMatch = result.data.user_home_url.match(/space\.bilibili\.com\/(\d+)/);
         uid = midMatch ? midMatch[1] : undefined;
       } else if (result.data.source === 'douyin') {
-        // 抖音：从主页链接提取 sec_uid
         const secUidMatch = result.data.user_home_url.match(/\/user\/(MS4wLjABAAAA[A-Za-z0-9_\-]+)/);
         uid = secUidMatch ? secUidMatch[1] : undefined;
       }

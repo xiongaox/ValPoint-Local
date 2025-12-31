@@ -1,17 +1,17 @@
 /**
- * useEmailAuth.ts - 邮箱认证逻辑 Hook
- * 
+ * useEmailAuth - Email认证
+ *
  * 职责：
- * - 处理用户登录、注册、找回密码及登出流程
- * - 维护当前登录用户的 Session 状态
- * - 提供身份验证相关的加载状态与错误处理
+ * - 封装Email认证相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { User } from '@supabase/supabase-js';
 import { validateEmail } from '../lib/emailValidator';
 
-// 开发环境绕过邮箱
 const DEV_BYPASS_EMAIL = import.meta.env.VITE_DEV_BYPASS_EMAIL;
 
 interface UseEmailAuthResult {
@@ -27,16 +27,11 @@ interface UseEmailAuthResult {
     signOut: () => Promise<void>;
 }
 
-/**
- * Supabase 邮箱认证 Hook
- * 支持密码登录、注册、忘记密码
- */
 export function useEmailAuth(): UseEmailAuthResult {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // 初始化时检查会话
     useEffect(() => {
         const checkSession = async () => {
             try {
@@ -51,7 +46,6 @@ export function useEmailAuth(): UseEmailAuthResult {
 
         checkSession();
 
-        // 监听认证状态变化
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (_event, session) => {
                 setUser(session?.user ?? null);
@@ -64,11 +58,9 @@ export function useEmailAuth(): UseEmailAuthResult {
         };
     }, []);
 
-    // 邮箱密码注册
     const signUpWithEmail = useCallback(async (email: string, password: string, data?: object): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
-        // 验证邮箱
         const validation = validateEmail(email);
         if (!validation.isValid) {
             setError(validation.error || '邮箱格式不正确');
@@ -104,13 +96,11 @@ export function useEmailAuth(): UseEmailAuthResult {
         }
     }, []);
 
-    // 邮箱密码登录
     const signInWithPassword = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
 
 
-        // 验证邮箱
         const validation = validateEmail(email);
         if (!validation.isValid) {
             setError(validation.error || '邮箱格式不正确');
@@ -124,7 +114,6 @@ export function useEmailAuth(): UseEmailAuthResult {
             });
 
             if (error) {
-                // 友好化错误信息
                 let friendlyError = error.message;
                 if (error.message.includes('Invalid login credentials')) {
                     friendlyError = '邮箱或密码错误';
@@ -143,11 +132,9 @@ export function useEmailAuth(): UseEmailAuthResult {
         }
     }, []);
 
-    // 发送密码重置邮件
     const resetPassword = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
-        // 验证邮箱
         const validation = validateEmail(email);
         if (!validation.isValid) {
             setError(validation.error || '邮箱格式不正确');
@@ -172,11 +159,9 @@ export function useEmailAuth(): UseEmailAuthResult {
         }
     }, []);
 
-    // 发送 Magic Link 登录（保留作为备用）
     const signInWithEmail = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
-        // 开发环境绕过验证
         if (DEV_BYPASS_EMAIL && email === DEV_BYPASS_EMAIL) {
             const { error } = await supabase.auth.signInWithPassword({
                 email: DEV_BYPASS_EMAIL,
@@ -196,7 +181,6 @@ export function useEmailAuth(): UseEmailAuthResult {
             return { success: true };
         }
 
-        // 验证邮箱
         const validation = validateEmail(email);
         if (!validation.isValid) {
             setError(validation.error || '邮箱验证失败');
@@ -224,7 +208,6 @@ export function useEmailAuth(): UseEmailAuthResult {
         }
     }, []);
 
-    // 验证 OTP 验证码
     const verifyOtp = useCallback(async (email: string, token: string): Promise<{ success: boolean; error?: string }> => {
         setError(null);
 
@@ -254,10 +237,8 @@ export function useEmailAuth(): UseEmailAuthResult {
         }
     }, []);
 
-    // 更新用户资料
     const updateProfile = useCallback(async (data: { nickname?: string; avatar?: string; custom_id?: string }): Promise<{ success: boolean; error?: string }> => {
         try {
-            // 1. 更新 auth.users 的 metadata
             const { error: authError } = await supabase.auth.updateUser({
                 data: data
             });
@@ -266,7 +247,6 @@ export function useEmailAuth(): UseEmailAuthResult {
                 return { success: false, error: authError.message };
             }
 
-            // 2. 同时更新 user_profiles 表，确保数据一致性
             const { data: { user: currentUser } } = await supabase.auth.getUser();
             if (currentUser) {
                 const updateData: Record<string, string | null> = {};
@@ -281,11 +261,9 @@ export function useEmailAuth(): UseEmailAuthResult {
 
                 if (profileError) {
                     console.error('更新 user_profiles 失败:', profileError);
-                    // 不返回错误，因为 auth 已经更新成功
                 }
             }
 
-            // 3. 更新本地 user 状态
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
 

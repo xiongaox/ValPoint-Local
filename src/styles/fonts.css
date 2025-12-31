@@ -1,4 +1,14 @@
-/* @font-face {
+/**
+ * fonts - 字体
+ *
+ * 职责：
+ * - 定义字体相关的样式规则与变量。
+ * - 统一视觉风格并覆盖通用组件。
+ * - 提供响应式或主题化的样式配置。
+ */
+
+/* 用途：本地字体声明（默认禁用）。
+@font-face {
   font-family: 'MiSans';
   src: url('/fonts/MiSans-Regular.woff2') format('woff2');
   font-weight: 400;
@@ -12,4 +22,5 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
-} */
+}
+*/

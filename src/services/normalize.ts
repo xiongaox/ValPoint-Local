@@ -1,3 +1,12 @@
+/**
+ * normalize - normalize
+ *
+ * 职责：
+ * - 封装normalize相关的接口调用。
+ * - 处理参数整理、错误兜底与结果转换。
+ * - 向上层提供稳定的服务 API。
+ */
+
 import { MAP_TRANSLATIONS } from '../constants/maps';
 import { BaseLineup } from '../types/lineup';
 

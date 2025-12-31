@@ -1,6 +1,12 @@
 /**
- * DailyDownloadsChart - 每日下载趋势图
+ * DailyDownloadsChart - 管理端每日Downloads图表
+ *
+ * 职责：
+ * - 渲染管理端每日Downloads图表相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useEffect, useState } from 'react';
 import {
     BarChart,
@@ -29,7 +35,6 @@ export default function DailyDownloadsChart() {
                 const { data: trends, error } = await adminSupabase.rpc('get_daily_download_trends');
                 if (error) throw error;
 
-                // Format dates for display (e.g., "12/29")
                 const formattedData = (trends as DownloadTrend[]).map(item => ({
                     ...item,
                     displayDate: format(parseISO(item.download_date), 'MM/dd')

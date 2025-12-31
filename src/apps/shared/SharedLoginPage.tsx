@@ -1,11 +1,12 @@
 /**
- * SharedLoginPage - 共享库登录与注册页面
- * 
+ * SharedLoginPage - 共享库登录页面
+ *
  * 职责：
- * - 提供邮箱/密码登录、注册功能
- * - 处理密码找回邮件发送
- * - 响应式设计的 Valorant 风格 UI
+ * - 组织共享库登录页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect } from 'react';
 import Icon from '../../components/Icon';
 import { useEmailAuth } from '../../hooks/useEmailAuth';
@@ -19,10 +20,6 @@ interface SharedLoginPageProps {
 
 type AuthMode = 'login' | 'register' | 'forgot' | 'magic-link' | 'register-sent' | 'reset-sent' | 'magic-sent';
 
-/**
- * 共享库登录页面
- * 支持邮箱密码登录、注册、忘记密码
- */
 function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
     const { signInWithPassword, signUpWithEmail, resetPassword, signInWithEmail, verifyOtp } = useEmailAuth();
     const [mode, setMode] = useState<AuthMode>('login');
@@ -36,7 +33,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // 海报列表
     const posters = [
         '/poster/海报1.webp',
         '/poster/海报2.webp',
@@ -46,7 +42,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         '/poster/海报6.webp',
     ];
 
-    // 标语列表（与海报轮播同步）
     const sloganList = [
         {
             title: '分享你的',
@@ -67,11 +62,10 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
 
     const currentSlogan = sloganList[currentPoster % sloganList.length];
 
-    // 轮播定时器
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentPoster((prev) => (prev + 1) % posters.length);
-        }, 8000); // 8秒切换
+        }, 8000); // 说明：8 秒后切换。
 
         return () => clearInterval(timer);
     }, []);
@@ -88,7 +82,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         resetForm();
     };
 
-    // 登录处理
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setValidationError(null);
@@ -113,7 +106,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         }
     };
 
-    // 注册处理
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setValidationError(null);
@@ -136,14 +128,12 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
 
         setIsSubmitting(true);
         try {
-            // 使用新的 ID 生成器（排除易混淆字符 I, 1, O, 0）
             const customId = generateShortId();
 
-            // 注册并附带元数据
             const result = await signUpWithEmail(email, password, {
                 nickname: customId,
                 custom_id: customId,
-                avatar: '' // 默认空头像，需在个人信息里随机
+                avatar: '' // 说明：默认空头像，在个人资料中设置。
             });
 
             if (result.success) {
@@ -158,7 +148,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         }
     };
 
-    // 忘记密码处理
     const handleForgot = async (e: React.FormEvent) => {
         e.preventDefault();
         setValidationError(null);
@@ -180,7 +169,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         }
     };
 
-    // 验证码登录处理
     const handleMagicLink = async (e: React.FormEvent) => {
         e.preventDefault();
         setValidationError(null);
@@ -202,7 +190,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         }
     };
 
-    // 验证 OTP 验证码
     const handleVerifyOtp = async (e: React.FormEvent) => {
         e.preventDefault();
         setValidationError(null);
@@ -219,10 +206,8 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         if (!result.success) {
             setValidationError(result.error || '验证失败');
         }
-        // 验证成功会自动登录，由 useEmailAuth 中的 onAuthStateChange 处理
     };
 
-    // 渲染成功提示页面
     const renderSuccessPage = (title: string, message: string, buttonText: string) => (
         <div className="text-center py-4">
             <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -242,7 +227,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         </div>
     );
 
-    // 渲染表单
     const renderForm = () => {
         if (mode === 'register-sent') {
             return renderSuccessPage(
@@ -261,16 +245,12 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
         }
 
         if (mode === 'magic-sent') {
-            // 显示验证码输入界面 - 现代化布局
             return (
                 <div className="space-y-6">
-                    {/* 顶部信息区 - 左右布局 */}
                     <div className="flex items-start gap-4">
-                        {/* 左侧图标 */}
                         <div className="w-14 h-14 bg-gradient-to-br from-[#ff4655] to-[#ff4655]/60 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[#ff4655]/20">
                             <Icon name="Mail" size={26} className="text-white" />
                         </div>
-                        {/* 右侧文字 */}
                         <div className="flex-1 pt-1">
                             <h3 className="text-lg font-bold text-white leading-tight">验证码已发送</h3>
                             <p className="text-sm text-gray-400 mt-1">
@@ -279,11 +259,9 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                         </div>
                     </div>
 
-                    {/* 分隔线 */}
                     <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
                     <form onSubmit={handleVerifyOtp} className="space-y-5">
-                        {/* 验证码输入区域 - 6格子 */}
                         <div>
                             <label className="block text-sm text-gray-400 mb-3">请输入6位验证码</label>
                             <div className="flex gap-2 w-[294px]">
@@ -303,14 +281,12 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                                                 const result = newCode.join('').slice(0, 6);
                                                 setOtpCode(result);
                                                 setValidationError(null);
-                                                // 自动跳到下一格
                                                 if (val && index < 5) {
                                                     document.getElementById(`otp-${index + 1}`)?.focus();
                                                 }
                                             }
                                         }}
                                         onKeyDown={(e) => {
-                                            // 退格键跳到上一格
                                             if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
                                                 document.getElementById(`otp-${index - 1}`)?.focus();
                                             }
@@ -319,7 +295,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                                             e.preventDefault();
                                             const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
                                             setOtpCode(pasteData);
-                                            // 聚焦到对应位置
                                             const focusIndex = Math.min(pasteData.length, 5);
                                             document.getElementById(`otp-${focusIndex}`)?.focus();
                                         }}
@@ -336,7 +311,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                             </div>
                         </div>
 
-                        {/* 错误提示 */}
                         {validationError && (
                             <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/20">
                                 <Icon name="AlertCircle" size={16} />
@@ -344,7 +318,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                             </div>
                         )}
 
-                        {/* 按钮组 - 左右布局 */}
                         <div className="flex gap-3">
                             <button
                                 type="button"
@@ -373,7 +346,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                             </button>
                         </div>
 
-                        {/* 重新发送链接 */}
                         <div className="text-center pt-2">
                             <button
                                 type="button"
@@ -404,7 +376,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
 
         return (
             <form onSubmit={getSubmitHandler()}>
-                {/* 邮箱输入 */}
                 <div className="mb-4">
                     <label className="block text-sm text-gray-400 mb-2">邮箱地址</label>
                     <input
@@ -419,7 +390,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     />
                 </div>
 
-                {/* 密码输入（登录和注册模式） */}
                 {(isLogin || isRegister) && (
                     <div className="mb-4">
                         <label className="block text-sm text-gray-400 mb-2">密码</label>
@@ -443,7 +413,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     </div>
                 )}
 
-                {/* 确认密码（仅注册模式） */}
                 {isRegister && (
                     <div className="mb-4">
                         <label className="block text-sm text-gray-400 mb-2">确认密码</label>
@@ -467,12 +436,10 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     </div>
                 )}
 
-                {/* 错误提示 */}
                 {validationError && (
                     <p className="mb-4 text-sm text-red-400">{validationError}</p>
                 )}
 
-                {/* 提交按钮 */}
                 <button
                     type="submit"
                     disabled={isSubmitting || !email.trim()}
@@ -491,7 +458,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     )}
                 </button>
 
-                {/* 模式切换链接 */}
                 <div className="mt-4 text-center space-y-2">
                     {isRegister && (
                         <button
@@ -537,7 +503,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
 
     return (
         <div className="flex h-screen w-screen bg-[#0f1923] overflow-hidden">
-            {/* 覆盖浏览器默认的 autofill 样式 */}
             <style>{`
                 input:-webkit-autofill,
                 input:-webkit-autofill:hover,
@@ -548,20 +513,16 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     caret-color: white !important;
                     border-color: rgba(255, 255, 255, 0.15) !important;
                 }
-                /* 已输入内容但失焦的输入框边框降低亮度 */
                 input:not(:focus):not(:placeholder-shown) {
                     border-color: rgba(255, 255, 255, 0.15) !important;
                 }
-                /* 隐藏 Edge/Chrome 浏览器默认的密码显示/隐藏图标 */
                 input::-ms-reveal,
                 input::-ms-clear {
                     display: none;
                 }
             `}</style>
 
-            {/* 左侧 - 海报区域 */}
             <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
-                {/* 海报轮播 */}
                 {posters.map((poster, index) => (
                     <div
                         key={poster}
@@ -573,9 +534,7 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     />
                 ))}
 
-                {/* 几何装饰图案 */}
                 <div className="absolute inset-0 opacity-20">
-                    {/* 大菱形 */}
                     <div
                         className="absolute top-1/4 left-1/3 w-96 h-96 border border-[#ff4655]/30"
                         style={{ transform: 'rotate(45deg)' }}
@@ -584,7 +543,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                         className="absolute top-1/3 left-1/4 w-64 h-64 border border-[#ff4655]/20"
                         style={{ transform: 'rotate(45deg)' }}
                     />
-                    {/* 网格线 */}
                     <div className="absolute inset-0" style={{
                         backgroundImage: `
                             linear-gradient(to right, rgba(255,70,85,0.05) 1px, transparent 1px),
@@ -594,29 +552,22 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     }} />
                 </div>
 
-                {/* 发光圆环 */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                     <div className="w-[500px] h-[500px] rounded-full border border-[#ff4655]/10 animate-pulse" />
                     <div className="absolute inset-8 rounded-full border border-[#ff4655]/20" />
                     <div className="absolute inset-16 rounded-full border border-[#ff4655]/10" />
                 </div>
 
-                {/* 红色光晕 */}
                 <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-[#ff4655]/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-[#ff4655]/5 rounded-full blur-2xl" />
 
-                {/* 顶部渐变遮罩 - 用于 Logo */}
                 <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#0f1923] to-transparent" />
 
-                {/* 底部渐变遮罩 - 用于标语 */}
                 <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0f1923] to-transparent" />
 
-                {/* 右侧渐变遮罩 */}
 
-                {/* 右侧渐变遮罩 */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0f1923]" />
 
-                {/* 斜切装饰线 */}
                 <div className="absolute right-0 top-0 bottom-0 w-32">
                     <div className="absolute inset-0 bg-gradient-to-l from-[#0f1923] to-transparent" />
                     <div
@@ -629,12 +580,10 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     />
                 </div>
 
-                {/* 左上角 Logo */}
                 <div className="absolute top-8 left-8 z-20">
                     <img src="/brand-logo.svg" alt="VALPOINT" className="h-14" />
                 </div>
 
-                {/* 左下角品牌标语 */}
                 <div className="absolute bottom-12 left-12 z-20 max-w-xl transition-all duration-500 ease-in-out">
                     <h2 className="text-6xl font-black text-white uppercase tracking-wide mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700" key={`title-${currentPoster}`}>
                         {currentSlogan.title}<span className="text-[#ff4655]">{currentSlogan.highlight}</span>
@@ -645,13 +594,9 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                 </div>
             </div>
 
-            {/* 右侧 - 登录区域 */}
             <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col items-center justify-center p-6 lg:p-12 relative">
-                {/* 登录卡片 - 固定宽度 360px */}
                 <div className="w-[360px] max-w-full">
-                    {/* 卡片容器 */}
                     <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-2xl">
-                        {/* Tab 切换 - 仅在登录/注册模式显示 */}
                         {(mode === 'login' || mode === 'register') && (
                             <div className="flex gap-6 mb-8">
                                 <button
@@ -675,7 +620,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                             </div>
                         )}
 
-                        {/* 其他模式标题 */}
                         {mode !== 'login' && mode !== 'register' && (
                             <div className="mb-6">
                                 <h2 className="text-xl font-semibold text-white">{titles[mode]}</h2>
@@ -689,10 +633,8 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                             </div>
                         )}
 
-                        {/* 表单 */}
                         {renderForm()}
 
-                        {/* 底部链接 - 仅登录模式 */}
                         {mode === 'login' && (
                             <div className="flex justify-between items-center mt-6 text-sm">
                                 <button
@@ -711,7 +653,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                         )}
                     </div>
 
-                    {/* 返回按钮 */}
                     {onBack && (
                         <button
                             onClick={onBack}
@@ -723,7 +664,6 @@ function SharedLoginPage({ setAlertMessage, onBack }: SharedLoginPageProps) {
                     )}
                 </div>
 
-                {/* 底部版权 */}
                 <div className="absolute bottom-6 left-0 right-0 text-center">
                     <p className="text-gray-600 text-xs">
                         © 2024 VALPOINT · 社区驱动的战术平台

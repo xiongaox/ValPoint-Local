@@ -1,12 +1,12 @@
 /**
- * AuthorLinksBar - 作者信息快捷按钮栏
- * 
- * 显示在地图区域右上角，包含：
- * - 项目地址 (GitHub)
- * - 使用教程
- * - 打赏作者 (微信/支付宝收款码)
- * - 联系作者 (微信二维码)
+ * AuthorLinksBar - 作者LinksBar
+ *
+ * 职责：
+ * - 渲染作者LinksBar相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { AuthorLinks, defaultAuthorLinks } from '../types/authorLinks';
@@ -30,7 +30,6 @@ const AuthorLinksBar: React.FC = () => {
         loadLinks();
     }, []);
 
-    // 检查是否有任何链接配置
     const hasAnyLink = links.github_url || links.tutorial_url || links.donate_wechat_qr || links.donate_alipay_qr || links.contact_wechat_qr;
 
     useEscapeClose(Boolean(qrModal), () => setQrModal(null));
@@ -43,7 +42,6 @@ const AuthorLinksBar: React.FC = () => {
     return (
         <>
             <div className="flex items-center gap-2">
-                {/* 项目地址 */}
                 {links.github_url && (
                     <a
                         href={links.github_url}
@@ -56,7 +54,6 @@ const AuthorLinksBar: React.FC = () => {
                     </a>
                 )}
 
-                {/* 使用教程 */}
                 {links.tutorial_url && (
                     <a
                         href={links.tutorial_url}
@@ -69,7 +66,6 @@ const AuthorLinksBar: React.FC = () => {
                     </a>
                 )}
 
-                {/* 打赏作者 */}
                 {(links.donate_wechat_qr || links.donate_alipay_qr) && (
                     <button
                         onClick={() => setQrModal('donate')}
@@ -80,7 +76,6 @@ const AuthorLinksBar: React.FC = () => {
                     </button>
                 )}
 
-                {/* 联系作者 */}
                 {links.contact_wechat_qr && (
                     <button
                         onClick={() => setQrModal('contact')}
@@ -92,13 +87,11 @@ const AuthorLinksBar: React.FC = () => {
                 )}
             </div>
 
-            {/* 二维码弹窗 */}
             {qrModal && (
                 <div
                     className="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
                 >
                     <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl overflow-hidden">
-                        {/* Header */}
                         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                             <div className="flex items-center gap-3">
                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${qrModal === 'donate'
@@ -119,11 +112,9 @@ const AuthorLinksBar: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* Body */}
                         <div className="p-5 bg-[#181b1f]">
                             {qrModal === 'donate' ? (
                                 <>
-                                    {/* 打赏 Tab 切换 */}
                                     {links.donate_wechat_qr && links.donate_alipay_qr && (
                                         <div className="flex items-center bg-[#0f131a] p-1 rounded-lg border border-white/10 mb-4">
                                             <button
@@ -148,7 +139,6 @@ const AuthorLinksBar: React.FC = () => {
                                             </button>
                                         </div>
                                     )}
-                                    {/* 收款码图片 */}
                                     <div className="flex justify-center">
                                         <img
                                             src={donateTab === 'wechat' ? links.donate_wechat_qr : links.donate_alipay_qr}
@@ -162,7 +152,6 @@ const AuthorLinksBar: React.FC = () => {
                                 </>
                             ) : (
                                 <>
-                                    {/* 微信二维码 */}
                                     <div className="flex justify-center">
                                         <img
                                             src={links.contact_wechat_qr}

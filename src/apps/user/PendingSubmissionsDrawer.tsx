@@ -1,14 +1,12 @@
 /**
- * 待审点位右侧抽屉
- * 类似 EditorModal 的右侧抽屉，内容复用 PendingSubmissionsTab
- */
-/**
- * PendingSubmissionsDrawer - 用户投稿列表侧边抽屉
- * 
+ * PendingSubmissionsDrawer - 个人库待审投稿Drawer
+ *
  * 职责：
- * - 在个人中心侧边栏展示用户的所有投稿记录
- * - 实时显示投稿审核状态，允许用户查看投稿详情或撤回
+ * - 渲染个人库待审投稿Drawer相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState, useEffect } from 'react';
 import Icon from '../../components/Icon';
 import PendingSubmissionsTab from '../shared/PendingSubmissionsTab';
@@ -28,7 +26,6 @@ const PendingSubmissionsDrawer: React.FC<Props> = ({ isOpen, onClose, userId }) 
     return (
         <div className="fixed inset-0 z-[1200] pointer-events-none flex justify-end">
             <div className="pointer-events-auto h-full w-[383px] max-w-[383px] min-w-[383px] bg-[#10151b]/95 backdrop-blur-md border-l border-[#1b1f2a] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-                {/* Header */}
                 <div className="flex items-start justify-between gap-3 p-5 border-b border-[#1b1f2a] bg-[#1f2326]/90">
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -44,7 +41,6 @@ const PendingSubmissionsDrawer: React.FC<Props> = ({ isOpen, onClose, userId }) 
                     </button>
                 </div>
 
-                {/* Content - 复用 PendingSubmissionsTab */}
                 <div className="flex-1 overflow-hidden flex flex-col">
                     <PendingSubmissionsTab userId={userId} />
                 </div>

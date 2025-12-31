@@ -1,7 +1,15 @@
+/**
+ * valpoint - valpoint
+ *
+ * 职责：
+ * - 处理valpoint相关的接口请求。
+ * - 完成参数校验、业务处理与响应输出。
+ * - 保持与前端/服务端契约一致。
+ */
+
 import { manifestConfig } from '../valpoint.config.js';
 
 export default function handler(req, res) {
-    // 设置 CORS 头，允许跨域访问
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -10,13 +18,11 @@ export default function handler(req, res) {
         'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
     );
 
-    // 处理 OPTIONS 预检请求
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
     }
 
-    // 返回动态清单
     res.status(200).json({
         ...manifestConfig,
         description: `${manifestConfig.description} (Vercel)`,

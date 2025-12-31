@@ -1,12 +1,13 @@
-// @ts-nocheck
 /**
- * RightPanel - 右侧操作面板组件
- * 
- * 根据当前标签页显示不同内容：
- * - 查看模式：点位列表（搜索、筛选、分页）、置顶、下载、删除操作
- * - 创建模式：攻防选择、地图标注工具、图文详情入口
- * - 导入按钮入口
+ * RightPanel - 右侧面板
+ *
+ * 职责：
+ * - 承载右侧面板相关信息与操作入口。
+ * - 组织内部子模块的布局与显示状态。
+ * - 向父级汇报用户操作或选择。
  */
+
+// @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon';
 
@@ -33,8 +34,8 @@ type Props = {
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
   pinnedLimit: number;
-  onSubmitLineup?: (lineupId: string) => void;  // 投稿单个点位
-  isAdmin?: boolean;  // 是否管理员
+  onSubmitLineup?: (lineupId: string) => void; // 说明：投稿单个点位。
+  isAdmin?: boolean; // 说明：管理员标记。
 };
 
 const RightPanel: React.FC<Props> = ({
@@ -67,7 +68,6 @@ const RightPanel: React.FC<Props> = ({
   const [page, setPage] = useState(1);
   const showPagination = filteredLineups.length > 8;
   const totalPages = Math.max(1, Math.ceil(filteredLineups.length / pageSize));
-  // Removed isSharedMode logic
 
   useEffect(() => {
     setPage(1);
@@ -292,7 +292,6 @@ const RightPanel: React.FC<Props> = ({
                             >
                               <Icon name="Pin" size={14} />
                             </button>
-                            {/* 投稿按钮 - 仅普通用户显示 */}
                             {!isAdmin && onSubmitLineup && (
                               <button
                                 onClick={(e) => {

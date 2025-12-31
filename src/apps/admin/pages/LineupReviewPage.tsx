@@ -1,15 +1,12 @@
 /**
- * 点位审核页面
- * 三栏布局：左侧待审列表 / 中间地图预览（带标记点）/ 右侧详情+图片+操作
- */
-/**
- * LineupReviewPage - 点位审核管理页
- * 
+ * LineupReviewPage - 管理端点位审核页面
+ *
  * 职责：
- * - 管理用户通过共享库提交的投稿点位 (Submissions)
- * - 提供点位内容预览（图片、描述、点位坐标、链接）
- * - 执行点位通过 (Approve) 或 驳回 (Reject) 操作，并通过推送通知用户
+ * - 组织管理端点位审核页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Icon from '../../../components/Icon';
 import { LineupSubmission } from '../../../types/submission';
@@ -35,10 +32,8 @@ function LineupReviewPage() {
 
     useEscapeClose(showRejectModal, () => setShowRejectModal(false));
 
-    // 当前选中的投稿
     const selected = submissions.find((s) => s.id === selectedId) || null;
 
-    // 加载待审投稿和系统设置
     const loadData = useCallback(async () => {
         setIsLoading(true);
         const [subs, settings] = await Promise.all([
@@ -56,14 +51,12 @@ function LineupReviewPage() {
         loadData();
     }, [loadData]);
 
-    // 自动选中第一个
     useEffect(() => {
         if (submissions.length > 0 && !selectedId) {
             setSelectedId(submissions[0].id);
         }
     }, [submissions, selectedId]);
 
-    // 消息自动消失
     useEffect(() => {
         if (message) {
             const timer = setTimeout(() => setMessage(null), 3000);
@@ -71,7 +64,6 @@ function LineupReviewPage() {
         }
     }, [message]);
 
-    // 审核通过
     const handleApprove = async () => {
         if (!selected || !ossConfig) return;
 
@@ -94,13 +86,11 @@ function LineupReviewPage() {
         setIsProcessing(false);
     };
 
-    // 打开拒绝弹窗
     const handleOpenReject = () => {
         setRejectReason('');
         setShowRejectModal(true);
     };
 
-    // 确认拒绝
     const handleConfirmReject = async () => {
         if (!selected || !rejectReason.trim()) return;
 
@@ -134,7 +124,6 @@ function LineupReviewPage() {
 
     return (
         <div className="h-[calc(100vh-120px)] flex gap-4">
-            {/* 消息提示 */}
             {message && (
                 <div
                     className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${message.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
@@ -144,7 +133,6 @@ function LineupReviewPage() {
                 </div>
             )}
 
-            {/* 左侧：待审列表 */}
             <div className="w-56 flex-shrink-0 bg-[#1f2326] rounded-xl border border-white/10 flex flex-col overflow-hidden">
                 <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
                     <h3 className="font-semibold">待审点位</h3>
@@ -195,10 +183,8 @@ function LineupReviewPage() {
                 </div>
             </div>
 
-            {/* 中间：地图预览 */}
             <ReviewMapPreview submission={selected} />
 
-            {/* 右侧：详情+图片+操作 */}
             <div className="w-72 flex-shrink-0 bg-[#1f2326] rounded-xl border border-white/10 flex flex-col overflow-hidden">
                 <div className="px-4 py-3 border-b border-white/10">
                     <h3 className="font-semibold">点位详情</h3>
@@ -206,7 +192,6 @@ function LineupReviewPage() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {selected ? (
                         <>
-                            {/* 基本信息 */}
                             <div>
                                 <h4 className="text-white font-semibold mb-2">{selected.title}</h4>
                                 <div className="flex flex-wrap gap-2 text-xs">
@@ -225,7 +210,6 @@ function LineupReviewPage() {
                                 </div>
                             )}
 
-                            {/* 点位图片 */}
                             <div>
                                 <label className="text-xs text-gray-400 mb-2 block">点位图片</label>
                                 <div className="space-y-3">
@@ -272,7 +256,6 @@ function LineupReviewPage() {
                                 </div>
                             </div>
 
-                            {/* 投稿者信息 */}
                             <div className="pt-3 border-t border-white/10 flex items-center justify-between">
                                 <div>
                                     <label className="text-xs text-gray-400 mb-1 block">投稿者</label>
@@ -302,7 +285,6 @@ function LineupReviewPage() {
                     )}
                 </div>
 
-                {/* 操作按钮 */}
                 {selected && (
                     <div className="p-4 border-t border-white/10 space-y-2">
                         {!ossConfig && (
@@ -340,10 +322,8 @@ function LineupReviewPage() {
                 )}
             </div>
 
-            {/* 图片查看弹窗 */}
             <Lightbox viewingImage={viewingImage} setViewingImage={setViewingImage} />
 
-            {/* 拒绝理由弹窗 */}
             {showRejectModal && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="w-full max-w-md bg-[#1f2326] rounded-xl border border-white/10 overflow-hidden">

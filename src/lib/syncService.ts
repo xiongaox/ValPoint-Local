@@ -1,28 +1,25 @@
 /**
- * syncService - 库同步服务
- * 
+ * syncService - 同步服务
+ *
  * 职责：
- * - 实现点位从“个人库”到“共享库”的单向同步
- * - 检查重叠（通过 source_id），避免重复发布
- * - 支持按英雄、按地图或全量同步
+ * - 封装同步服务相关的接口调用。
+ * - 处理参数整理、错误兜底与结果转换。
+ * - 向上层提供稳定的服务 API。
  */
 
 import { supabase, shareSupabase } from '../supabaseClient';
 import { TABLE } from '../services/tables';
 
-/** 同步范围 */
 export type SyncScope = 'agent' | 'map' | 'all';
 
-/** 同步参数 */
 export interface SyncOptions {
-    userId: string;           // 个人库用户 ID
-    scope: SyncScope;         // 同步范围
-    mapName?: string;         // 地图名称（scope='map' 时必填）
-    agentName?: string;       // 英雄名称（scope='agent' 时必填）
-    adminEmail: string;       // 管理员邮箱（作为 user_id 写入共享库）
+    userId: string; // 说明：个人库用户 ID。
+    scope: SyncScope; // 说明：同步范围。
+    mapName?: string; // 说明：地图名称（scope 为 map 时必填）。
+    agentName?: string; // 说明：英雄名称（scope 为 agent 时必填）。
+    adminEmail: string; // 说明：管理员邮箱（作为 user_id 写入共享库）。
 }
 
-/** 同步结果 */
 export interface SyncResult {
     success: boolean;
     syncedCount: number;
@@ -30,10 +27,6 @@ export interface SyncResult {
     errorMessage?: string;
 }
 
-/**
- * 检查点位是否已同步到共享库
- * 通过 source_id 字段判断
- */
 const checkIfSynced = async (sourceId: string): Promise<boolean> => {
     const { data } = await shareSupabase
         .from(TABLE.shared)
@@ -44,9 +37,6 @@ const checkIfSynced = async (sourceId: string): Promise<boolean> => {
     return !!(data && data.length > 0);
 };
 
-/**
- * 同步个人库点位到共享库
- */
 export const syncLineupsToShared = async (
     options: SyncOptions,
     onProgress?: (current: number, total: number) => void,
@@ -54,13 +44,11 @@ export const syncLineupsToShared = async (
     try {
         const { userId, scope, mapName, agentName, adminEmail } = options;
 
-        // 1. 构建查询条件
         let query = supabase
             .from(TABLE.lineups)
             .select('*')
             .eq('user_id', userId);
 
-        // agent scope: 同时筛选英雄和当前地图
         if (scope === 'agent' && agentName) {
             query = query.eq('agent_name', agentName);
             if (mapName) {
@@ -70,7 +58,6 @@ export const syncLineupsToShared = async (
             query = query.eq('map_name', mapName);
         }
 
-        // 2. 获取个人库点位
         const { data: lineups, error: fetchError } = await query;
 
         if (fetchError) {
@@ -91,8 +78,7 @@ export const syncLineupsToShared = async (
             };
         }
 
-        // 2.5 获取用户的 custom_id（短 ID）
-        let userDisplayId = userId.substring(0, 8).toUpperCase(); // 默认使用 UUID 前 8 位
+        let userDisplayId = userId.substring(0, 8).toUpperCase(); // 说明：默认使用 UUID 前 8 位。
         try {
             const { data: userData } = await supabase
                 .from('user_profiles')
@@ -106,10 +92,8 @@ export const syncLineupsToShared = async (
                 userDisplayId = userData.nickname;
             }
         } catch {
-            // 查询失败，使用默认值
         }
 
-        // 3. 逐个同步
         let syncedCount = 0;
         let skippedCount = 0;
 
@@ -117,17 +101,15 @@ export const syncLineupsToShared = async (
             const lineup = lineups[i];
             onProgress?.(i + 1, lineups.length);
 
-            // 检查是否已同步
             const alreadySynced = await checkIfSynced(lineup.id);
             if (alreadySynced) {
                 skippedCount++;
                 continue;
             }
 
-            // 构建共享库记录
             const sharedLineup = {
-                id: lineup.id,  // 使用 id 作为主键 (原 share_id)
-                source_id: lineup.id, // source_id 也存为 id，可用于追溯
+                id: lineup.id, // 说明：使用 id 作为主键（原 share_id）。
+                source_id: lineup.id, // 说明：使用 id 作为主键（原 share_id）。
                 title: lineup.title,
                 map_name: lineup.map_name,
                 agent_name: lineup.agent_name,
@@ -148,10 +130,9 @@ export const syncLineupsToShared = async (
                 land_img: lineup.land_img,
                 land_desc: lineup.land_desc,
                 source_link: lineup.source_link,
-                author_uid: userDisplayId,  // 使用用户的 custom_id（短 ID）
+                author_uid: userDisplayId, // 说明：使用用户 custom_id（短 ID）。
             };
 
-            // 插入共享库
             const { error: insertError } = await shareSupabase
                 .from(TABLE.shared)
                 .insert(sharedLineup);
@@ -180,22 +161,17 @@ export const syncLineupsToShared = async (
     }
 };
 
-/**
- * 获取待同步点位数量（用于预览）
- */
 export const getSyncableCount = async (
     userId: string,
     scope: SyncScope,
     mapName?: string,
     agentName?: string,
 ): Promise<{ total: number; synced: number }> => {
-    // 构建查询
     let query = supabase
         .from(TABLE.lineups)
         .select('id')
         .eq('user_id', userId);
 
-    // agent scope: 同时筛选英雄和地图
     if (scope === 'agent' && agentName) {
         query = query.eq('agent_name', agentName);
         if (mapName) {
@@ -208,7 +184,6 @@ export const getSyncableCount = async (
     const { data: lineups } = await query;
     const total = lineups?.length || 0;
 
-    // 检查已同步数量
     if (!lineups || lineups.length === 0) {
         return { total: 0, synced: 0 };
     }

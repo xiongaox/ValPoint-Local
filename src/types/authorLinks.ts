@@ -1,27 +1,20 @@
 /**
- * AuthorLinks - 作者信息链接类型定义
- * 
- * 用于配置地图右上角的快捷按钮：
- * - 项目地址 (GitHub)
- * - 使用教程
- * - 打赏作者 (微信/支付宝收款码)
- * - 联系作者 (微信二维码)
+ * authorLinks - 作者Links
+ *
+ * 职责：
+ * - 声明作者Links相关的数据结构与类型约束。
+ * - 为业务逻辑提供类型安全的契约。
+ * - 集中管理跨模块共享的类型定义。
  */
 
 export interface AuthorLinks {
-    /** GitHub 项目地址 */
     github_url: string;
-    /** 使用教程地址 */
     tutorial_url: string;
-    /** 微信收款码图片 URL */
     donate_wechat_qr: string;
-    /** 支付宝收款码图片 URL */
     donate_alipay_qr: string;
-    /** 微信二维码图片 URL */
     contact_wechat_qr: string;
 }
 
-/** 默认空配置 */
 export const defaultAuthorLinks: AuthorLinks = {
     github_url: '',
     tutorial_url: '',

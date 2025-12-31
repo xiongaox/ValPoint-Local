@@ -1,13 +1,12 @@
-
 /**
- * QuickActions - 悬浮快捷功能菜单
- * 
- * 位于界面右下角，提供：
- * - 核心功能入口（跳转个人信息、图床配置、高级设置、修改密码等）
- * - 批量下载功能
- * - 后台同步状态展示（针对管理员）
- * - 待审点位提醒（针对用户）
+ * QuickActions - 快捷操作
+ *
+ * 职责：
+ * - 渲染快捷操作相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React from 'react';
 import Icon, { IconName } from './Icon';
 
@@ -18,14 +17,14 @@ type Props = {
   onChangePassword: () => void;
   onClearLineups: () => void;
   onAdvancedSettings: () => void;
-  onPngSettings?: () => void;  // 图片处理设置
-  onSyncToShared?: () => void;  // 同步到共享库（管理员）
-  onPendingSubmissions?: () => void;  // 待审点位（普通用户）
-  onBatchDownload?: () => void; // 批量下载
-  onProfile?: () => void;       // 个人信息
-  isAdmin?: boolean;             // 是否管理员
+  onPngSettings?: () => void; // 说明：图片处理设置。
+  onSyncToShared?: () => void; // 说明：同步到共享库（管理员）。
+  onPendingSubmissions?: () => void; // 说明：待审点位（普通用户）。
+  onBatchDownload?: () => void; // 说明：批量下载。
+  onProfile?: () => void; // 说明：个人信息设置。
+  isAdmin?: boolean; // 说明：管理员标记。
   pendingTransfers?: number;
-  canBatchDownload?: boolean;   // 是否允许批量下载
+  canBatchDownload?: boolean; // 说明：允许批量下载。
 };
 
 const ActionButton = ({ onClick, icon, title, color = "bg-[#2a2f38]" }: { onClick: () => void, icon: IconName, title: string, color?: string }) => (
@@ -64,7 +63,6 @@ const QuickActions: React.FC<Props> = ({
     <div className="absolute bottom-4 right-4 z-30 pointer-events-none">
       <div className="relative flex items-end flex-col gap-3 pointer-events-none">
 
-        {/* 后台任务进度 - 始终显示 */}
         {showProgress && (
           <div className="flex items-center gap-2 bg-[#0d1117]/90 border border-white/10 rounded-2xl shadow-lg px-3 py-2 h-12 min-w-[140px] backdrop-blur-sm pointer-events-auto mb-2">
             <div className="relative w-9 h-9">
@@ -82,48 +80,37 @@ const QuickActions: React.FC<Props> = ({
         )}
 
         <div className="pointer-events-auto flex flex-col items-end gap-3 button-list">
-          {/* 展开的功能按钮列表 */}
           {isOpen && (
             <>
-              {/* 个人信息 */}
               {onProfile && (
                 <ActionButton onClick={onProfile} icon="User" title="个人信息" />
               )}
 
-              {/* 待审点位 (普通用户) */}
               {!isAdmin && onPendingSubmissions && (
                 <ActionButton onClick={onPendingSubmissions} icon="Clock" title="待审点位" />
               )}
 
-              {/* 同步到共享库 (管理员) */}
               {isAdmin && onSyncToShared && (
                 <ActionButton onClick={onSyncToShared} icon="Share2" title="同步到共享库" />
               )}
 
-              {/* 批量下载 */}
               {onBatchDownload && canBatchDownload && (
                 <ActionButton onClick={onBatchDownload} icon="Download" title="批量下载" />
               )}
 
-              {/* 高级设置 - 仅保留非核心的交互设置 */}
               <ActionButton onClick={onAdvancedSettings} icon="SlidersHorizontal" title="高级设置" />
 
-              {/* 修改密码 */}
               <ActionButton onClick={onChangePassword} icon="Key" title="修改密码" />
 
-              {/* PNG 转换 */}
               {onPngSettings && (
                 <ActionButton onClick={onPngSettings} icon="FileImage" title="PNG转换" />
               )}
 
-              {/* 图床配置 */}
               <ActionButton onClick={onImageBedConfig} icon="Image" title="图床配置" />
             </>
           )}
 
-          {/* 底部按钮组 */}
           <div className="flex items-center gap-3">
-            {/* 瞄点编辑器 - 展开时显示在主按钮左边 */}
             {isOpen && (
               <button
                 onClick={() => window.open('/reticle.html', '_blank')}
@@ -134,7 +121,6 @@ const QuickActions: React.FC<Props> = ({
               </button>
             )}
 
-            {/* 主开关按钮 */}
             <button
               onClick={onToggle}
               className={`w-12 h-12 rounded-full text-white flex items-center justify-center shadow-lg border border-white/10 transition-all duration-300 z-40 ${isOpen ? 'bg-[#2a2f38] rotate-90' : 'bg-[#ff4655] hover:bg-[#d93a49] shadow-red-900/40'

@@ -1,3 +1,12 @@
+/**
+ * PendingSubmissionsTab - 共享库待审投稿标签
+ *
+ * 职责：
+ * - 渲染共享库待审投稿标签相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
+ */
+
 import React, { useEffect, useState } from 'react';
 import Icon from '../../components/Icon';
 import AlertModal from '../../components/AlertModal';
@@ -9,7 +18,6 @@ interface Props {
     userId: string | null;
 }
 
-/** 状态配置 */
 const STATUS_CONFIG: Record<SubmissionStatus, { label: string; color: string; bgColor: string; borderColor: string; icon: string }> = {
     pending: {
         label: '待审核',
@@ -140,7 +148,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
     return (
         <>
             <div className="flex-1 flex flex-col overflow-hidden bg-[#0f1923]/50">
-                {/* Header */}
                 <div className="relative z-50 px-4 py-3 border-b border-white/5 flex items-center justify-between bg-[#1f2326]/30 backdrop-blur-md">
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#ff4655]" />
@@ -182,7 +189,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                     </div>
                 </div>
 
-                {/* List */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {submissions.map((item) => {
                         const statusConfig = STATUS_CONFIG[item.status];
@@ -194,7 +200,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                                 key={item.id}
                                 className="group relative bg-[#1f2326]/40 border border-white/5 rounded-xl p-4 transition-all duration-300 hover:border-[#ff4655]/30 hover:bg-[#1f2326]/60 shadow-lg"
                             >
-                                {/* Status Badge */}
                                 <div className="absolute top-4 right-4">
                                     <span className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-bold tracking-tight border ${statusConfig.color} ${statusConfig.bgColor} ${statusConfig.borderColor}`}>
                                         <Icon name={statusConfig.icon as any} size={12} />
@@ -203,7 +208,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                                 </div>
 
                                 <div className="flex gap-3 pr-20">
-                                    {/* Agent Icon */}
                                     {item.agent_icon && (
                                         <div className="shrink-0 w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-white/5">
                                             <img src={item.agent_icon} alt={item.agent_name} className="w-full h-full object-cover" />
@@ -211,12 +215,10 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                                     )}
 
                                     <div className="flex flex-col gap-2 flex-1 min-w-0">
-                                        {/* Title */}
                                         <h4 className="text-base font-bold text-white group-hover:text-[#ff4655] transition-colors truncate">
                                             {item.title}
                                         </h4>
 
-                                        {/* Info Row */}
                                         <div className="flex flex-wrap items-center gap-y-2 gap-x-2">
                                             <div className="flex items-center gap-1 text-xs text-gray-300 bg-white/5 px-2 py-1 rounded-md">
                                                 <Icon name="Map" size={12} className="text-[#ff4655]" />
@@ -228,7 +230,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                                             </div>
                                         </div>
 
-                                        {/* Date */}
                                         <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                             <Icon name="Calendar" size={12} />
                                             <span>投稿于 {new Date(item.created_at).toLocaleString('zh-CN', {
@@ -242,7 +243,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                                     </div>
                                 </div>
 
-                                {/* Rejected Reason */}
                                 {item.status === 'rejected' && item.reject_reason && (
                                     <div className="mt-4 p-3 rounded-lg bg-red-400/5 border border-red-400/10 flex gap-2">
                                         <Icon name="AlertCircle" size={14} className="text-red-400 shrink-0 mt-0.5" />
@@ -253,7 +253,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                                     </div>
                                 )}
 
-                                {/* Actions */}
                                 <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
                                     {item.status === 'pending' ? (
                                         <button
@@ -281,7 +280,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                 </div>
             </div>
 
-            {/* 确认弹窗 */}
             <AlertModal
                 message={confirmState?.message ?? null}
                 onClose={() => setConfirmState(null)}
@@ -290,7 +288,6 @@ const PendingSubmissionsTab: React.FC<Props> = ({ userId }) => {
                 onSecondary={confirmState?.onConfirm}
             />
 
-            {/* 消息弹窗 */}
             <AlertModal
                 message={alertMessage}
                 onClose={() => setAlertMessage(null)}

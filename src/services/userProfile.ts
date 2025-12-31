@@ -1,3 +1,12 @@
+/**
+ * userProfile - 用户资料
+ *
+ * 职责：
+ * - 封装用户资料相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { supabase } from '../supabaseClient';
 import { Subscription } from '../apps/shared/logic/subscription';
 
@@ -13,7 +22,6 @@ export const fetchUserSubscriptions = async (userId: string): Promise<Subscripti
         return [];
     }
 
-    // Ensure we return an array
     return (data?.subscriptions as Subscription[]) || [];
 };
 

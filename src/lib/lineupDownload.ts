@@ -1,3 +1,12 @@
+/**
+ * lineupDownload - 点位下载
+ *
+ * 职责：
+ * - 承载点位下载相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
+ */
+
 import { zipSync, strToU8 } from 'fflate';
 import { MAP_TRANSLATIONS } from '../constants/maps';
 import { BaseLineup, LineupPosition } from '../types/lineup';

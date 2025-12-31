@@ -1,19 +1,15 @@
 /**
- * changelog.ts - 应用更新日志数据
- * 
+ * changelog - changelog
+ *
  * 职责：
- * - 记录应用各个版本的更新内容、日期及详细条目
- * - 为“更新日志”弹窗提供静态数据源
+ * - 承载changelog相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
  */
+
 type ChangelogItem = string | { text: string; children?: string[] };
 
 export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
-  //     {
-  //   date: '2025-12-10',
-  //   items: [
-  //     '模板',
-  //   ],
-  // },
   {
     date: '2025-12-10',
     items: [

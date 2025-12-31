@@ -1,11 +1,12 @@
 /**
- * SharedApp - 共享库应用根组件
- * 
+ * SharedApp - 共享库应用
+ *
  * 职责：
- * - 协调共享库的整体路由与认证状态
- * - 处理密码重置 (Recovery Mode) 逻辑
- * - 提供全局弹窗容器 (Lightbox, AlertModal)
+ * - 渲染共享库应用相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState, useEffect } from 'react';
 import '../../styles/fonts.css';
 import '../../index.css';
@@ -26,11 +27,9 @@ function SharedApp() {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
-    // 监听密码重置事件
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'PASSWORD_RECOVERY') {
-                // 用户通过重置链接登录，进入 recovery 模式
                 setIsRecoveryMode(true);
             }
         });
@@ -40,19 +39,16 @@ function SharedApp() {
         };
     }, []);
 
-    // 处理重置密码完成或取消
     const handleRecoveryComplete = () => {
         setIsRecoveryMode(false);
     };
 
     const handleRecoveryCancel = async () => {
-        // 如果用户取消重置密码，强制登出
         await signOut();
         setIsRecoveryMode(false);
         setAlertMessage('密码重置已取消，请重新登录');
     };
 
-    // 认证加载中（短暂等待）
     if (isLoading) {
         return (
             <div className="flex h-screen w-screen bg-[#0f1923] items-center justify-center">
@@ -64,7 +60,6 @@ function SharedApp() {
         );
     }
 
-    // 密码重置模式 - 必须完成重置才能继续
     if (isRecoveryMode && user) {
         return (
             <div className="flex h-screen w-screen bg-[#0f1923] items-center justify-center">
@@ -82,7 +77,6 @@ function SharedApp() {
         );
     }
 
-    // 显示登录弹窗
     if (showLoginModal && !user) {
         return (
             <>
@@ -98,7 +92,6 @@ function SharedApp() {
         );
     }
 
-    // 直接显示共享库主视图（无论是否登录）
     return (
         <>
             <SharedMainView

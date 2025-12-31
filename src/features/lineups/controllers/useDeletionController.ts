@@ -1,13 +1,12 @@
 /**
- * useDeletionController - 点位删除控制器
- * 
- * 处理点位删除和清空操作：
- * - handleRequestDelete: 请求删除单个点位
- * - performDelete: 执行删除
- * - handleClearAll: 请求清空所有点位
- * - performClearAll: 执行清空所有点位
- * - performClearSelectedAgent: 清空当前选中特工的点位
+ * useDeletionController - 点位Deletion控制器
+ *
+ * 职责：
+ * - 封装点位Deletion控制器相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import React from 'react';
 import { AgentOption, BaseLineup } from '../../../types/lineup';
 

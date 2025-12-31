@@ -1,20 +1,18 @@
 /**
- * LibrarySwitchButton - 个人库/共享库切换按钮
- * 
- * 采用 Tab 选项卡样式：
- * - 两个按钮并排显示，当前库高亮，另一个库可点击跳转
- * - 尺寸规格：Tab 容器 166x54px，单个按钮 74x36px
- * - 支持根据设置完全隐藏共享库按钮
+ * LibrarySwitchButton - Library切换按钮
+ *
+ * 职责：
+ * - 渲染Library切换按钮相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState, useEffect } from 'react';
 import { getSystemSettings } from '../lib/systemSettings';
 
 interface LibrarySwitchButtonProps {
-    /** 当前库类型（用于高亮显示） */
     currentLibrary: 'personal' | 'shared';
-    /** 是否隐藏共享库按钮 */
     hideSharedButton?: boolean;
-    /** 当已经处于共享库时，点击共享库按钮的回调 */
     onSharedClick?: () => void;
 }
 const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrary, hideSharedButton = false, onSharedClick }) => {
@@ -26,7 +24,6 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
         async function loadSettings() {
             setIsLoading(true);
 
-            // 环境变量优先（支持本地和云服务器独立配置）
             const envSharedUrl = (window as any).__ENV__?.VITE_SHARED_LIBRARY_URL
                 || import.meta.env.VITE_SHARED_LIBRARY_URL
                 || '';
@@ -37,7 +34,6 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
 
             const settings = await getSystemSettings();
             if (settings) {
-                // 环境变量 > 默认
                 setPersonalUrl(envPersonalUrl || '/user.html');
                 setSharedUrl(envSharedUrl || '/');
             } else {
@@ -51,13 +47,11 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
 
     const isPersonalActive = currentLibrary === 'personal';
 
-    // 容器样式：164×52px（包含内边距），圆角 12px
-    // 按钮 74×36px，间距 0，内边距 = 8px
     const containerStyle: React.CSSProperties = {
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center', // 确保居中
-        gap: 0, // 间距为 0
+        justifyContent: 'center', // 说明：确保居中。
+        gap: 0, // 说明：间距为 0。
         padding: '8px',
         width: '166px',
         height: '54px',
@@ -65,10 +59,9 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
         backdropFilter: 'blur(4px)',
         borderRadius: '12px',
         border: '1px solid rgba(255, 255, 255, 0.15)',
-        boxSizing: 'border-box', // 尺寸包含内边距
+        boxSizing: 'border-box', // 说明：尺寸包含内边距。
     };
 
-    // 按钮样式：74×36px，圆角 8px
     const buttonBaseStyle: React.CSSProperties = {
         display: 'flex',
         alignItems: 'center',
@@ -79,13 +72,12 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
         fontSize: '14px',
         fontWeight: 700,
         textDecoration: 'none',
-        lineHeight: '1', // 确保行高与字体一致
-        textAlign: 'center', // 确保文字水平居中
-        padding: '0', // 移除可能存在的内边距
+        lineHeight: '1', // 说明：行高与字体一致。
+        textAlign: 'center', // 说明：文字水平居中。
+        padding: '0', // 说明：移除额外内边距。
         transition: 'all 0.2s ease',
     };
 
-    // 加载中状态
     if (isLoading) {
         return (
             <div style={containerStyle}>
@@ -94,14 +86,12 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
         );
     }
 
-    // 如果隐藏共享库按钮且当前是个人库，则不显示切换按钮
     if (hideSharedButton && currentLibrary === 'personal') {
         return null;
     }
 
     return (
         <div style={containerStyle}>
-            {/* 个人库按钮 */}
             {isPersonalActive ? (
                 <div
                     style={{
@@ -141,7 +131,6 @@ const LibrarySwitchButton: React.FC<LibrarySwitchButtonProps> = ({ currentLibrar
                 </a>
             )}
 
-            {/* 共享库按钮 */}
             {!isPersonalActive ? (
                 <div
                     onClick={onSharedClick}

@@ -1,6 +1,12 @@
 /**
- * UserGrowthChart - 用户增长趋势（7天）
+ * UserGrowthChart - 管理端用户Growth图表
+ *
+ * 职责：
+ * - 渲染管理端用户Growth图表相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useEffect, useState } from 'react';
 import {
     LineChart,

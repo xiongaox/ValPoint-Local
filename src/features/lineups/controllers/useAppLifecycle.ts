@@ -1,3 +1,12 @@
+/**
+ * useAppLifecycle - 点位应用Lifecycle
+ *
+ * 职责：
+ * - 封装点位应用Lifecycle相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { useEffect } from 'react';
 import { ActiveTab } from '../../../types/app';
 import { BaseLineup, LibraryMode, NewLineupForm, SharedLineup } from '../../../types/lineup';
@@ -35,9 +44,6 @@ export function useAppLifecycle({
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('id')) {
-      // Shared link handling removed in Personal Library
-      // Potentially redirect or show message?
-      // For now, just clear the param or ignore
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [setActiveTab]);

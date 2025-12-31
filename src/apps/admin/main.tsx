@@ -1,12 +1,17 @@
 /**
- * main.tsx (Admin) - 后台管理系统入口点
+ * main - 管理端主入口
+ *
+ * 职责：
+ * - 渲染管理端主入口相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import AdminApp from './AdminApp';
 import { preloadPlayerCards } from '../../utils/playerCardAvatars';
 
-// 预加载玩家卡面数据
 preloadPlayerCards();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

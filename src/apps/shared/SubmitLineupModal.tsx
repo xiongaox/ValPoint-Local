@@ -1,11 +1,12 @@
 /**
- * SubmitLineupModal - 在线投稿弹窗
- * 
+ * SubmitLineupModal - 共享库投稿点位弹窗
+ *
  * 职责：
- * - 提供点位投稿表单，指引用户上传 ZIP 包或补充元数据
- * - 查询当前用户的日投稿限额
- * - 调用 submissionUpload 服务完成数据上传
+ * - 渲染共享库投稿点位弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Icon from '../../components/Icon';
 import { parseSubmissionZip, submitLineup, checkDailySubmissionLimit } from '../../lib/submissionUpload';
@@ -21,7 +22,6 @@ type Props = {
     setAlertMessage: (msg: string) => void;
 };
 
-/** ZIP 预解析的元数据 */
 interface ParsedMetadata {
     title: string;
     mapName: string;
@@ -30,7 +30,6 @@ interface ParsedMetadata {
     imageCount: number;
 }
 
-/** 待提交的文件 */
 interface PendingFile {
     file: File;
     metadata: ParsedMetadata | null;
@@ -53,7 +52,6 @@ const SubmitLineupModal: React.FC<Props> = ({
     const [remainingQuota, setRemainingQuota] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // 检查剩余投稿额度
     useEffect(() => {
         if (isOpen && userId) {
             checkDailySubmissionLimit(userId).then(({ remaining }) => {
@@ -62,7 +60,6 @@ const SubmitLineupModal: React.FC<Props> = ({
         }
     }, [isOpen, userId]);
 
-    // 处理文件选择
     const handleFilesSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
@@ -77,7 +74,6 @@ const SubmitLineupModal: React.FC<Props> = ({
         const newPending: PendingFile[] = [];
 
         for (const file of toAdd) {
-            // 跳过重复文件
             if (pendingFiles.some(p => p.file.name === file.name)) continue;
 
             try {
@@ -99,23 +95,19 @@ const SubmitLineupModal: React.FC<Props> = ({
 
         setPendingFiles(prev => [...prev, ...newPending]);
 
-        // 重置 input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     }, [pendingFiles, setAlertMessage]);
 
-    // 移除单个文件
     const handleRemoveFile = (index: number) => {
         setPendingFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    // 点击选择文件
     const handleClickSelect = () => {
         fileInputRef.current?.click();
     };
 
-    // 开始投稿
     const handleStartSubmit = useCallback(async () => {
         if (!userId) {
             setAlertMessage('请先登录');
@@ -152,7 +144,6 @@ const SubmitLineupModal: React.FC<Props> = ({
                 userId,
                 userEmail,
                 (p: SubmissionProgress) => {
-                    // 可扩展单个文件的详细进度
                 },
             );
 
@@ -178,7 +169,6 @@ const SubmitLineupModal: React.FC<Props> = ({
         onClose();
     }, [userId, userEmail, pendingFiles, remainingQuota, setAlertMessage, onSuccess, onClose]);
 
-    // 关闭弹窗
     const handleClose = () => {
         if (isSubmitting) return;
         setPendingFiles([]);
@@ -195,7 +185,6 @@ const SubmitLineupModal: React.FC<Props> = ({
     return (
         <div className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-center text-emerald-400">
@@ -221,7 +210,6 @@ const SubmitLineupModal: React.FC<Props> = ({
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 space-y-4 bg-[#181b1f] max-h-[60vh] overflow-y-auto">
                     {!userId ? (
                         <div className="text-center py-6">
@@ -251,7 +239,6 @@ const SubmitLineupModal: React.FC<Props> = ({
                         </div>
                     ) : (
                         <>
-                            {/* 待投稿文件列表 */}
                             {pendingFiles.length > 0 && (
                                 <div className="space-y-2">
                                     {pendingFiles.map((item, index) => (
@@ -297,7 +284,6 @@ const SubmitLineupModal: React.FC<Props> = ({
                                 </div>
                             )}
 
-                            {/* 添加文件区域 */}
                             {pendingFiles.length < MAX_FILES && (
                                 <div className="py-2">
                                     <input
@@ -342,7 +328,6 @@ const SubmitLineupModal: React.FC<Props> = ({
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="px-5 py-4 border-t border-white/10 bg-[#1c2028] flex items-center justify-between">
                     <div className="text-xs text-gray-500">
                         {pendingFiles.length > 0

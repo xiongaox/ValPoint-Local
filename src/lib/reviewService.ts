@@ -1,18 +1,18 @@
 /**
- * reviewService - 投稿审核流程服务
- * 
+ * reviewService - 审核服务
+ *
  * 职责：
- * - 管理用户提交的待审点位（获取列表、批准、拒绝）
- * - 批准时自动将图片从临时存储迁移到官方 OSS
- * - 联动更新共享库数据并清理临时资源
+ * - 封装审核服务相关的接口调用。
+ * - 处理参数整理、错误兜底与结果转换。
+ * - 向上层提供稳定的服务 API。
  */
+
 import { supabase, shareSupabase, adminSupabase } from '../supabaseClient';
 import { LineupSubmission } from '../types/submission';
 import { ImageBedConfig } from '../types/imageBed';
 import { transferImage } from './imageBed';
 import { TABLE } from '../services/tables';
 
-/** 获取所有待审投稿 */
 export async function getPendingSubmissions(): Promise<LineupSubmission[]> {
     const { data, error } = await adminSupabase
         .from('lineup_submissions')
@@ -27,7 +27,6 @@ export async function getPendingSubmissions(): Promise<LineupSubmission[]> {
     return data || [];
 }
 
-/** 获取所有投稿（包括已审核的） */
 export async function getAllSubmissions(): Promise<LineupSubmission[]> {
     const { data, error } = await adminSupabase
         .from('lineup_submissions')
@@ -41,13 +40,8 @@ export async function getAllSubmissions(): Promise<LineupSubmission[]> {
     return data || [];
 }
 
-/** 图片字段映射 */
 const IMAGE_FIELDS = ['stand_img', 'stand2_img', 'aim_img', 'aim2_img', 'land_img'] as const;
 
-/**
- * 迁移图片到官方图床
- * 将 Supabase Storage 中的临时图片转存到官方 OSS
- */
 async function migrateImagesToOss(
     submission: LineupSubmission,
     ossConfig: ImageBedConfig,
@@ -63,7 +57,6 @@ async function migrateImagesToOss(
             migratedUrls[field] = newUrl;
         } catch (error) {
             console.error(`迁移图片失败 (${field}):`, error);
-            // 保留原 URL，不中断流程
             migratedUrls[field] = sourceUrl;
         }
     }
@@ -71,24 +64,14 @@ async function migrateImagesToOss(
     return migratedUrls;
 }
 
-/**
- * 审核通过
- * 1. 迁移图片到官方 OSS
- * 2. 创建 shared_lineups 记录
- * 3. 更新投稿状态
- * 4. 删除 Supabase Storage 临时文件
- */
 export async function approveSubmission(
     submission: LineupSubmission,
     reviewerId: string,
     ossConfig: ImageBedConfig,
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        // 1. 迁移图片到官方 OSS
         const migratedUrls = await migrateImagesToOss(submission, ossConfig);
 
-        // 2. 创建 valorant_shared 记录
-        // 生成 UUID 作为 id
         const newId = crypto.randomUUID();
 
         const sharedLineup = {
@@ -127,7 +110,6 @@ export async function approveSubmission(
             return { success: false, error: `创建共享点位失败: ${insertError.message}` };
         }
 
-        // 3. 更新投稿状态
         const { error: updateError } = await adminSupabase
             .from('lineup_submissions')
             .update({
@@ -141,7 +123,6 @@ export async function approveSubmission(
             return { success: false, error: `更新投稿状态失败: ${updateError.message}` };
         }
 
-        // 4. 清理 Supabase Storage 中的临时图片
         await deleteSubmissionImages(submission);
 
         return { success: true };
@@ -151,17 +132,12 @@ export async function approveSubmission(
     }
 }
 
-/**
- * 审核拒绝
- * ... (unchanged)
- */
 export async function rejectSubmission(
     submissionId: string,
     reviewerId: string,
     reason: string,
 ): Promise<{ success: boolean; error?: string }> {
     try {
-        // 1. 获取投稿信息用于后续清理
         const { data: submission, error: fetchError } = await adminSupabase
             .from('lineup_submissions')
             .select('*')
@@ -172,7 +148,6 @@ export async function rejectSubmission(
             return { success: false, error: '找不到该投稿记录' };
         }
 
-        // 2. 更新投稿状态
         const { error } = await adminSupabase
             .from('lineup_submissions')
             .update({
@@ -187,7 +162,6 @@ export async function rejectSubmission(
             return { success: false, error: error.message };
         }
 
-        // 3. 清理临时图片
         await deleteSubmissionImages(submission as LineupSubmission);
 
         return { success: true };
@@ -197,10 +171,6 @@ export async function rejectSubmission(
     }
 }
 
-/**
- * 删除投稿的临时图片
- * ... (unchanged)
- */
 export async function deleteSubmissionImages(submission: LineupSubmission): Promise<void> {
     const bucket = 'submissions';
     const basePath = `${submission.submitter_id}/${submission.id}`;
@@ -216,9 +186,8 @@ export async function deleteSubmissionImages(submission: LineupSubmission): Prom
     }
 }
 
-/** 共享库点位类型 */
 export interface SharedLineup {
-    id: string; // 使用 id
+    id: string; // 说明：使用 id。
     source_id?: string;
     user_id?: string;
     title: string;
@@ -231,7 +200,6 @@ export interface SharedLineup {
     updated_at: string;
 }
 
-/** 获取共享库所有点位 */
 export async function getSharedLineups(): Promise<SharedLineup[]> {
     const { data, error } = await adminSupabase
         .from(TABLE.shared)
@@ -245,7 +213,6 @@ export async function getSharedLineups(): Promise<SharedLineup[]> {
     return data || [];
 }
 
-/** 删除共享库点位 */
 export async function deleteSharedLineup(id: string): Promise<{ success: boolean; error?: string }> {
     const { error } = await adminSupabase
         .from(TABLE.shared)
@@ -258,7 +225,6 @@ export async function deleteSharedLineup(id: string): Promise<{ success: boolean
     return { success: true };
 }
 
-/** 批量删除共享库点位 */
 export async function deleteSharedLineups(ids: string[]): Promise<{ success: boolean; error?: string }> {
     const { error } = await adminSupabase
         .from(TABLE.shared)

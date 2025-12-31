@@ -1,3 +1,12 @@
+/**
+ * BatchDownloadModal - 点位批量下载弹窗
+ *
+ * 职责：
+ * - 渲染点位批量下载弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
+ */
+
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import Icon from '../../../components/Icon';
@@ -44,7 +53,6 @@ const BatchDownloadModal: React.FC<Props> = ({
             onClose();
         } catch (e) {
             console.error(e);
-            // Parent handles alert
         } finally {
             setIsDownloading(false);
         }
@@ -54,7 +62,6 @@ const BatchDownloadModal: React.FC<Props> = ({
 
     return ReactDOM.createPortal(
         <div className="fixed inset-0 z-[1500] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-            {/* Disable autofill styles if any */}
             <style>{`
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
@@ -64,7 +71,6 @@ const BatchDownloadModal: React.FC<Props> = ({
         }
       `}</style>
             <div className="w-[400px] max-w-lg rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -84,7 +90,6 @@ const BatchDownloadModal: React.FC<Props> = ({
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 bg-[#181b1f]">
                     {isDownloading ? (
                         <div className="text-center py-8">
@@ -96,7 +101,6 @@ const BatchDownloadModal: React.FC<Props> = ({
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 gap-4">
-                            {/* Map Button */}
                             <button
                                 onClick={() => handleDownloadClick('map')}
                                 disabled={!currentMapName || totalMapLineups === 0}
@@ -114,7 +118,6 @@ const BatchDownloadModal: React.FC<Props> = ({
                                 <div className="text-xs font-semibold text-[#ff4655]">{totalMapLineups} 个点位</div>
                             </button>
 
-                            {/* Agent Button */}
                             <button
                                 onClick={() => handleDownloadClick('agent')}
                                 disabled={!currentAgentName || totalAgentLineups === 0}
@@ -135,7 +138,6 @@ const BatchDownloadModal: React.FC<Props> = ({
                     )}
                 </div>
 
-                {/* Footer */}
                 {!isDownloading && (
                     <div className="px-5 py-4 border-t border-white/10 bg-[#1c2028] flex items-center justify-between">
                         <div className="text-xs text-gray-500">

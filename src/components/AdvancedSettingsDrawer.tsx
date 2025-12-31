@@ -1,3 +1,12 @@
+/**
+ * AdvancedSettingsDrawer - Advanced设置Drawer
+ *
+ * 职责：
+ * - 渲染Advanced设置Drawer相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
+ */
+
 ﻿/**
  * AdvancedSettingsDrawer - 高级设置侧边抽屉
  * 
@@ -60,7 +69,6 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
 
-          {/* 隐藏共享库按钮 */}
           <div className="bg-[#0f1923] border border-white/10 rounded-xl p-5 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-1">
@@ -85,7 +93,6 @@ const AdvancedSettingsDrawer: React.FC<Props> = ({ isOpen, settings, onClose, on
             </div>
           </div>
 
-          {/* 隐藏作者信息按钮 */}
           <div className="bg-[#0f1923] border border-white/10 rounded-xl p-5 space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 space-y-1">

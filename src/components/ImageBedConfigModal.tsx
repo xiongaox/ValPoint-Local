@@ -1,9 +1,12 @@
 /**
- * ImageBedConfigModal - 图床配置模态框
- * 
- * 用于个人库的图床密钥配置。配置数据仅保存在浏览器的 localStorage 中，
- * 以确保用户敏感信息的私密性。
+ * ImageBedConfigModal - ImageBed配置弹窗
+ *
+ * 职责：
+ * - 渲染ImageBed配置弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useEffect, useState } from 'react';
 import Icon from './Icon';
 import { ImageBedConfig } from '../types/imageBed';
@@ -40,7 +43,6 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
       className="fixed inset-0 z-[1400] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
     >
       <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -60,7 +62,6 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
           </button>
         </div>
 
-        {/* Body - 使用复用组件 */}
         <div className="p-6 space-y-6 bg-[#181b1f]">
           <ImageBedConfigForm
             config={localConfig}
@@ -71,7 +72,6 @@ const ImageBedConfigModal: React.FC<Props> = ({ isOpen, config, onClose, onSave 
             layout="full"
           />
 
-          {/* Footer */}
           <div className="flex items-center justify-between pt-2 border-t border-white/10">
             <div className="text-xs text-gray-500">提示：密钥仅保存在本机；如需换设备请先导出。</div>
             <div className="flex items-center gap-2">

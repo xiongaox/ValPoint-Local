@@ -1,11 +1,12 @@
 /**
- * UsersPage - 用户账号管理页
- * 
+ * UsersPage - 管理端Users页面
+ *
  * 职责：
- * - 列表展示所有已注册的用户信息
- * - 实现用户搜索、排序（按注册时间或下载量）
- * - 提供用户禁用 (Ban)、资料编辑及账户完全删除功能
+ * - 组织管理端Users页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Icon from '../../../components/Icon';
 import AlertModal from '../../../components/AlertModal';
@@ -13,10 +14,6 @@ import UserAvatar from '../../../components/UserAvatar';
 import { adminSupabase } from '../../../supabaseClient';
 import UserEditModal, { UserProfile } from '../components/UserEditModal';
 
-/**
- * 用户管理页面
- * 接入 Supabase user_profiles 表，支持增删改查
- */
 function UsersPage() {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -26,30 +23,23 @@ function UsersPage() {
     const [sortField, setSortField] = useState<'created_at' | 'download_count'>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    // 编辑弹窗状态
     const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // 删除确认状态
     const [deletingUser, setDeletingUser] = useState<UserProfile | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // 提示消息
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
     const PAGE_SIZE = 15;
 
-    // 加载用户数据
     const loadUsers = useCallback(async () => {
         setIsLoading(true);
         try {
-            // 计算分页
             const from = (currentPage - 1) * PAGE_SIZE;
             const to = from + PAGE_SIZE - 1;
 
-            // 1. 如果是第一页，且不是在纯排序模式（如下载量排序时可能不强制置顶？用户要求"永久置顶"，所以始终执行）
-            // 获取管理员 (Pinned)
             let adminUsers: UserProfile[] = [];
             if (currentPage === 1) {
                 let adminQuery = adminSupabase
@@ -57,7 +47,6 @@ function UsersPage() {
                     .select('*')
                     .in('role', ['admin', 'super_admin']);
 
-                // 应用相同的搜索条件
                 if (searchQuery.trim()) {
                     adminQuery = adminQuery.or(`email.ilike.%${searchQuery}%,nickname.ilike.%${searchQuery}%,custom_id.ilike.%${searchQuery}%`);
                 }
@@ -65,10 +54,7 @@ function UsersPage() {
                 const { data: admins } = await adminQuery;
 
                 if (admins) {
-                    //在此处手动排序：Super Admin > Admin
-                    // 并且在同一等级内按注册时间排序
                     adminUsers = (admins as UserProfile[]).sort((a, b) => {
-                        // 优先级值：Super Admin = 2, Admin = 1
                         const getPriority = (role: string) => {
                             if (role === 'super_admin') return 2;
                             if (role === 'admin') return 1;
@@ -76,29 +62,24 @@ function UsersPage() {
                         };
                         const pA = getPriority(a.role);
                         const pB = getPriority(b.role);
-                        if (pA !== pB) return pB - pA; // 降序：高优先级在前
+                        if (pA !== pB) return pB - pA; // 说明：按优先级降序。
 
-                        // 同级按时间倒序
                         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
                     });
                 }
             }
 
-            // 2. 获取普通用户 (Paginated)
             let userQuery = adminSupabase
                 .from('user_profiles')
                 .select('*', { count: 'exact' })
-                .not('role', 'in', '("admin","super_admin")'); // 排除管理员
+                .not('role', 'in', '("admin","super_admin")'); // 说明：排除管理员角色。
 
-            // 搜索过滤
             if (searchQuery.trim()) {
                 userQuery = userQuery.or(`email.ilike.%${searchQuery}%,nickname.ilike.%${searchQuery}%,custom_id.ilike.%${searchQuery}%`);
             }
 
-            // 排序
             userQuery = userQuery.order(sortField, { ascending: sortOrder === 'asc' });
 
-            // 分页
             userQuery = userQuery.range(from, to);
 
             const { data: normalUsers, error, count } = await userQuery;
@@ -109,13 +90,12 @@ function UsersPage() {
                 return;
             }
 
-            // 合并结果：第一页显示 [Admins, Users]，其他页显示 [Users]
             const finalUsers = currentPage === 1 ? [...adminUsers, ...(normalUsers || [])] : (normalUsers || []);
 
             console.log('[UsersPage] Loaded users:', finalUsers.map(u => ({ id: u.id, email: u.email, can_batch: u.can_batch_download })));
 
             setUsers(finalUsers as UserProfile[]);
-            setTotalCount(count || 0); // 分页总数仅基于普通用户
+            setTotalCount(count || 0); // 说明：分页总数仅统计普通用户。
         } catch (err) {
             console.error('加载用户列表异常:', err);
             setAlertMessage('加载用户列表失败');
@@ -124,20 +104,17 @@ function UsersPage() {
         }
     }, [currentPage, searchQuery, sortField, sortOrder]);
 
-    // 初始加载
     useEffect(() => {
         loadUsers();
     }, [loadUsers]);
 
-    // 搜索防抖
     useEffect(() => {
         const timer = setTimeout(() => {
-            setCurrentPage(1); // 搜索时重置到第一页
+            setCurrentPage(1); // 说明：搜索时重置到第一页。
         }, 300);
         return () => clearTimeout(timer);
     }, [searchQuery]);
 
-    // 提示消息自动消失
     useEffect(() => {
         if (alertMessage) {
             const timer = setTimeout(() => {
@@ -147,7 +124,6 @@ function UsersPage() {
         }
     }, [alertMessage]);
 
-    // 处理排序
     const handleSort = (field: 'created_at' | 'download_count') => {
         if (sortField === field) {
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -157,13 +133,11 @@ function UsersPage() {
         }
     };
 
-    // 打开编辑弹窗
     const handleEdit = (user: UserProfile) => {
         setEditingUser(user);
         setIsEditModalOpen(true);
     };
 
-    // 保存用户信息
     const handleSaveUser = async (userId: string, data: Partial<UserProfile>) => {
         setIsSubmitting(true);
         try {
@@ -178,7 +152,7 @@ function UsersPage() {
                     updated_at: new Date().toISOString(),
                 })
                 .eq('id', userId)
-                .select(); // Add select() to return the updated record
+                .select(); // 说明：返回更新后的记录。
 
             console.log('[UsersPage] Update response:', { error, userId, data: { can_batch_download: data.can_batch_download } });
 
@@ -190,7 +164,7 @@ function UsersPage() {
             setAlertMessage('保存成功');
             setIsEditModalOpen(false);
             setEditingUser(null);
-            loadUsers(); // 刷新列表
+            loadUsers(); // 说明：刷新列表。
         } catch (err) {
             setAlertMessage('保存失败');
         } finally {
@@ -198,7 +172,6 @@ function UsersPage() {
         }
     };
 
-    // 快速切换禁用状态
     const handleToggleBan = async (user: UserProfile) => {
         const newBanStatus = !user.is_banned;
         try {
@@ -223,12 +196,10 @@ function UsersPage() {
         }
     };
 
-    // 真正删除用户账户
     const handleDelete = async () => {
         if (!deletingUser) return;
         setIsDeleting(true);
         try {
-            // 调用 RPC 函数完全删除用户
             const { error } = await adminSupabase.rpc('delete_user_completely', {
                 target_user_id: deletingUser.id
             });
@@ -248,7 +219,6 @@ function UsersPage() {
         }
     };
 
-    // 计算分页信息
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
     const getRoleBadge = (role: string) => {
@@ -273,7 +243,6 @@ function UsersPage() {
 
     return (
         <div className="space-y-6">
-            {/* 搜索栏 */}
             <div className="flex items-center justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
                     <Icon
@@ -298,7 +267,6 @@ function UsersPage() {
                 </button>
             </div>
 
-            {/* 用户表格 */}
             <div className="bg-[#1f2326] rounded-xl border border-white/10 overflow-hidden">
                 <table className="w-full">
                     <thead>
@@ -432,7 +400,6 @@ function UsersPage() {
                 </table>
             </div>
 
-            {/* 分页 */}
             <div className="flex items-center justify-between text-sm text-gray-400">
                 <span>
                     共 {totalCount} 个用户
@@ -458,7 +425,6 @@ function UsersPage() {
                 )}
             </div>
 
-            {/* 编辑弹窗 */}
             <UserEditModal
                 isOpen={isEditModalOpen}
                 user={editingUser}
@@ -470,7 +436,6 @@ function UsersPage() {
                 isSubmitting={isSubmitting}
             />
 
-            {/* 删除确认弹窗 */}
             {deletingUser && (
                 <AlertModal
                     variant="danger"
@@ -485,7 +450,6 @@ function UsersPage() {
                 />
             )}
 
-            {/* 提示消息 */}
             {alertMessage && (
                 <div
                     className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[1500] px-6 py-3 bg-[#1f2326] border border-white/10 text-white rounded-xl shadow-lg animate-in fade-in slide-in-from-bottom-4"

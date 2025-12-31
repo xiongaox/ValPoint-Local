@@ -1,10 +1,13 @@
-// @ts-nocheck
 /**
- * DeleteConfirmModal - 删除确认模态框
- * 
- * 用于确认删除单个点位数据。
- * Refactored to use AlertModal for consistent styling.
+ * DeleteConfirmModal - DeleteConfirm弹窗
+ *
+ * 职责：
+ * - 渲染DeleteConfirm弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
+// @ts-nocheck
 import React from 'react';
 import AlertModal from './AlertModal';
 

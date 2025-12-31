@@ -1,11 +1,12 @@
 /**
- * AdminLoginPage - 后台管理登录页面
- * 
+ * AdminLoginPage - 管理端登录页面
+ *
  * 职责：
- * - 仅支持账号密码登录（不支持注册、忘记密码、验证码）
- * - 账号密码完全依赖环境变量配置
- * - 保留与共享库登录页相同的海报轮播布局
+ * - 组织管理端登录页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/Icon';
 import { AdminInfo } from '../AdminApp';
@@ -15,10 +16,6 @@ interface AdminLoginPageProps {
     setAlertMessage: (msg: string | null) => void;
 }
 
-/**
- * 后台管理登录页面
- * 简化版：仅账号+密码，无注册/忘记密码
- */
 function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
     const [account, setAccount] = useState('');
     const [password, setPassword] = useState('');
@@ -27,7 +24,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [currentPoster, setCurrentPoster] = useState(0);
 
-    // 海报列表
     const posters = [
         '/poster/海报1.webp',
         '/poster/海报2.webp',
@@ -37,7 +33,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
         '/poster/海报6.webp',
     ];
 
-    // 标语列表（与海报轮播同步）
     const sloganList = [
         {
             title: '掌控',
@@ -58,7 +53,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
 
     const currentSlogan = sloganList[currentPoster % sloganList.length];
 
-    // 轮播定时器
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentPoster((prev) => (prev + 1) % posters.length);
@@ -88,7 +82,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
 
 
 
-            // 方式2: Supabase Auth 登录
             const { adminSupabase } = await import('../../../supabaseClient');
 
             console.log('[Admin Login] 调用 signInWithPassword...');
@@ -108,7 +101,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
 
             console.log('[Admin Login] ✓ Auth 成功，用户ID:', authData.user.id);
 
-            // 检查用户角色和获取完整 profile
             console.log('[Admin Login] 查询 user_profiles...');
             const { data: profile, error: profileError } = await adminSupabase
                 .from('user_profiles')
@@ -156,7 +148,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
 
     return (
         <div className="flex h-screen w-screen bg-[#0f1923] overflow-hidden">
-            {/* 覆盖浏览器默认的 autofill 样式 */}
             <style>{`
                 input:-webkit-autofill,
                 input:-webkit-autofill:hover,
@@ -176,9 +167,7 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                 }
             `}</style>
 
-            {/* 左侧 - 海报区域 */}
             <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
-                {/* 海报轮播 */}
                 {posters.map((poster, index) => (
                     <div
                         key={poster}
@@ -190,7 +179,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                     />
                 ))}
 
-                {/* 几何装饰图案 */}
                 <div className="absolute inset-0 opacity-20">
                     <div
                         className="absolute top-1/4 left-1/3 w-96 h-96 border border-[#ff4655]/30"
@@ -209,27 +197,21 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                     }} />
                 </div>
 
-                {/* 发光圆环 */}
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                     <div className="w-[500px] h-[500px] rounded-full border border-[#ff4655]/10 animate-pulse" />
                     <div className="absolute inset-8 rounded-full border border-[#ff4655]/20" />
                     <div className="absolute inset-16 rounded-full border border-[#ff4655]/10" />
                 </div>
 
-                {/* 红色光晕 */}
                 <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-[#ff4655]/10 rounded-full blur-3xl" />
                 <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-[#ff4655]/5 rounded-full blur-2xl" />
 
-                {/* 顶部渐变遮罩 */}
                 <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-[#0f1923] to-transparent" />
 
-                {/* 底部渐变遮罩 */}
                 <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#0f1923] to-transparent" />
 
-                {/* 右侧渐变遮罩 */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#0f1923]" />
 
-                {/* 斜切装饰线 */}
                 <div className="absolute right-0 top-0 bottom-0 w-32">
                     <div className="absolute inset-0 bg-gradient-to-l from-[#0f1923] to-transparent" />
                     <div
@@ -242,12 +224,10 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                     />
                 </div>
 
-                {/* 左上角 Logo */}
                 <div className="absolute top-8 left-8 z-20">
                     <img src="/brand-logo.svg" alt="VALPOINT" className="h-14" />
                 </div>
 
-                {/* 左下角品牌标语 */}
                 <div className="absolute bottom-12 left-12 z-20 max-w-xl transition-all duration-500 ease-in-out">
                     <h2 className="text-6xl font-black text-white uppercase tracking-wide mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700" key={`title-${currentPoster}`}>
                         {currentSlogan.title}<span className="text-[#ff4655]">{currentSlogan.highlight}</span>
@@ -258,17 +238,12 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                 </div>
             </div>
 
-            {/* 右侧 - 登录区域 */}
             <div className="w-full lg:w-1/2 xl:w-2/5 flex flex-col items-center justify-center p-6 lg:p-12 relative">
-                {/* 登录卡片 - 固定宽度 360px */}
                 <div className="w-[360px] max-w-full">
-                    {/* 卡片容器 */}
                     <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 shadow-2xl">
-                        {/* 标题 */}
                         <h2 className="text-xl font-semibold text-white mb-6">登录后台</h2>
 
                         <form onSubmit={handleLogin}>
-                            {/* 账号输入 */}
                             <div className="mb-4">
                                 <label className="block text-sm text-gray-400 mb-2">账号</label>
                                 <input
@@ -283,7 +258,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                                 />
                             </div>
 
-                            {/* 密码输入 */}
                             <div className="mb-4">
                                 <label className="block text-sm text-gray-400 mb-2">密码</label>
                                 <div className="relative">
@@ -305,12 +279,10 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                                 </div>
                             </div>
 
-                            {/* 错误提示 */}
                             {error && (
                                 <p className="mb-4 text-sm text-red-400">{error}</p>
                             )}
 
-                            {/* 提交按钮 */}
                             <button
                                 type="submit"
                                 disabled={isSubmitting || !account.trim()}
@@ -332,7 +304,6 @@ function AdminLoginPage({ onLogin, setAlertMessage }: AdminLoginPageProps) {
                     </div>
                 </div>
 
-                {/* 底部版权 */}
                 <div className="absolute bottom-6 left-0 right-0 text-center">
                     <p className="text-gray-600 text-xs">
                         © 2024 VALPOINT · 后台管理系统

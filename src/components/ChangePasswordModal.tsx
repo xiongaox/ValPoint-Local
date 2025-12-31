@@ -1,3 +1,12 @@
+/**
+ * ChangePasswordModal - ChangePassword弹窗
+ *
+ * 职责：
+ * - 渲染ChangePassword弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
+ */
+
 import React, { useState, useEffect } from 'react';
 import Icon from './Icon';
 import { useEscapeClose } from '../hooks/useEscapeClose';
@@ -71,9 +80,7 @@ const ChangePasswordModal: React.FC<Props> = ({
             className="space-y-4"
             autoComplete="off"
           >
-            {/* 隐藏的用户名输入框，引导浏览器自动填充逻辑，防止误填其他输入框 */}
             <input type="text" name="username" autoComplete="username" className="hidden" />
-            {/* 隐藏的密码输入框，吸收浏览器的自动填充 */}
             <input type="password" className="hidden" autoComplete="new-password" />
 
             <div className="space-y-1.5">

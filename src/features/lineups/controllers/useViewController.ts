@@ -1,3 +1,12 @@
+/**
+ * useViewController - 点位视图控制器
+ *
+ * 职责：
+ * - 封装点位视图控制器相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
+ */
+
 import { ActiveTab } from '../../../types/app';
 import { AgentOption, BaseLineup, MapOption, NewLineupForm, SharedLineup } from '../../../types/lineup';
 import { createEmptyLineup } from '../lineupHelpers';
@@ -72,7 +81,6 @@ export function useViewController({
   };
 
   const handlePreviewSubmit = async (): Promise<void> => {
-    // Preview function disabled for now as it relied on Shared Library
     return;
   };
 

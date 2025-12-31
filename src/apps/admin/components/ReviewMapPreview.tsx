@@ -1,15 +1,12 @@
 /**
- * 审核用地图预览组件
- * 使用 img 标签显示地图，标记叠加在上面
- */
-/**
- * ReviewMapPreview - 审核流程中的地图预览组件
- * 
+ * ReviewMapPreview - 管理端审核地图Preview
+ *
  * 职责：
- * - 基于 Leaflet 渲染可交互地图
- * - 显示当前审核点位在地图上的准确位置 (Marker)
- * - 允许管理员调整位置经纬度
+ * - 渲染管理端审核地图Preview相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import Icon from '../../../components/Icon';
 import { LineupSubmission } from '../../../types/submission';
@@ -27,20 +24,16 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
-    // 获取地图 SVG URL
     const mapSvgUrl = submission
         ? CUSTOM_MAP_URLS[submission.map_name as keyof typeof CUSTOM_MAP_URLS]?.[
         submission.side === 'defense' ? 'defense' : 'attack'
         ]
         : null;
 
-    // 获取地图封面图作为透明底图
     const mapCoverUrl = useMemo(() => {
         if (!submission) return null;
-        // 尝试用英文名匹配
         const mapData = LOCAL_MAPS.find((m: any) => m.displayName === submission.map_name);
         if (mapData) return mapData.displayIcon;
-        // 尝试用中文名匹配（如果 map_name 是中文）
         const englishName = Object.keys(MAP_TRANSLATIONS).find(
             key => MAP_TRANSLATIONS[key] === submission.map_name
         );
@@ -51,20 +44,17 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
         return null;
     }, [submission?.map_name]);
 
-    // 选中新投稿时重置视图
     React.useEffect(() => {
         setScale(1);
         setPosition({ x: 0, y: 0 });
     }, [submission?.id]);
 
-    // 滚轮缩放 - moved to useEffect to handle passive event listener issue
     const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
         const delta = e.deltaY > 0 ? -0.1 : 0.1;
         setScale((prev) => Math.min(Math.max(prev + delta, 0.5), 3));
     }, []);
 
-    // Add non-passive event listener for wheel
     React.useEffect(() => {
         const element = containerRef.current;
         if (!element) return;
@@ -76,25 +66,21 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
         };
     }, [handleWheel]);
 
-    // 开始拖拽
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         if (e.button !== 0) return;
         setIsDragging(true);
         setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
     }, [position]);
 
-    // 拖拽中
     const handleMouseMove = useCallback((e: React.MouseEvent) => {
         if (!isDragging) return;
         setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
     }, [isDragging, dragStart]);
 
-    // 结束拖拽
     const handleMouseUp = useCallback(() => {
         setIsDragging(false);
     }, []);
 
-    // 重置视图
     const handleReset = useCallback(() => {
         setScale(1);
         setPosition({ x: 0, y: 0 });
@@ -116,7 +102,6 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
 
     return (
         <div className="flex-1 bg-[#1f2326] rounded-xl border border-white/10 flex flex-col overflow-hidden relative">
-            {/* 地图区域 */}
             <div
                 ref={containerRef}
                 className="flex-1 relative overflow-hidden bg-[#0f1923] cursor-grab active:cursor-grabbing"
@@ -125,14 +110,12 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
             >
-                {/* 透明底图背景 */}
                 {mapCoverUrl && (
                     <div
                         className="absolute inset-0 pointer-events-none opacity-15"
                         style={{ backgroundImage: `url(${mapCoverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
                     />
                 )}
-                {/* 悬浮顶部栏 - 毛玻璃效果 */}
                 <div className="absolute top-0 left-0 right-0 px-4 py-3 flex items-center justify-between bg-black/20 backdrop-blur-lg border-b border-white/10 z-10">
                     <h3 className="font-semibold">地图预览</h3>
                     <div className="flex items-center gap-2">
@@ -155,19 +138,15 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
                         transformOrigin: 'center center',
                     }}
                 >
-                    {/* 地图和标记容器 */}
                     <div className="relative" style={{ width: '600px', height: '600px' }}>
-                        {/* 地图图片 */}
                         <img
                             src={mapSvgUrl}
                             alt={submission.map_name}
                             className="absolute inset-0 w-full h-full object-contain pointer-events-none"
                             draggable={false}
                         />
-                        {/* 站位点标记 */}
                         {submission.agent_pos && (() => {
                             const isDefense = submission.side === 'defense';
-                            // 防守方时坐标需要反转
                             const lat = isDefense ? 1000 - submission.agent_pos.lat : submission.agent_pos.lat;
                             const lng = isDefense ? 1000 - submission.agent_pos.lng : submission.agent_pos.lng;
                             return (
@@ -194,10 +173,8 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
                                 </div>
                             );
                         })()}
-                        {/* 落点标记 */}
                         {submission.skill_pos && (() => {
                             const isDefense = submission.side === 'defense';
-                            // 防守方时坐标需要反转
                             const lat = isDefense ? 1000 - submission.skill_pos.lat : submission.skill_pos.lat;
                             const lng = isDefense ? 1000 - submission.skill_pos.lng : submission.skill_pos.lng;
                             return (

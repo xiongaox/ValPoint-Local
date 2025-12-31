@@ -1,15 +1,12 @@
 /**
- * 同步到共享库弹窗
- * 自动检测当前登录用户是否为管理员，无需手动验证
- */
-/**
- * SyncToSharedModal - 管理员同步点位弹窗
- * 
+ * SyncToSharedModal - 同步To共享库弹窗
+ *
  * 职责：
- * - 验证当前用户的管理员权限
- * - 允许管理员将个人库中的点位批量同步到公共共享库
- * - 处理同步过程中的重复项检测与进度展示
+ * - 渲染同步To共享库弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import Icon from '../../components/Icon';
@@ -44,10 +41,8 @@ const SyncToSharedModal: React.FC<Props> = ({
     verifiedAdminEmail,
     setVerifiedAdminEmail,
 }) => {
-    // 获取当前登录用户
     const { user } = useEmailAuth();
 
-    // 同步选项
     const [selectedScope, setSelectedScope] = useState<SyncScope | null>(null);
     const [counts, setCounts] = useState<{ agent: { total: number; synced: number }; map: { total: number; synced: number } }>({
         agent: { total: 0, synced: 0 },
@@ -61,16 +56,13 @@ const SyncToSharedModal: React.FC<Props> = ({
 
     const isVerified = !!verifiedAdminEmail;
 
-    // 每次打开时重置选择状态，并自动检查管理员状态
     useEffect(() => {
         if (isOpen) {
             setSelectedScope(null);
             setAdminCheckFailed(false);
 
-            // 如果已验证过，直接跳过
             if (verifiedAdminEmail) return;
 
-            // 自动检测当前登录用户是否为管理员
             if (user?.email) {
                 setIsCheckingAdmin(true);
                 checkAdminAccessByEmail(user.email)
@@ -92,7 +84,6 @@ const SyncToSharedModal: React.FC<Props> = ({
         }
     }, [isOpen, user?.email, verifiedAdminEmail, setVerifiedAdminEmail]);
 
-    // 获取待同步数量
     useEffect(() => {
         if (!isOpen || !isVerified || !personalUserId) return;
 
@@ -118,7 +109,6 @@ const SyncToSharedModal: React.FC<Props> = ({
         fetchCounts();
     }, [isOpen, isVerified, personalUserId, currentMapName, currentAgentName]);
 
-    // 执行同步
     const handleSync = useCallback(async () => {
         if (!selectedScope || !verifiedAdminEmail) return;
 
@@ -168,7 +158,6 @@ const SyncToSharedModal: React.FC<Props> = ({
     const content = (
         <div className="fixed inset-0 z-[1500] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
             <div className="w-[400px] max-w-lg rounded-2xl border border-white/10 bg-[#181b1f]/95 shadow-2xl shadow-black/50 overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#1c2028]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#ff4655]/15 border border-[#ff4655]/35 flex items-center justify-center text-[#ff4655]">
@@ -190,10 +179,8 @@ const SyncToSharedModal: React.FC<Props> = ({
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-5 bg-[#181b1f]">
                     {isCheckingAdmin ? (
-                        // 检测中
                         <div className="text-center py-8">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ff4655]/10 border border-[#ff4655]/30 flex items-center justify-center">
                                 <Icon name="Loader" size={32} className="text-[#ff4655] animate-spin" />
@@ -202,7 +189,6 @@ const SyncToSharedModal: React.FC<Props> = ({
                             <p className="text-gray-400 text-sm">请稍候...</p>
                         </div>
                     ) : adminCheckFailed ? (
-                        // 无权限
                         <div className="text-center py-8">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
                                 <Icon name="ShieldX" size={32} className="text-red-400" />
@@ -211,7 +197,6 @@ const SyncToSharedModal: React.FC<Props> = ({
                             <p className="text-gray-400 text-sm">当前账号 ({user?.email}) 不是管理员</p>
                         </div>
                     ) : isSyncing ? (
-                        // 同步中
                         <div className="text-center py-8">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#ff4655]/10 border border-[#ff4655]/30 flex items-center justify-center">
                                 <Icon name="Loader" size={32} className="text-[#ff4655] animate-spin" />
@@ -230,9 +215,7 @@ const SyncToSharedModal: React.FC<Props> = ({
                             )}
                         </div>
                     ) : isVerified ? (
-                        // 选择同步范围 - 卡片布局
                         <div className="space-y-4">
-                            {/* 已验证提示 */}
                             <div className="flex items-center justify-between text-sm bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-3 py-2">
                                 <div className="flex items-center gap-2 text-emerald-400">
                                     <Icon name="CheckCircle" size={16} />
@@ -249,9 +232,7 @@ const SyncToSharedModal: React.FC<Props> = ({
                                     请先在左侧选择地图
                                 </div>
                             ) : (
-                                // 卡片选择区
                                 <div className="grid grid-cols-2 gap-4">
-                                    {/* 同步当前地图所有点位 */}
                                     <button
                                         onClick={() => setSelectedScope(selectedScope === 'map' ? null : 'map')}
                                         disabled={counts.map.total === 0}
@@ -260,7 +241,6 @@ const SyncToSharedModal: React.FC<Props> = ({
                                             : 'border border-white/10 bg-white/5 hover:bg-white/10'
                                             } ${counts.map.total === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        {/* 地图封面（圆形） */}
                                         <div className="w-14 h-14 rounded-full border-2 border-[#ff4655]/50 overflow-hidden bg-[#1f2326]">
                                             {currentMapIcon ? (
                                                 <img
@@ -281,7 +261,6 @@ const SyncToSharedModal: React.FC<Props> = ({
                                         </div>
                                     </button>
 
-                                    {/* 同步当前英雄点位 */}
                                     <button
                                         onClick={() => setSelectedScope(selectedScope === 'agent' ? null : 'agent')}
                                         disabled={!currentAgentName || counts.agent.total === 0}
@@ -290,7 +269,6 @@ const SyncToSharedModal: React.FC<Props> = ({
                                             : 'border border-amber-400/40 bg-amber-500/10 hover:bg-amber-500/15'
                                             } ${!currentAgentName || counts.agent.total === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
-                                        {/* 英雄头像 */}
                                         <div className="w-14 h-14 rounded-full border-2 border-amber-500/50 overflow-hidden bg-[#1f2326]">
                                             {currentAgentIcon ? (
                                                 <img
@@ -316,7 +294,6 @@ const SyncToSharedModal: React.FC<Props> = ({
                     ) : null}
                 </div>
 
-                {/* Footer */}
                 {!isSyncing && (
                     <div className="px-5 py-4 border-t border-white/10 bg-[#1c2028] flex items-center justify-between">
                         <div className="text-xs text-gray-500">

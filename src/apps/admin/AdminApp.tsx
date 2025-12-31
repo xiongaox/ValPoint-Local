@@ -1,11 +1,12 @@
 /**
- * AdminApp - 后台管理系统根组件
- * 
+ * AdminApp - 管理端应用
+ *
  * 职责：
- * - 提供管理员登录检查与侧边栏导航控制
- * - 实现基于环境变量的超级管理员认证
- * - 使用 Supabase anon key 读取数据（无需真实登录态）
+ * - 渲染管理端应用相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState } from 'react';
 import '../../styles/fonts.css';
 import '../../index.css';
@@ -22,7 +23,6 @@ import AdminLoginPage from './pages/AdminLoginPage';
 
 export type AdminPage = 'dashboard' | 'users' | 'logs' | 'upload' | 'review' | 'shared' | 'settings';
 
-/** 管理员信息 */
 export interface AdminInfo {
     account: string;
     isSuperAdmin: boolean;
@@ -32,9 +32,6 @@ export interface AdminInfo {
     role?: 'user' | 'admin' | 'super_admin';
 }
 
-/**
- * 后台管理应用根组件
- */
 function AdminApp() {
     const [currentPage, setCurrentPage] = useState<AdminPage>(() => {
         try {
@@ -43,7 +40,6 @@ function AdminApp() {
                 return storedPage as AdminPage;
             }
         } catch (e) {
-            // Ignore errors
         }
         return 'dashboard';
     });
@@ -57,18 +53,15 @@ function AdminApp() {
     });
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-    // Persist currentPage to localStorage
     React.useEffect(() => {
         localStorage.setItem('valpoint_admin_page', currentPage);
     }, [currentPage]);
 
-    // 检查会话有效性 (仅针对 Supabase 用户)
     React.useEffect(() => {
         const checkSession = async () => {
             if (adminInfo?.userId) {
                 const { data: { session } } = await adminSupabase.auth.getSession();
                 if (!session) {
-                    // 会话已过期
                     handleLogout();
                 }
             }
@@ -76,13 +69,11 @@ function AdminApp() {
         checkSession();
     }, []);
 
-    // 登录成功回调
     const handleLogin = (info: AdminInfo) => {
         setAdminInfo(info);
         localStorage.setItem('valpoint_admin_info', JSON.stringify(info));
     };
 
-    // 退出登录
     const handleLogout = () => {
         setAdminInfo(null);
         localStorage.removeItem('valpoint_admin_info');
@@ -109,12 +100,10 @@ function AdminApp() {
         }
     };
 
-    // 未登录，显示登录页面
     if (!adminInfo) {
         return <AdminLoginPage onLogin={handleLogin} setAlertMessage={setAlertMessage} />;
     }
 
-    // 已登录，显示管理后台
     return (
         <AdminLayout
             currentPage={currentPage}

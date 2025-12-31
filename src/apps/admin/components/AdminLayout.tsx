@@ -1,11 +1,12 @@
 /**
- * AdminLayout - 后台管理系统通用布局组件
- * 
+ * AdminLayout - 管理端Layout
+ *
  * 职责：
- * - 渲染侧边导航栏 (Sidebar) 及顶部状态栏
- * - 包含侧边栏折叠/展开逻辑
- * - 为所有管理页面提供响应式的容器
+ * - 渲染管理端Layout相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState } from 'react';
 import Icon, { IconName } from '../../../components/Icon';
 import { AdminPage, AdminInfo } from '../AdminApp';
@@ -21,7 +22,6 @@ interface AdminLayoutProps {
     children: React.ReactNode;
 }
 
-// 导航菜单配置
 const NAV_ITEMS: { id: AdminPage; label: string; icon: IconName }[] = [
     { id: 'dashboard', label: '仪表盘', icon: 'LayoutDashboard' },
     { id: 'users', label: '用户管理', icon: 'Users' },
@@ -32,22 +32,15 @@ const NAV_ITEMS: { id: AdminPage; label: string; icon: IconName }[] = [
     { id: 'settings', label: '系统设置', icon: 'Settings' },
 ];
 
-/**
- * 后台管理布局组件
- * 包含侧边导航栏和管理员信息
- */
 function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertMessage, children }: AdminLayoutProps) {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
 
-    // 内部 alertMessage handler（如果父组件没提供）
     const handleAlertMessage = setAlertMessage || (() => { });
 
-    // 退出登录
     const handleLogout = async () => {
         setIsLoggingOut(true);
-        // 如果是 Supabase 登录，需要登出
         if (adminInfo.userId) {
             const { adminSupabase } = await import('../../../supabaseClient');
             await adminSupabase.auth.signOut();
@@ -57,21 +50,17 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
         setShowUserMenu(false);
     };
 
-    // 角色显示文本
     const roleLabel = adminInfo.isSuperAdmin ? '超级管理员' : '管理员';
 
     return (
         <>
             <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
-                {/* 侧边导航栏 */}
                 <div className="w-64 flex-shrink-0 flex flex-col bg-[#1f2326] border-r border-white/10">
-                    {/* Logo */}
                     <div className="h-16 flex items-center px-6 border-b border-white/5">
                         <img src="/brand-logo.svg" alt="VALPOINT" className="h-8" />
                         <span className="ml-2 text-xs text-gray-500 font-mono">ADMIN</span>
                     </div>
 
-                    {/* 导航菜单 */}
                     <nav className="flex-1 p-4 space-y-1">
                         {NAV_ITEMS.map((item) => (
                             <button
@@ -88,7 +77,6 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                         ))}
                     </nav>
 
-                    {/* 底部功能区 */}
                     <div className="p-4 border-t border-white/5 space-y-2">
                         <a
                             href="/user.html"
@@ -113,15 +101,12 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                     </div>
                 </div>
 
-                {/* 主内容区域 */}
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* 顶部栏 */}
                     <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 bg-[#1f2326]">
                         <h1 className="text-lg font-semibold">
                             {NAV_ITEMS.find((item) => item.id === currentPage)?.label || '后台管理'}
                         </h1>
 
-                        {/* 用户信息区域 */}
                         <div className="relative">
                             <button
                                 onClick={() => setShowUserMenu(!showUserMenu)}
@@ -131,7 +116,6 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                     <div className="text-sm font-medium text-white">{roleLabel}</div>
                                     <div className="text-xs text-gray-500">{adminInfo.nickname || adminInfo.account}</div>
                                 </div>
-                                {/* 头像 */}
                                 <div className="rounded-xl overflow-hidden border-2 border-[#ff4655]/50 flex-shrink-0">
                                     <UserAvatar
                                         email={adminInfo.account === 'admin' ? '' : adminInfo.account}
@@ -142,17 +126,13 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                 <Icon name="ChevronDown" size={16} className={`text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
                             </button>
 
-                            {/* 用户下拉菜单 */}
                             {showUserMenu && (
                                 <>
-                                    {/* 背景遮罩 */}
                                     <div
                                         className="fixed inset-0 z-40"
                                         onClick={() => setShowUserMenu(false)}
                                     />
-                                    {/* 菜单 */}
                                     <div className="absolute right-0 top-full mt-2 w-56 bg-[#1f2326] border border-white/10 rounded-xl shadow-xl z-50 overflow-hidden">
-                                        {/* 用户信息 */}
                                         <div className="px-4 py-3 border-b border-white/10">
                                             <div className="flex items-center gap-3">
                                                 <div className="rounded-xl overflow-hidden flex-shrink-0">
@@ -181,7 +161,6 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                         </div>
 
                                         <div className="p-2 space-y-1">
-                                            {/* 个人资料 - 只对 Supabase 登录用户显示 */}
                                             {adminInfo.userId && (
                                                 <>
                                                     <button
@@ -198,7 +177,6 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                                                 </>
                                             )}
 
-                                            {/* 退出登录 */}
                                             <button
                                                 onClick={handleLogout}
                                                 disabled={isLoggingOut}
@@ -223,14 +201,12 @@ function AdminLayout({ currentPage, onPageChange, onLogout, adminInfo, setAlertM
                         </div>
                     </header>
 
-                    {/* 页面内容 */}
                     <main className="flex-1 overflow-auto p-6">
                         {children}
                     </main>
                 </div>
             </div>
 
-            {/* 管理员个人资料弹窗 */}
             {adminInfo.userId && (
                 <AdminProfileModal
                     isOpen={showProfileModal}

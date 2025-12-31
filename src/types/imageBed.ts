@@ -1,6 +1,12 @@
 /**
- * imageBed.ts - 图床配置相关类型定义
+ * imageBed - imageBed
+ *
+ * 职责：
+ * - 声明imageBed相关的数据结构与类型约束。
+ * - 为业务逻辑提供类型安全的契约。
+ * - 集中管理跨模块共享的类型定义。
  */
+
 export type ImageBedProvider = 'aliyun' | 'tencent' | 'qiniu';
 
 export type ImageBedConfig = {
@@ -20,7 +26,6 @@ export type ImageBedConfig = {
   slim?: boolean;
   accessKey?: string;
   url?: string;
-  // legacy fields kept for backward compatibility with existing upload flow
   basePath?: string;
   endpointPath?: string;
   customDomain?: string;

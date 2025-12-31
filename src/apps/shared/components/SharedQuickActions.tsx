@@ -1,3 +1,12 @@
+/**
+ * SharedQuickActions - 共享库快捷操作
+ *
+ * 职责：
+ * - 渲染共享库快捷操作相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
+ */
+
 import React from 'react';
 import Icon, { IconName } from '../../../components/Icon';
 import { useEmailAuth } from '../../../hooks/useEmailAuth';
@@ -32,7 +41,6 @@ const SharedQuickActions: React.FC<Props> = ({
 }) => {
     const { user } = useEmailAuth();
 
-    // 未登录时不显示
     if (!user) return null;
 
     return (

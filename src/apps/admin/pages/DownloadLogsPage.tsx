@@ -1,11 +1,12 @@
 /**
- * DownloadLogsPage - 下载记录审计页
- * 
+ * DownloadLogsPage - 管理端下载Logs页面
+ *
  * 职责：
- * - 列表展示所有用户的点位下载行为日志
- * - 支持按时间范围筛选
- * - 显示下载统计数据
+ * - 组织管理端下载Logs页面的整体布局与关键区域。
+ * - 协调路由、筛选或 Tab 等顶层状态。
+ * - 整合数据来源与子组件的交互。
  */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Icon from '../../../components/Icon';
 import UserAvatar from '../../../components/UserAvatar';
@@ -30,9 +31,6 @@ interface Statistics {
     month: number;
 }
 
-/**
- * 下载日志页面
- */
 function DownloadLogsPage() {
     const [dateRange, setDateRange] = useState<'today' | 'week' | 'month'>('today');
     const [logs, setLogs] = useState<DownloadLog[]>([]);
@@ -43,7 +41,6 @@ function DownloadLogsPage() {
 
     const PAGE_SIZE = 20;
 
-    // 获取日期范围
     const getDateRange = (range: 'today' | 'week' | 'month') => {
         const now = new Date();
         let start: Date;
@@ -59,7 +56,6 @@ function DownloadLogsPage() {
         return start.toISOString();
     };
 
-    // 加载日志数据
     const loadLogs = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -88,7 +84,6 @@ function DownloadLogsPage() {
         }
     }, [dateRange, currentPage]);
 
-    // 加载统计数据
     const loadStats = useCallback(async () => {
         try {
             const now = new Date();
@@ -96,19 +91,16 @@ function DownloadLogsPage() {
             const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7).toISOString();
             const monthStart = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()).toISOString();
 
-            // 今日下载
             const { count: todayCount } = await adminSupabase
                 .from('download_logs')
                 .select('*', { count: 'exact', head: true })
                 .gte('created_at', todayStart);
 
-            // 本周下载
             const { count: weekCount } = await adminSupabase
                 .from('download_logs')
                 .select('*', { count: 'exact', head: true })
                 .gte('created_at', weekStart);
 
-            // 本月下载
             const { count: monthCount } = await adminSupabase
                 .from('download_logs')
                 .select('*', { count: 'exact', head: true })
@@ -124,7 +116,6 @@ function DownloadLogsPage() {
         }
     }, []);
 
-    // 初始加载
     useEffect(() => {
         loadLogs();
     }, [loadLogs]);
@@ -133,15 +124,12 @@ function DownloadLogsPage() {
         loadStats();
     }, [loadStats]);
 
-    // 日期范围变化时重置分页
     useEffect(() => {
         setCurrentPage(1);
     }, [dateRange]);
 
-    // 计算分页
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-    // 格式化时间
     const formatTime = (isoString: string) => {
         const date = new Date(isoString);
         return date.toLocaleString('zh-CN', {
@@ -152,14 +140,12 @@ function DownloadLogsPage() {
         });
     };
 
-    // 获取地图显示名称
     const getMapDisplayName = (name: string) => {
         return MAP_TRANSLATIONS[name?.trim()] || name;
     };
 
     return (
         <div className="space-y-6">
-            {/* 筛选栏 */}
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                     {(['today', 'week', 'month'] as const).map((range) => (
@@ -184,7 +170,6 @@ function DownloadLogsPage() {
                 </button>
             </div>
 
-            {/* 日志表格 */}
             <div className="bg-[#1f2326] rounded-xl border border-white/10 overflow-hidden">
                 <table className="w-full">
                     <thead>
@@ -255,7 +240,6 @@ function DownloadLogsPage() {
                 </table>
             </div>
 
-            {/* 分页 */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-between text-sm text-gray-400">
                     <span>共 {totalCount} 条记录 · 第 {currentPage}/{totalPages} 页</span>
@@ -278,7 +262,6 @@ function DownloadLogsPage() {
                 </div>
             )}
 
-            {/* 统计信息 */}
             <div className="grid grid-cols-3 gap-4">
                 <div className="bg-[#1f2326] rounded-xl border border-white/10 p-4">
                     <div className="text-2xl font-bold text-white">{stats.today.toLocaleString()}</div>

@@ -1,11 +1,12 @@
 /**
- * UserApp - 共享库个人中心根组件
- * 
+ * UserApp - 个人库用户应用
+ *
  * 职责：
- * - 实现用户注册、登录及重置密码流程
- * - 展示用户个人点位投稿记录及状态 (Pending/Approved/Rejected)
- * - 与共享库主应用 (SharedApp) 共享某些公共组件
+ * - 渲染个人库用户应用相关的界面结构与样式。
+ * - 处理用户交互与状态变更并触发回调。
+ * - 组合子组件并提供可配置项。
  */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import '../../styles/fonts.css';
 import '../../index.css';
@@ -22,54 +23,40 @@ import { useEmailAuth } from '../../hooks/useEmailAuth';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { submitLineupDirectly, checkDailySubmissionLimit } from '../../lib/submissionUpload';
 
-/**
- * 个人库应用根组件
- * 使用 Supabase Auth 统一认证
- */
 function UserApp() {
     const { user, isLoading } = useEmailAuth();
     const { profile } = useUserProfile();
     const { mainViewProps, modalProps, isProfileModalOpen, setIsProfileModalOpen, orderedLineups } = useAppController();
 
-    // 同步弹窗状态
     const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-    // 待审点位抽屉状态
     const [isPendingDrawerOpen, setIsPendingDrawerOpen] = useState(false);
-    // 投稿进行中状态
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
     const [isAlertFading, setIsAlertFading] = useState(false);
-    // 确认弹窗状态
     const [confirmState, setConfirmState] = useState<{
         message: string;
         onConfirm: () => void;
     } | null>(null);
 
-    // 管理员验证状态（持久化，关闭弹窗后保持）
     const [verifiedAdminEmail, setVerifiedAdminEmail] = useState<string | null>(null);
 
-    // 判断当前用户是否为管理员
     const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-    // 直接投稿点位
     const handleSubmitLineup = useCallback(async (lineupId: string) => {
         if (!user || isSubmitting) return;
 
-        // 从 orderedLineups 中找到点位数据
         const lineup = orderedLineups.find((l) => l.id === lineupId);
         if (!lineup) {
             setAlertMessage('找不到点位数据');
             return;
         }
 
-        // 检查投稿限制
         const { allowed, remaining } = await checkDailySubmissionLimit(user.id);
         if (!allowed) {
             setAlertMessage('今日投稿次数已达上限，请明天再试');
             return;
         }
 
-        // 显示确认弹窗
         setConfirmState({
             message: `确定要投稿「${lineup.title}」吗？\n\n今日剩余投稿次数: ${remaining}`,
             onConfirm: async () => {
@@ -101,18 +88,17 @@ function UserApp() {
         });
     }, [user, orderedLineups, isSubmitting, profile]);
 
-    // Alert 自动消失（5秒后渐隐）
     useEffect(() => {
         if (alertMessage) {
             setIsAlertFading(false);
             const fadeTimer = setTimeout(() => {
                 setIsAlertFading(true);
-            }, 4500); // 4.5秒后开始渐隐
+            }, 4500); // 说明：4.5 秒后开始渐隐。
 
             const hideTimer = setTimeout(() => {
                 setAlertMessage(null);
                 setIsAlertFading(false);
-            }, 5000); // 5秒后完全隐藏
+            }, 5000); // 说明：5 秒后完全隐藏。
 
             return () => {
                 clearTimeout(fadeTimer);
@@ -121,7 +107,6 @@ function UserApp() {
         }
     }, [alertMessage]);
 
-    // 加载中状态
     if (isLoading) {
         return (
             <div className="min-h-screen bg-[#0f1923] flex items-center justify-center">
@@ -130,37 +115,30 @@ function UserApp() {
         );
     }
 
-    // 未登录时显示登录页面
     if (!user) {
         return <SharedLoginPage setAlertMessage={setAlertMessage} />;
     }
 
-    // 扩展 quickActions 和 right props - 根据用户角色显示不同按钮
     const extendedMainViewProps = {
         ...mainViewProps,
         quickActions: {
             ...mainViewProps.quickActions,
             isAdmin,
             onSyncToShared: isAdmin ? () => setIsSyncModalOpen(true) : undefined,
-            // 普通用户：待审点位按钮 → 打开待审抽屉
             onPendingSubmissions: !isAdmin ? () => setIsPendingDrawerOpen(true) : undefined,
         },
         right: {
             ...mainViewProps.right,
             isAdmin,
-            // 普通用户：卡片列表投稿按钮 → 直接投稿
             onSubmitLineup: !isAdmin ? handleSubmitLineup : undefined,
         },
     };
 
-    // 获取当前地图和英雄信息
     const currentMap = mainViewProps?.left?.selectedMap;
     const currentAgent = mainViewProps?.left?.selectedAgent;
 
-    // 获取个人库用户 ID（使用 Supabase User UUID）
     const personalUserId = user.id;
 
-    // 获取地图封面 URL
     const mapCover = mainViewProps?.map?.mapCover;
 
     return (
@@ -172,7 +150,6 @@ function UserApp() {
                 isAdmin={isAdmin}
             />
 
-            {/* 同步到共享库弹窗（管理员） */}
             <SyncToSharedModal
                 isOpen={isSyncModalOpen}
                 onClose={() => setIsSyncModalOpen(false)}
@@ -186,21 +163,18 @@ function UserApp() {
                 setVerifiedAdminEmail={setVerifiedAdminEmail}
             />
 
-            {/* 待审点位抽屉（普通用户 - QuickActions 触发） */}
             <PendingSubmissionsDrawer
                 isOpen={isPendingDrawerOpen}
                 onClose={() => setIsPendingDrawerOpen(false)}
                 userId={personalUserId}
             />
 
-            {/* 个人信息弹窗 */}
             <UserProfileModal
                 isOpen={isProfileModalOpen}
                 onClose={() => setIsProfileModalOpen(false)}
                 setAlertMessage={(msg) => setAlertMessage(msg)}
             />
 
-            {/* 确认弹窗 */}
             <AlertModal
                 message={confirmState?.message ?? null}
                 onClose={() => setConfirmState(null)}
@@ -209,7 +183,6 @@ function UserApp() {
                 onSecondary={confirmState?.onConfirm}
             />
 
-            {/* Alert 提示 - 5秒后渐隐消失 */}
             {alertMessage && (
                 <div
                     className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[2000] bg-[#1f2326] border border-white/10 rounded-xl px-6 py-3 shadow-xl transition-opacity duration-500 ${isAlertFading ? 'opacity-0' : 'opacity-100'}`}

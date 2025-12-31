@@ -1,10 +1,12 @@
 /**
- * useImageProcessingSettings.ts - 图片处理（水印/压缩）设置 Hook
- * 
+ * useImageProcessingSettings - ImageProcessing设置
+ *
  * 职责：
- * - 维护用户或系统定义的图片处理规则（如水印文字、透明度、比例等）
- * - 提供水印参数的可视化调整状态
+ * - 封装ImageProcessing设置相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useState, useCallback, useEffect } from 'react';
 import { ImageProcessingSettings, defaultImageProcessingSettings } from '../types/imageProcessing';
 

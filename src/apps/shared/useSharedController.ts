@@ -1,11 +1,12 @@
 /**
  * useSharedController - 共享库控制器
- * 
+ *
  * 职责：
- * - 管理共享库的全部交互状态（地图、特工、筛选、点位列表）
- * - 处理点位打包下载逻辑 (需登录)
- * - 与 Supabase 服务层交互获取公共点位数据 (SharedLineups)
+ * - 封装共享库控制器相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useValorantData } from '../../hooks/useValorantData';
@@ -22,24 +23,20 @@ import { fetchUserSubscriptions, updateUserSubscriptions } from '../../services/
 
 
 interface UseSharedControllerParams {
-    user: User | null; // 可选，支持游客模式
+    user: User | null; // 说明：可选，支持游客模式。
     setAlertMessage: (msg: string | null) => void;
     setViewingImage: (img: { src: string; list?: string[]; index?: number } | null) => void;
-    onRequestLogin: () => void; // 下载时请求登录
+    onRequestLogin: () => void; // 说明：下载受限内容时提示登录。
 }
 
 export function useSharedController({ user, setAlertMessage, setViewingImage, onRequestLogin }: UseSharedControllerParams) {
-    // 移动端检测
     const isMobile = useIsMobile();
 
-    // 地图数据
     const { maps, agents } = useValorantData();
 
-    // 状态
     const [selectedMap, setSelectedMapState] = useState<MapOption | null>(null);
     const [selectedAgent, setSelectedAgent] = useState<AgentOption | null>(null);
     const [selectedAbilityIndex, setSelectedAbilityIndex] = useState<number | null>(null);
-    // 桌面端默认全部，移动端默认进攻
     const [selectedSide, setSelectedSide] = useState<'all' | 'attack' | 'defense'>(() => isMobile ? 'attack' : 'all');
     const [searchQuery, setSearchQuery] = useState('');
     const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -47,14 +44,10 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
     const [isLoading, setIsLoading] = useState(true);
     const [lineups, setLineups] = useState<BaseLineup[]>([]);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-    // 点位详情弹窗
     const [viewingLineup, setViewingLineup] = useState<BaseLineup | null>(null);
-    // 共享者筛选
     const [selectedSharedUserId, setSelectedSharedUserId] = useState<string | null>(null);
-    // 下载状态
     const [isDownloading, setIsDownloading] = useState(false);
 
-    // 新增点位数据（用于地图交互，但共享库不允许创建）
     const [newLineupData, setNewLineupData] = useState<NewLineupForm>({
         title: '',
         agentPos: null,
@@ -78,11 +71,9 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
     });
     const [placingType, setPlacingType] = useState<'agent' | 'skill' | null>(null);
 
-    // 订阅管理状态
     const [subscriptions, setSubscriptions] = useState<Subscription[]>(getSubscriptionList());
-    const [currentSubscription, setCurrentSubscription] = useState<Subscription>(subscriptions[0]); // Default to local
+    const [currentSubscription, setCurrentSubscription] = useState<Subscription>(subscriptions[0]); // 说明：默认使用本地订阅。
 
-    // Cloud Sync Effect
     useEffect(() => {
         if (!user) return;
 
@@ -91,37 +82,28 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
                 const cloudSubs = await fetchUserSubscriptions(user.id);
                 const localSubs = getSubscriptionList().filter(s => s.id !== 'local');
 
-                // Logic 1: Cloud is empty, Local has data -> Initial Push
                 if (cloudSubs.length === 0 && localSubs.length > 0) {
                     await updateUserSubscriptions(user.id, localSubs);
-                    // No state change needed, cloud is now same as local
                 }
-                // Logic 2: Cloud has data -> Pull & Overwrite Local
                 else if (cloudSubs.length > 0) {
-                    // Update LocalStorage to match Cloud
-                    // We must keep 'local' (Official) at the start, but overwrite the rest
                     const merged = [getSubscriptionList()[0], ...cloudSubs];
 
-                    // Manually update localStorage
                     localStorage.setItem('valpoint_subscriptions', JSON.stringify(cloudSubs));
 
                     setSubscriptions(merged);
 
-                    // If current subscription is not present in new list, reset to local
                     if (currentSubscription.id !== 'local' && !cloudSubs.find(s => s.id === currentSubscription.id)) {
                         setCurrentSubscription(merged[0]);
                     }
                 }
             } catch (err) {
                 console.error('Subscription sync failed:', err);
-                // Silent fail or toast?
             }
         };
 
         syncSubscriptions();
-    }, [user]); // Re-run on login
+    }, [user]); // 说明：登录后重新执行。
 
-    // Helper to sync to cloud
     const syncToCloud = useCallback(async () => {
         if (!user) return;
         const currentList = getSubscriptionList().filter(s => s.id !== 'local');
@@ -132,16 +114,13 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         }
     }, [user]);
 
-    // 动态创建 Client
     const activeClient = useMemo(() => {
-        // local 订阅或 redirect 模式不需要创建 Client
         if (currentSubscription.id === 'local' || currentSubscription.mode === 'redirect' || !currentSubscription.api) {
             return undefined;
         }
         return createClient(currentSubscription.api.supabaseUrl, currentSubscription.api.supabaseAnonKey);
     }, [currentSubscription]);
 
-    // 创建地图名称中英对照表
     const mapNameZhToEn = useMemo<Record<string, string>>(() => {
         const reverse: Record<string, string> = {};
         Object.entries(MAP_TRANSLATIONS).forEach(([en, zh]) => {
@@ -150,28 +129,23 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         return reverse;
     }, []);
 
-    // 获取选中的点位
     const selectedLineup = useMemo(() => {
         return lineups.find((l) => l.id === selectedLineupId) || null;
     }, [lineups, selectedLineupId]) as SharedLineup | null;
 
-    // 使用 useMapInfo 获取地图相关方法
     const { getMapDisplayName, getMapEnglishName, getMapUrl, getMapCoverUrl } = useMapInfo({
         selectedMap,
         selectedSide,
     });
 
-    // 初始化默认地图（使用列表第一个）
     useEffect(() => {
         if (maps.length > 0 && !selectedMap) {
             setSelectedMapState(maps[0]);
         }
     }, [maps, selectedMap]);
 
-    // 标记是否已完成首次英雄初始化
     const [hasInitializedAgent, setHasInitializedAgent] = useState(false);
 
-    // 首次加载时默认选择第一个英雄，但用户点击"显示全部"后不再自动选择
     useEffect(() => {
         if (agents.length > 0 && !selectedAgent && !hasInitializedAgent) {
             setSelectedAgent(agents[0]);
@@ -179,55 +153,43 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         }
     }, [agents, selectedAgent, hasInitializedAgent]);
 
-    // 刷新订阅列表 (Local + Cloud Sync Trigger)
     const refreshSubscriptions = useCallback(() => {
         const list = getSubscriptionList();
         setSubscriptions(list);
-        syncToCloud(); // Trigger background sync
+        syncToCloud(); // 说明：触发后台同步。
     }, [syncToCloud]);
 
-    // 切换订阅
     const handleSetSubscription = useCallback((sub: Subscription) => {
-        // redirect 模式：直接跳转到对方网站，不改变当前状态
         if (sub.mode === 'redirect') {
             window.open(sub.url, '_blank', 'noopener,noreferrer');
             return;
         }
-        // embed 模式：正常切换订阅源
         setCurrentSubscription(sub);
-        // 切换后自动清理旧数据，等待新加载
         setLineups([]);
     }, []);
 
-    // 添加订阅
     const handleAddSubscription = useCallback((sub: Subscription) => {
         try {
             addSubscription(sub);
             refreshSubscriptions();
-            // Silent success
         } catch (e: any) {
             setAlertMessage(e.message);
         }
     }, [refreshSubscriptions, setAlertMessage]);
 
-    // 删除订阅
     const handleRemoveSubscription = useCallback((id: string) => {
         if (id === currentSubscription.id) {
-            // 如果删除了当前选中的，切换回默认
             setCurrentSubscription(subscriptions[0]);
         }
         removeSubscription(id);
         refreshSubscriptions();
     }, [currentSubscription, subscriptions, refreshSubscriptions]);
 
-    // 更新订阅
     const handleUpdateSubscription = useCallback((sub: Subscription) => {
         try {
             updateSubscription(sub);
             refreshSubscriptions();
-            // Silent success
 
-            // 如果更新的是当前订阅，需要刷新状态
             if (currentSubscription.id === sub.id) {
                 setCurrentSubscription(sub);
             }
@@ -236,7 +198,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         }
     }, [refreshSubscriptions, setAlertMessage, currentSubscription]);
 
-    // 重新排序
     const handleReorderSubscription = useCallback((id: string, direction: 'up' | 'down') => {
         reorderSubscription(id, direction);
         refreshSubscriptions();
@@ -244,14 +205,12 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
 
 
 
-    // ... (maps, agents state...)
 
-    // 加载共享库点位
     const loadLineups = useCallback(async () => {
         setIsLoading(true);
         try {
-            // activeClient 为 undefined 时，fetchSharedList 会使用默认的 client
-            // @ts-ignore activeClient 类型推断可能有细微差别，但 SupabaseClient 兼容
+            // @ts-ignore
+            // 说明：activeClient 类型推断存在差异，但与 SupabaseClient 兼容。
             const data = await fetchSharedList(mapNameZhToEn, activeClient);
             setLineups(data || []);
         } catch (err) {
@@ -263,13 +222,11 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         }
     }, [mapNameZhToEn, setAlertMessage, activeClient]);
 
-    // 监听订阅变化自动加载
     useEffect(() => {
         loadLineups();
-    }, [loadLineups]); // loadLineups depends on activeClient -> currentSubscription
+    }, [loadLineups]); // 说明：依赖 currentSubscription 影响 activeClient。
 
 
-    // 手动过滤点位（包括共享者筛选）
     const filteredLineups = useMemo(() => {
         if (!selectedMap) return [];
         const mapKey = selectedMap.displayName;
@@ -281,19 +238,16 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
             const sideMatch = selectedSide === 'all' || l.side === selectedSide;
             const abilityMatch = selectedAbilityIndex === null || l.abilityIndex === selectedAbilityIndex;
             const searchMatch = !searchQuery || l.title.toLowerCase().includes(searchQuery.toLowerCase());
-            // 共享者筛选
             const userMatch = !selectedSharedUserId || l.userId === selectedSharedUserId;
             return mapMatch && agentMatch && sideMatch && abilityMatch && searchMatch && userMatch;
         });
     }, [lineups, selectedMap, selectedAgent, selectedSide, selectedAbilityIndex, searchQuery, selectedSharedUserId, mapNameZhToEn]);
 
-    // 获取所有共享者列表
     const contributors = useMemo(() => {
         const userIds = lineups.map((l) => l.userId).filter(Boolean) as string[];
         return Array.from(new Set(userIds));
     }, [lineups]);
 
-    // 计算每个特工的点位数量
     const agentCounts = useMemo(() => {
         if (!selectedMap) return {};
         const mapKey = selectedMap.displayName;
@@ -307,7 +261,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         return counts;
     }, [lineups, selectedMap, mapNameZhToEn]);
 
-    // 获取地图 URL（需要依赖 selectedSide 以便攻防切换时更新）
     const mapIcon = useMemo(() => {
         return getMapUrl();
     }, [getMapUrl, selectedSide]);
@@ -316,11 +269,9 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         return getMapCoverUrl();
     }, [getMapCoverUrl, selectedSide]);
 
-    // 选择地图
     const handleSelectMap = useCallback((map: MapOption) => {
         setSelectedMapState(map);
         setSelectedLineupId(null);
-        // 切换地图时自动选择默认特工（第一个）
         if (agents.length > 0) {
             setSelectedAgent(agents[0]);
         } else {
@@ -329,7 +280,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         setIsMapModalOpen(false);
     }, [agents]);
 
-    // 查看点位详情（打开弹窗）
     const handleViewLineup = useCallback((id: string) => {
         setSelectedLineupId(id);
         const lineup = lineups.find((l) => l.id === id);
@@ -338,17 +288,14 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         }
     }, [lineups]);
 
-    // 关闭点位详情弹窗（同时清除选中状态）
     const handleViewerClose = useCallback(() => {
         setViewingLineup(null);
-        setSelectedLineupId(null);  // 清除选中，消除蚂蚁线连接
+        setSelectedLineupId(null); // 说明：清除选中以移除连线。
     }, []);
 
-    // 下载点位 - 需要登录，下载 ZIP 包
     const handleDownload = useCallback(async (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
 
-        // 检查是否登录
         if (!user) {
             setAlertMessage('下载点位需要登录，请先登录');
             onRequestLogin();
@@ -360,7 +307,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
 
         if (isDownloading) return;
 
-        // 检查下载限制
         const { allowed, limit, remaining } = await checkDailyDownloadLimit(user.id);
         if (!allowed) {
             setAlertMessage(`今日下载次数已达上限 (${limit}次)，请明天再试`);
@@ -373,15 +319,14 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
 
             const result = await downloadLineupBundle(target);
 
-            // 记录下载次数和日志
             await incrementDownloadCount(user.id);
             await logDownload({
                 userId: user.id,
                 userEmail: user.email || '',
                 lineupId: target.id,
                 lineupTitle: target.title,
-                mapName: target.mapName, // SharedLineup 使用 mapName
-                agentName: target.agentName, // SharedLineup 使用 agentName
+                mapName: target.mapName, // 说明：SharedLineup 使用 mapName。
+                agentName: target.agentName, // 说明：SharedLineup 使用 agentName。
             });
 
             if (result.failedImages.length > 0) {
@@ -398,12 +343,10 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
     }, [lineups, setAlertMessage, user, onRequestLogin, isDownloading]);
 
     return {
-        // 状态
         isLoading,
         isDownloading,
         user,
 
-        // 地图
         maps,
         selectedMap,
         setSelectedMap: handleSelectMap,
@@ -414,7 +357,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         getMapDisplayName,
         getMapEnglishName,
 
-        // 特工
         agents,
         selectedAgent,
         setSelectedAgent,
@@ -422,7 +364,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         setSelectedAbilityIndex,
         agentCounts,
 
-        // 筛选
         selectedSide,
         setSelectedSide,
         searchQuery,
@@ -430,7 +371,6 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         isFilterModalOpen,
         setIsFilterModalOpen,
 
-        // 点位
         lineups,
         filteredLineups,
         selectedLineupId,
@@ -438,28 +378,22 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
         selectedLineup,
         handleViewLineup,
         handleDownload,
-        // 点位详情弹窗
         viewingLineup,
         setViewingLineup,
         handleViewerClose,
-        // 共享者筛选
         contributors,
         selectedSharedUserId,
         setSelectedSharedUserId,
 
-        // 地图交互（只读模式）
         newLineupData,
         setNewLineupData,
         placingType,
-        // 适配器函数，将 string | null 转换为正确的类型
         setPlacingType: (val: string | null) => {
             setPlacingType(val as 'agent' | 'skill' | null);
         },
 
-        // 图片查看
         setViewingImage,
 
-        // 订阅管理
         subscriptions,
         currentSubscription,
         setSubscription: handleSetSubscription,

@@ -1,8 +1,12 @@
 /**
- * ChangelogModal - 更新日志展示模态框
- * 
- * 从本地数据汇总并展示应用的历史更新记录。
+ * ChangelogModal - Changelog弹窗
+ *
+ * 职责：
+ * - 渲染Changelog弹窗内容与操作区域。
+ * - 处理打开/关闭、确认/取消等交互。
+ * - 与表单校验或数据提交逻辑联动。
  */
+
 import React from 'react';
 import Icon from './Icon';
 import { changelogEntries } from '../changelog';

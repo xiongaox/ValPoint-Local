@@ -1,15 +1,14 @@
 /**
- * lineupHelpers.ts - 点位处理辅助函数
- * 
+ * lineupHelpers - 点位工具
+ *
  * 职责：
- * - 提供点位去重、版本比较、数据清洗等纯逻辑函数
- * - 处理点位与本地缓存之间的转换关系
+ * - 承载点位工具相关的模块实现。
+ * - 组织内部依赖与导出接口。
+ * - 为上层功能提供支撑。
  */
+
 import { LineupDbPayload, MapOption, AgentOption, NewLineupForm, LineupSide, LineupPosition, AgentData, BaseLineup } from '../../types/lineup';
 
-/**
- * 检查标题是否已存在（同一特工范围内，排除当前编辑的点位）
- */
 export const checkTitleExists = (
   title: string,
   lineups: BaseLineup[],
@@ -26,9 +25,6 @@ export const checkTitleExists = (
   );
 };
 
-/**
- * 生成唯一标题（同一特工范围内，如果重名则添加 -01, -02 等后缀）
- */
 export const generateUniqueTitle = (
   baseTitle: string,
   lineups: BaseLineup[],
@@ -39,15 +35,12 @@ export const generateUniqueTitle = (
     return normalizedBase;
   }
 
-  // 过滤出同一特工的点位
   const normalizedAgent = agentName.trim().toLowerCase();
   const agentLineups = lineups.filter(l => l.agentName.trim().toLowerCase() === normalizedAgent);
 
-  // 如果已有后缀，先移除
   const suffixPattern = /-(\d{2})$/;
   const cleanTitle = normalizedBase.replace(suffixPattern, '');
 
-  // 查找最大后缀
   let maxSuffix = 0;
   agentLineups.forEach((l) => {
     const title = l.title.trim();
@@ -57,7 +50,6 @@ export const generateUniqueTitle = (
         const num = parseInt(match[1], 10);
         if (num > maxSuffix) maxSuffix = num;
       } else if (title.toLowerCase() === cleanTitle.toLowerCase()) {
-        // 原始标题存在，后缀从 01 开始
         if (maxSuffix === 0) maxSuffix = 0;
       }
     }
@@ -96,7 +88,7 @@ type WritableLineup = {
   skillIcon?: string | null;
   side: LineupSide;
   abilityIndex: number | null;
-  ability_index?: number | null; // 兼容性字段
+  ability_index?: number | null; // 说明：兼容性字段。
   agentPos: LineupPosition | null;
   skillPos: LineupPosition | null;
   standImg?: string | null;

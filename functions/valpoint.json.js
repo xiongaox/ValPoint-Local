@@ -1,3 +1,12 @@
+/**
+ * valpoint.json - valpointjson
+ *
+ * 职责：
+ * - 实现valpointjson相关的云函数入口。
+ * - 处理事件输入与结果返回。
+ * - 封装可复用的服务逻辑。
+ */
+
 import { manifestConfig } from '../valpoint.config.js';
 
 export async function onRequest(context) {

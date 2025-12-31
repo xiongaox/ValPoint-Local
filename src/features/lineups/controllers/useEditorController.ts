@@ -1,12 +1,12 @@
 /**
- * useEditorController - 点位编辑控制器
- * 
- * 处理点位新增和编辑的完整流程：
- * - handleOpenEditor: 打开编辑器（验证前置条件）
- * - handleEditorClose: 关闭编辑器并重置状态
- * - handleEditStart: 从现有点位开始编辑
- * - handleEditorSave: 保存点位（新增或更新）
+ * useEditorController - 点位编辑器控制器
+ *
+ * 职责：
+ * - 封装点位编辑器控制器相关的状态与副作用。
+ * - 对外提供稳定的接口与回调。
+ * - 处理订阅、清理或缓存等生命周期细节。
  */
+
 import { useCallback } from 'react';
 import { getAbilityIcon } from '../../../utils/abilityIcons';
 import { ActiveTab } from '../../../types/app';
@@ -91,7 +91,6 @@ export function useEditorController({
     setNewLineupData(createEmptyLineup());
     setPlacingType(null);
     setActiveTab('view');
-    // 保持当前阵营，不强制跳转到 'all'
     setSelectedAbilityIndex(null);
     setSelectedLineupId(null);
     setViewingLineup(null);
@@ -157,7 +156,6 @@ export function useEditorController({
     }
     if (!newLineupData.title.trim()) return setAlertMessage('标题不能为空');
 
-    // 检查标题是否重名（同一特工范围内）
     if (checkTitleExists(newLineupData.title, lineups, selectedAgent.displayName, editingLineupId)) {
       return setAlertMessage('该特工下已有同名标题，请使用其他标题');
     }
@@ -213,7 +211,6 @@ export function useEditorController({
       setIsEditorOpen(false);
       setEditingLineupId(null);
       setNewLineupData(createEmptyLineup());
-      // 保持当前阵营，不强制跳转到 'all'
       setSelectedAbilityIndex(null);
       setSelectedLineupId(null);
       setViewingLineup(null);
