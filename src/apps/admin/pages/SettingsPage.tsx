@@ -462,23 +462,18 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-2">GitHub 项目地址</label>
-                                    <input
-                                        type="url"
-                                        value={authorLinks.github_url}
-                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, github_url: e.target.value }))}
-                                        placeholder="https://github.com/username/repo"
-                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
-                                    />
+                                    <div className="w-full px-4 py-3 rounded-lg bg-[#0f1923]/50 border border-white/5 text-gray-400 flex items-center justify-between">
+                                        <span>https://github.com/xiongaox/ValPoint</span>
+                                        <span className="text-xs bg-white/10 px-2 py-0.5 rounded">官方仓库</span>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm text-gray-400 mb-2">使用教程地址</label>
-                                    <input
-                                        type="url"
-                                        value={authorLinks.tutorial_url}
-                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, tutorial_url: e.target.value }))}
-                                        placeholder="https://example.com/tutorial"
-                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
-                                    />
+                                    <div className="w-full px-4 py-3 rounded-lg bg-[#0f1923]/50 border border-white/5 text-gray-400 flex items-center justify-between">
+                                        <span>/wiki.html</span>
+                                        <span className="text-xs bg-white/10 px-2 py-0.5 rounded">内置文档</span>
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">固定指向内置使用文档，由作者统一维护</p>
                                 </div>
                             </div>
                         </div>

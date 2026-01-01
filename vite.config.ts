@@ -11,6 +11,14 @@ export default defineConfig({
     hmr: {
       timeout: 60000,
     },
+    proxy: {
+      // 开发环境：将 /wiki/ 请求代理到 VitePress 开发服务器
+      // 注意：使用 /wiki/ 而非 /wiki，避免匹配到 /wiki.html
+      '/wiki/': {
+        target: 'http://localhost:5173',
+        changeOrigin: true,
+      },
+    },
   },
   appType: 'mpa', // 多页应用模式，禁用 SPA 路由回退
   build: {
@@ -19,6 +27,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'), // 共享库 (默认首页)
         personal: resolve(__dirname, 'user.html'), // 个人库
         admin: resolve(__dirname, 'admin.html'),
+        wiki: resolve(__dirname, 'wiki.html'), // Wiki 文档入口
         notFound: resolve(__dirname, '404.html'), // 404 页面
       },
     },

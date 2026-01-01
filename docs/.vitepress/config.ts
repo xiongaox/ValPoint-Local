@@ -4,6 +4,7 @@ export default defineConfig({
   title: 'ValPoint',
   description: 'Valorant 点位管理与分享平台',
   lang: 'zh-CN',
+  base: '/wiki/',
 
   head: [['script', { src: 'https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js' }]],
 
@@ -27,12 +28,14 @@ export default defineConfig({
           text: '开始使用',
           items: [
             { text: '快速开始', link: '/guide/快速开始' },
-            { text: '前置准备',
+            {
+              text: '前置准备',
               collapsed: true,
               items: [
                 { text: '数据库建表', link: '/guide/数据库建表' },
                 { text: '图床配置', link: '/guide/图床配置' },
-              ],},
+              ],
+            },
             { text: '部署指南', link: '/guide/部署指南' },
           ],
         },
@@ -51,10 +54,11 @@ export default defineConfig({
 
             { text: '项目起源', link: '/guide/项目起源' },
             { text: '作者信息自动获取', link: '/guide/作者信息自动获取' },
+            { text: '管理后台', link: '/guide/管理后台' },
             { text: '常见问题', link: '/guide/常见问题' },
 
           ],
-          
+
         },
       ],
       '/dev/': [

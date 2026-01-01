@@ -20,6 +20,10 @@ const AuthorLinksBar: React.FC = () => {
     const [qrModal, setQrModal] = useState<QRModalType>(null);
     const [donateTab, setDonateTab] = useState<'wechat' | 'alipay'>('wechat');
 
+    // 固定的官方链接（不从数据库读取）
+    const FIXED_GITHUB_URL = 'https://github.com/xiongaox/ValPoint';
+    const FIXED_TUTORIAL_URL = '/wiki.html';
+
     useEffect(() => {
         const loadLinks = async () => {
             const settings = await getSystemSettings();
@@ -30,7 +34,8 @@ const AuthorLinksBar: React.FC = () => {
         loadLinks();
     }, []);
 
-    const hasAnyLink = links.github_url || links.tutorial_url || links.donate_wechat_qr || links.donate_alipay_qr || links.contact_wechat_qr;
+    // 固定链接始终显示，可配置链接（打赏/联系）根据数据库配置显示
+    const hasAnyLink = true; // 固定链接始终存在
 
     useEscapeClose(Boolean(qrModal), () => setQrModal(null));
 
@@ -42,29 +47,25 @@ const AuthorLinksBar: React.FC = () => {
     return (
         <>
             <div className="flex items-center gap-2">
-                {links.github_url && (
-                    <a
-                        href={links.github_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`${buttonClass} bg-purple-500/20 border-purple-500/30 text-purple-400 hover:bg-purple-500/30 hover:border-purple-400/50`}
-                    >
-                        <Icon name="Github" size={14} />
-                        项目地址
-                    </a>
-                )}
+                <a
+                    href={FIXED_GITHUB_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${buttonClass} bg-purple-500/20 border-purple-500/30 text-purple-400 hover:bg-purple-500/30 hover:border-purple-400/50`}
+                >
+                    <Icon name="Github" size={14} />
+                    项目地址
+                </a>
 
-                {links.tutorial_url && (
-                    <a
-                        href={links.tutorial_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`${buttonClass} bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-400/50`}
-                    >
-                        <Icon name="BookOpen" size={14} />
-                        使用教程
-                    </a>
-                )}
+                <a
+                    href={FIXED_TUTORIAL_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${buttonClass} bg-blue-500/20 border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-400/50`}
+                >
+                    <Icon name="BookOpen" size={14} />
+                    使用教程
+                </a>
 
                 {(links.donate_wechat_qr || links.donate_alipay_qr) && (
                     <button

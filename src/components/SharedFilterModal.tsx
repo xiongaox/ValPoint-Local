@@ -21,9 +21,6 @@ type Props = {
 
 const SharedFilterModal: React.FC<Props> = ({ isOpen, contributors, selectedUserId, onSelect, onClose }) => {
   useEscapeClose(isOpen, onClose);
-
-  if (!isOpen) return null;
-
   const options = useMemo(() => {
     const uniq = Array.from(new Set(contributors));
     return ['*ALL*', ...uniq];
@@ -31,6 +28,25 @@ const SharedFilterModal: React.FC<Props> = ({ isOpen, contributors, selectedUser
   const [pendingUserId, setPendingUserId] = useState<string>(selectedUserId ?? '*ALL*');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setPendingUserId(selectedUserId ?? '*ALL*');
+    setIsDropdownOpen(false);
+  }, [isOpen, selectedUserId]);
+
+  useEffect(() => {
+    if (!isOpen || !isDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, isDropdownOpen]);
+
+  if (!isOpen) return null;
 
   const handleApply = () => {
     onSelect(pendingUserId === '*ALL*' ? null : pendingUserId);
@@ -40,19 +56,8 @@ const SharedFilterModal: React.FC<Props> = ({ isOpen, contributors, selectedUser
   const handleReset = () => {
     setPendingUserId('*ALL*');
     onSelect(null);
-    onClose();
+    setIsDropdownOpen(false);
   };
-
-  useEffect(() => {
-    if (!isDropdownOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isDropdownOpen]);
 
   return (
     <div

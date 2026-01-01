@@ -14,12 +14,6 @@ services:
       # Supabase 共享库（公共点位数据，留空则使用主库）
       - VITE_SUPABASE_SHARE_URL=${VITE_SUPABASE_SHARE_URL}
       - VITE_SUPABASE_SHARE_ANON_KEY=${VITE_SUPABASE_SHARE_ANON_KEY}
-      # 共享库前端地址（可选，优先级高于后台配置，用于本地调试或固定配置）
-      - VITE_SHARED_LIBRARY_URL=${VITE_SHARED_LIBRARY_URL}
-      # 管理员账号（可选，该账号登录自动获得超级管理员权限）
-      - VITE_ADMIN_ACCOUNT=${VITE_ADMIN_ACCOUNT}
-      # 管理员密码（可选，与账号配合使用，无需在 Supabase 注册）
-      - VITE_ADMIN_PASSWORD=${VITE_ADMIN_PASSWORD}
     networks:
       - valpoint-net
 
