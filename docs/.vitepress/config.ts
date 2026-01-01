@@ -43,9 +43,10 @@ export default defineConfig({
           text: '功能分区',
           items: [
             { text: '使用流程', link: '/guide/使用流程' },
-            { text: '左侧栏', link: '/guide/左侧栏' },
-            { text: '中间栏', link: '/guide/中间栏' },
-            { text: '右侧栏', link: '/guide/右侧栏' }
+            { text: '个人库功能详解', link: '/guide/个人库功能详解' },
+            { text: '共享库功能详解', link: '/guide/共享库功能详解' },
+            { text: '移动端详解', link: '/guide/移动端详解' },
+            { text: '后台详解', link: '/guide/后台详解' }
           ],
         },
         {
@@ -54,8 +55,8 @@ export default defineConfig({
 
             { text: '项目起源', link: '/guide/项目起源' },
             { text: '作者信息自动获取', link: '/guide/作者信息自动获取' },
-            { text: '管理后台', link: '/guide/管理后台' },
             { text: '常见问题', link: '/guide/常见问题' },
+            { text: '未来计划', link: '/guide/未来计划' },
 
           ],
 
