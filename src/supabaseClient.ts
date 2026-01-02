@@ -14,20 +14,19 @@ const getEnv = (key: string) => {
 };
 
 const url = getEnv('VITE_SUPABASE_URL');
-const anonKey = getEnv('VITE_SUPABASE_ANON_KEY');
-const shareUrl = getEnv('VITE_SUPABASE_SHARE_URL') || url;
-const shareAnonKey = getEnv('VITE_SUPABASE_SHARE_ANON_KEY') || anonKey;
+
+// 兼容阿里云 ESA 200字符限制：优先使用完整 key，否则合并拆分的 key
+const anonKey = getEnv('VITE_SUPABASE_ANON_KEY')
+  || ((getEnv('VITE_SUPABASE_ANON_KEY_1') || '') + (getEnv('VITE_SUPABASE_ANON_KEY_2') || ''));
 
 if (!url || !anonKey) {
-  throw new Error('请在环境变量中设置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY');
-}
-if (!shareUrl || !shareAnonKey) {
-  throw new Error('请在环境变量中设置 VITE_SUPABASE_SHARE_URL 和 VITE_SUPABASE_SHARE_ANON_KEY，或使用主库变量兜底');
+  throw new Error('请在环境变量中设置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY（或 KEY_1 + KEY_2）');
 }
 
 export const supabase = createClient(url, anonKey);
 
-export const shareSupabase = createClient(shareUrl, shareAnonKey);
+// 共享库现统一使用主库配置
+export const shareSupabase = createClient(url, anonKey);
 
 export const adminSupabase = createClient(url, anonKey, {
   auth: {
@@ -35,4 +34,3 @@ export const adminSupabase = createClient(url, anonKey, {
     storage: window.localStorage,
   },
 });
-

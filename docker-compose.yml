@@ -1,19 +1,17 @@
 services:
   valpoint:
     image: xiongaox7806/valpoint-a:latest
+    container_name: valpoint-a
     restart: always
     build:
       context: .
     ports:
-      - "8080:3208" # Unified App (Map to 8080 to avoid local dev conflict)
+      - "3208:3208" # Unified App (Map to 8080 to avoid local dev conflict)
     environment:
       - NODE_ENV=production
-      # Supabase 主库（个人点位数据存储，必填）
+      # Supabase 配置（必填）
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-      # Supabase 共享库（公共点位数据，留空则使用主库）
-      - VITE_SUPABASE_SHARE_URL=${VITE_SUPABASE_SHARE_URL}
-      - VITE_SUPABASE_SHARE_ANON_KEY=${VITE_SUPABASE_SHARE_ANON_KEY}
     networks:
       - valpoint-net
 

@@ -37,6 +37,14 @@ function calculateTrend(current: number, previous: number): number {
     return Math.round(((current - previous) / previous) * 100);
 }
 
+// 使用本地时区格式化日期为 YYYY-MM-DD
+function formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 export async function fetchDashboardStats(): Promise<DashboardStats> {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
@@ -58,9 +66,9 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         { count: todayNewLineups },
         { data: downloadData }
     ] = await Promise.all([
-        supabase.from(TABLE.lineups).select('*', { count: 'exact', head: true }),
+        supabase.from(TABLE.shared).select('*', { count: 'exact', head: true }),
         supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
-        supabase.from(TABLE.lineups).select('*', { count: 'exact', head: true }).gte('created_at', todayStart),
+        supabase.from(TABLE.shared).select('*', { count: 'exact', head: true }).gte('created_at', todayStart),
         supabase.from('download_logs').select('download_count').gte('created_at', todayStart)
     ]);
 
@@ -74,9 +82,9 @@ export async function fetchDashboardStats(): Promise<DashboardStats> {
         { data: thisWeekDownloadsData },
         { data: lastWeekDownloadsData }
     ] = await Promise.all([
-        supabase.from(TABLE.lineups).select('*', { count: 'exact', head: true })
+        supabase.from(TABLE.shared).select('*', { count: 'exact', head: true })
             .gte('created_at', thisWeekStart.toISOString()),
-        supabase.from(TABLE.lineups).select('*', { count: 'exact', head: true })
+        supabase.from(TABLE.shared).select('*', { count: 'exact', head: true })
             .gte('created_at', lastWeekStart.toISOString())
             .lte('created_at', lastWeekEnd.toISOString()),
         supabase.from('user_profiles').select('*', { count: 'exact', head: true })
@@ -196,12 +204,48 @@ export async function fetchUserGrowthTrends(): Promise<UserTrend[]> {
     for (let i = 0; i < 7; i++) {
         const d = new Date(sevenDaysAgo);
         d.setDate(d.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+        const dateStr = formatLocalDate(d);
         trends[dateStr] = 0;
     }
 
     data?.forEach(u => {
-        const dateStr = new Date(u.created_at).toISOString().split('T')[0];
+        const dateStr = formatLocalDate(new Date(u.created_at));
+        if (trends[dateStr] !== undefined) {
+            trends[dateStr]++;
+        }
+    });
+
+    return Object.entries(trends)
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export async function fetchLineupGrowthTrends(): Promise<UserTrend[]> {
+    const now = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 6);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const { data, error } = await supabase
+        .from(TABLE.shared)
+        .select('created_at')
+        .gte('created_at', sevenDaysAgo.toISOString());
+
+    if (error) {
+        console.error('Error fetching lineup growth:', error);
+        return [];
+    }
+
+    const trends: Record<string, number> = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(sevenDaysAgo);
+        d.setDate(d.getDate() + i);
+        const dateStr = formatLocalDate(d);
+        trends[dateStr] = 0;
+    }
+
+    data?.forEach(l => {
+        const dateStr = formatLocalDate(new Date(l.created_at));
         if (trends[dateStr] !== undefined) {
             trends[dateStr]++;
         }

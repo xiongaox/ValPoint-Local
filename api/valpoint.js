@@ -27,8 +27,8 @@ export default function handler(req, res) {
         ...manifestConfig,
         description: `${manifestConfig.description} (Vercel)`,
         api: {
-            supabaseUrl: process.env.VITE_SUPABASE_SHARE_URL || process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL,
-            supabaseAnonKey: process.env.VITE_SUPABASE_SHARE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+            supabaseUrl: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL,
+            supabaseAnonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
         }
     });
 }

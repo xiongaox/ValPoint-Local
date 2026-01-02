@@ -61,6 +61,12 @@ const ViewerModal = ({
 
   if (!viewingLineup) return null;
 
+  // 移动端作者名称截断处理
+  const truncateName = (name: string, maxLength: number = 5) => {
+    if (!isMobile || !name || name.length <= maxLength) return name;
+    return name.slice(0, maxLength) + '...';
+  };
+
   const imageItems = [
     { src: viewingLineup.standImg, desc: viewingLineup.standDesc, label: '站位 (Stand)' },
     { src: viewingLineup.stand2Img, desc: viewingLineup.stand2Desc, label: '站位 2 (Stand)' },
@@ -121,12 +127,12 @@ const ViewerModal = ({
                     className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white hover:border-[#ff4655] hover:text-[#ff4655] transition-colors whitespace-nowrap"
                   >
                     <img src={authorInfo.avatar} className="w-5 h-5 rounded-full" alt={authorInfo.name} referrerPolicy="no-referrer" />
-                    <span>{authorInfo.name}</span>
+                    <span>{truncateName(authorInfo.name)}</span>
                   </a>
                 ) : (
                   <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm text-white whitespace-nowrap">
                     <img src={authorInfo.avatar} className="w-5 h-5 rounded-full" alt={authorInfo.name} referrerPolicy="no-referrer" />
-                    <span>{authorInfo.name}</span>
+                    <span>{truncateName(authorInfo.name)}</span>
                   </div>
                 )
               )}

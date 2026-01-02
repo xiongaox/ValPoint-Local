@@ -16,8 +16,8 @@ export async function onRequest(context) {
         ...manifestConfig,
         description: `${manifestConfig.description} (Cloudflare)`,
         api: {
-            supabaseUrl: env.VITE_SUPABASE_SHARE_URL || env.VITE_SUPABASE_URL || env.SUPABASE_URL,
-            supabaseAnonKey: env.VITE_SUPABASE_SHARE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY
+            supabaseUrl: env.VITE_SUPABASE_URL || env.SUPABASE_URL,
+            supabaseAnonKey: env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY
         }
     };
 

@@ -1,9 +1,0 @@
-/* medium-zoom 额外样式：高层级遮罩+动画优化 */
-.medium-zoom-overlay {
-  z-index: 2000 !important;
-  backdrop-filter: blur(2px);
-}
-
-.medium-zoom-image--opened {
-  z-index: 2001 !important;
-}

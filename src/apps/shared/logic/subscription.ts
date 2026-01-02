@@ -30,8 +30,8 @@ const getLocalSubscription = (): Subscription => {
         url: window.location.origin,
         mode: 'embed',
         api: {
-            supabaseUrl: (window as any).__ENV__?.VITE_SUPABASE_SHARE_URL || import.meta.env.VITE_SUPABASE_SHARE_URL,
-            supabaseAnonKey: (window as any).__ENV__?.VITE_SUPABASE_SHARE_ANON_KEY || import.meta.env.VITE_SUPABASE_SHARE_ANON_KEY
+            supabaseUrl: (window as any).__ENV__?.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL,
+            supabaseAnonKey: (window as any).__ENV__?.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
         },
         addedAt: 0
     };
