@@ -139,12 +139,19 @@ ValPoint/
 services:
   valpoint:
     image: xiongaox7806/valpoint-a:latest
+    container_name: valpoint
     restart: always
     ports:
       - "3208:3208"
     environment:
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    networks:
+      - valpoint-net
+
+networks:
+  valpoint-net:
+    driver: bridge
 ```
 
 ```bash
