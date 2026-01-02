@@ -128,28 +128,22 @@ async function main() {
     }
 
     const commits = commitsOutput.split('\n').filter(Boolean);
-    let currentVersion = latestTag;
-    const pendingTags = [];
+    const commitCount = commits.length;
+    const newVersion = incrementPatch(latestTag);
+
+    // 获取最新的 commit 信息
+    const latestCommit = commits[commits.length - 1];
+    const spaceIndex = latestCommit.indexOf(' ');
+    const latestHash = latestCommit.substring(0, spaceIndex);
+    const latestMsg = latestCommit.substring(spaceIndex + 1);
 
     console.log('计划发布的版本:');
     console.log('--------------------------------------');
-    for (const line of commits) {
-        const spaceIndex = line.indexOf(' ');
-        const hash = line.substring(0, spaceIndex);
-        const msg = line.substring(spaceIndex + 1);
-
-        currentVersion = incrementPatch(currentVersion);
-
-        console.log(`${colors.yellow}${currentVersion}${colors.reset} <- ${hash} ${msg}`);
-
-        pendingTags.push({
-            version: currentVersion,
-            hash: hash,
-            message: msg
-        });
+    if (commitCount > 1) {
+        console.log(`${colors.cyan}(跳过 ${commitCount - 1} 个中间 commit)${colors.reset}`);
     }
-    console.log('--------------------------------------');
-    console.log(`共计: ${colors.green}${pendingTags.length}${colors.reset} 个新版本\n`);
+    console.log(`${colors.yellow}${newVersion}${colors.reset} <- HEAD (${latestHash}) ${latestMsg}`);
+    console.log('--------------------------------------\n');
 
     if (isPreview) {
         console.log(`${colors.cyan}预览结束。运行 npm run release 开始正式发版。${colors.reset}`);
@@ -175,19 +169,18 @@ async function main() {
 
     console.log(`\n${colors.cyan}正在创建标签...${colors.reset}`);
 
-    for (const tagInfo of pendingTags) {
+    let tagMessage = latestMsg;
+    if (!buildDocker) {
+        tagMessage += ` [skip docker]`;
+    }
 
-        let tagMessage = `Release ${tagInfo.version}`;
-        if (!buildDocker) {
-            tagMessage += ` [skip docker]`;
-        }
-
-        try {
-            runCommand(`git tag -a "${tagInfo.version}" -m "${tagMessage}" "${tagInfo.hash}"`, true);
-            console.log(`已创建: ${tagInfo.version}`);
-        } catch (e) {
-            console.error(`创建标签 ${tagInfo.version} 失败`);
-        }
+    try {
+        // 直接在 HEAD 上打标签
+        runCommand(`git tag -a "${newVersion}" -m "${tagMessage}"`, true);
+        console.log(`已创建: ${newVersion}`);
+    } catch (e) {
+        console.error(`创建标签 ${newVersion} 失败`);
+        return;
     }
 
     console.log(`\n${colors.cyan}正在推送标签到 GitHub...${colors.reset}`);
