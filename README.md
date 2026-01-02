@@ -6,7 +6,6 @@
   <h1 style="font-size:3rem;font-weight:bold;margin:1.5rem 2rem 1.5rem 2rem;color:#ff4655;">VALPOINT</h1>
 </div>
 
-
 <div align="center" style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:8px;">
   <img src="https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite" alt="Vite" />
   <img src="https://img.shields.io/badge/React-18.x-61DAFB?logo=react" alt="React" />
@@ -16,16 +15,18 @@
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker" alt="Docker" />
 </div>
 
+<div align="center" style="margin-top:16px;">
+  <a href="http://valpoint.cn">🌐 官网</a> &nbsp;|&nbsp;
+  <a href="https://valpoint.vercel.app">🔗 备用1</a> &nbsp;|&nbsp;
+  <a href="https://valpoint.pages.dev">🔗 备用2</a> &nbsp;|&nbsp;
+  <a href="http://valpoint.cn/wiki/">📖 查看文档</a>
+</div>
+
+---
 
 🎯 **ValPoint** 是一个专为 Valorant 玩家打造的点位管理与分享平台。支持多地图标注、技能点位收藏、视频来源追踪、作者信息自动获取等功能，让你的游戏技巧管理更加高效。
 
 ![banner](docs/public/plate/banner.jpg)
-
----
-
-## 🌐 官网地址
-
-👉 [http://valpoint.cn](http://valpoint.cn)
 
 ---
 
@@ -75,7 +76,7 @@
 
 ## 🚀 快速开始
 
-详细教程请查阅 👉 [快速开始](docs/guide/快速开始.md)
+> 📖 完整教程请查阅 [在线文档](http://valpoint.cn/wiki/guide/快速开始)
 
 ```bash
 # 克隆项目
@@ -121,9 +122,7 @@ ValPoint/
 
 ## 🚢 部署方式
 
-### ⚡ 快速部署
-
-选择你要部署的平台，点击下方按钮一键部署
+### ⚡ 一键部署
 
 #### Vercel（推荐）
 
@@ -135,8 +134,6 @@ ValPoint/
 
 #### Docker
 
-创建 `docker-compose.yml` 文件：
-
 ```yaml
 services:
   valpoint:
@@ -145,39 +142,32 @@ services:
     ports:
       - "3208:3208"
     environment:
-      - NODE_ENV=production
-      # Supabase 配置（必填）
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
-    networks:
-      - valpoint-net
-
-networks:
-  valpoint-net:
-    driver: bridge
 ```
-
-启动服务：
 
 ```bash
 docker compose up -d
 ```
 
-详细教程请查阅 👉 [部署指南](docs/guide/部署指南.md)
+> 📖 详细教程请查阅 [部署指南](http://valpoint.cn/wiki/guide/部署指南)
 
 ---
 
 ## 📖 文档导航
 
-| 文档 | 说明 |
-|------|------|
-| [使用流程](docs/guide/使用流程.md) | 了解如何使用 ValPoint |
-| [个人库功能详解](docs/guide/个人库功能详解.md) | 个人库完整功能介绍 |
-| [共享库功能详解](docs/guide/共享库功能详解.md) | 共享库完整功能介绍 |
-| [移动端详解](docs/guide/移动端详解.md) | 移动端使用说明 |
-| [后台详解](docs/guide/后台详解.md) | 管理后台完整功能介绍 |
-| [图床配置](docs/guide/图床配置.md) | 配置个人图床教程 |
-| [数据库建表](docs/guide/数据库建表.md) | Supabase 数据库配置 |
+<div align="center">
+
+| 用户指南 | 开发文档 |
+|:--------:|:--------:|
+| [使用流程](http://valpoint.cn/wiki/guide/使用流程) | [项目概览](http://valpoint.cn/wiki/dev/项目概览) |
+| [个人库详解](http://valpoint.cn/wiki/guide/个人库功能详解) | [技术架构](http://valpoint.cn/wiki/dev/技术架构) |
+| [共享库详解](http://valpoint.cn/wiki/guide/共享库功能详解) | [开发规范](http://valpoint.cn/wiki/dev/开发规范) |
+| [后台详解](http://valpoint.cn/wiki/guide/后台详解) | [作者信息解析](http://valpoint.cn/wiki/dev/作者信息解析) |
+| [图床配置](http://valpoint.cn/wiki/guide/图床配置) | |
+| [数据库建表](http://valpoint.cn/wiki/guide/数据库建表) | |
+
+</div>
 
 ---
 
@@ -187,7 +177,7 @@ docker compose up -d
 - ⬜ 基于 SQLite 的本地 Docker 版本
 - ⬜ 云存储同步（WebDAV / S3）
 
-详情请查阅 👉 [未来计划](docs/guide/未来计划.md)
+> 📖 详情请查阅 [未来计划](http://valpoint.cn/wiki/guide/未来计划)
 
 ---
 

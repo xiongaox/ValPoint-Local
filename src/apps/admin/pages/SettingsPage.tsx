@@ -477,46 +477,6 @@ function SettingsPage({ isSuperAdmin }: SettingsPageProps) {
                                 </div>
                             </div>
                         </div>
-
-                        <div className="pt-4 border-t border-white/10">
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <Icon name="QrCode" size={18} className="text-[#ff4655]" />
-                                二维码配置
-                            </h3>
-                            <p className="text-xs text-gray-500 mb-4">填入二维码图片的 URL 地址</p>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">微信收款码</label>
-                                    <input
-                                        type="url"
-                                        value={authorLinks.donate_wechat_qr}
-                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, donate_wechat_qr: e.target.value }))}
-                                        placeholder="https://example.com/wechat-pay.jpg"
-                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">支付宝收款码</label>
-                                    <input
-                                        type="url"
-                                        value={authorLinks.donate_alipay_qr}
-                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, donate_alipay_qr: e.target.value }))}
-                                        placeholder="https://example.com/alipay.jpg"
-                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-gray-400 mb-2">微信联系二维码</label>
-                                    <input
-                                        type="url"
-                                        value={authorLinks.contact_wechat_qr}
-                                        onChange={(e) => setAuthorLinks(prev => ({ ...prev, contact_wechat_qr: e.target.value }))}
-                                        placeholder="https://example.com/wechat-contact.jpg"
-                                        className="w-full px-4 py-3 rounded-lg bg-[#0f1923] border border-white/10 text-white focus:border-[#ff4655] focus:outline-none"
-                                    />
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 );
 

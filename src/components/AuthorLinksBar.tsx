@@ -15,6 +15,10 @@ import { useEscapeClose } from '../hooks/useEscapeClose';
 
 type QRModalType = 'donate' | 'contact' | null;
 
+const getEnv = (key: string) => {
+    return (window as any).__ENV__?.[key] || import.meta.env[key] || '';
+};
+
 const AuthorLinksBar: React.FC = () => {
     const [links, setLinks] = useState<AuthorLinks>(defaultAuthorLinks);
     const [qrModal, setQrModal] = useState<QRModalType>(null);
@@ -22,7 +26,12 @@ const AuthorLinksBar: React.FC = () => {
 
     // 固定的官方链接（不从数据库读取）
     const FIXED_GITHUB_URL = 'https://github.com/xiongaox/ValPoint';
-    const FIXED_TUTORIAL_URL = '/wiki.html';
+    const FIXED_TUTORIAL_URL = '/wiki/';
+
+    // 从环境变量读取二维码配置
+    const donateWechatQr = getEnv('VITE_DONATE_WECHAT_QR');
+    const donateAlipayQr = getEnv('VITE_DONATE_ALIPAY_QR');
+    const contactWechatQr = getEnv('VITE_CONTACT_WECHAT_QR');
 
     useEffect(() => {
         const loadLinks = async () => {
@@ -67,7 +76,7 @@ const AuthorLinksBar: React.FC = () => {
                     使用教程
                 </a>
 
-                {(links.donate_wechat_qr || links.donate_alipay_qr) && (
+                {(donateWechatQr || donateAlipayQr) && (
                     <button
                         onClick={() => setQrModal('donate')}
                         className={`${buttonClass} bg-amber-500/20 border-amber-500/30 text-amber-400 hover:bg-amber-500/30 hover:border-amber-400/50`}
@@ -77,7 +86,7 @@ const AuthorLinksBar: React.FC = () => {
                     </button>
                 )}
 
-                {links.contact_wechat_qr && (
+                {contactWechatQr && (
                     <button
                         onClick={() => setQrModal('contact')}
                         className={`${buttonClass} bg-emerald-500/20 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30 hover:border-emerald-400/50`}
@@ -116,7 +125,7 @@ const AuthorLinksBar: React.FC = () => {
                         <div className="p-5 bg-[#181b1f]">
                             {qrModal === 'donate' ? (
                                 <>
-                                    {links.donate_wechat_qr && links.donate_alipay_qr && (
+                                    {donateWechatQr && donateAlipayQr && (
                                         <div className="flex items-center bg-[#0f131a] p-1 rounded-lg border border-white/10 mb-4">
                                             <button
                                                 onClick={() => setDonateTab('wechat')}
@@ -142,7 +151,7 @@ const AuthorLinksBar: React.FC = () => {
                                     )}
                                     <div className="flex justify-center">
                                         <img
-                                            src={donateTab === 'wechat' ? links.donate_wechat_qr : links.donate_alipay_qr}
+                                            src={donateTab === 'wechat' ? donateWechatQr : donateAlipayQr}
                                             alt={donateTab === 'wechat' ? '微信收款码' : '支付宝收款码'}
                                             className="max-w-[240px] rounded-lg border border-white/10"
                                         />
@@ -155,7 +164,7 @@ const AuthorLinksBar: React.FC = () => {
                                 <>
                                     <div className="flex justify-center">
                                         <img
-                                            src={links.contact_wechat_qr}
+                                            src={contactWechatQr}
                                             alt="微信二维码"
                                             className="max-w-[240px] rounded-lg border border-white/10"
                                         />
