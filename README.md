@@ -133,6 +133,10 @@ ValPoint/
 
 [![Deploy to Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://dash.cloudflare.com/?to=/:account/pages/new)
 
+#### 阿里云 ESA（国内推荐）
+
+访问 [阿里云 ESA 控制台](https://esa.console.aliyun.com/) → 边缘函数和Pages → 导入 GitHub 仓库
+
 #### Docker
 
 ```yaml
@@ -164,18 +168,9 @@ docker compose up -d
 
 ## 📖 文档导航
 
-<div align="center">
+**用户指南：** [使用流程](http://valpoint.cn/wiki/guide/使用流程) · [个人库详解](http://valpoint.cn/wiki/guide/个人库功能详解) · [共享库详解](http://valpoint.cn/wiki/guide/共享库功能详解) · [后台详解](http://valpoint.cn/wiki/guide/后台详解) · [图床配置](http://valpoint.cn/wiki/guide/图床配置) · [数据库建表](http://valpoint.cn/wiki/guide/数据库建表)
 
-| 用户指南 | 开发文档 |
-|:--------:|:--------:|
-| [使用流程](http://valpoint.cn/wiki/guide/使用流程) | [项目概览](http://valpoint.cn/wiki/dev/项目概览) |
-| [个人库详解](http://valpoint.cn/wiki/guide/个人库功能详解) | [技术架构](http://valpoint.cn/wiki/dev/技术架构) |
-| [共享库详解](http://valpoint.cn/wiki/guide/共享库功能详解) | [开发规范](http://valpoint.cn/wiki/dev/开发规范) |
-| [后台详解](http://valpoint.cn/wiki/guide/后台详解) | [作者信息解析](http://valpoint.cn/wiki/dev/作者信息解析) |
-| [图床配置](http://valpoint.cn/wiki/guide/图床配置) | |
-| [数据库建表](http://valpoint.cn/wiki/guide/数据库建表) | |
-
-</div>
+**开发文档：** [项目概览](http://valpoint.cn/wiki/dev/项目概览) · [技术架构](http://valpoint.cn/wiki/dev/技术架构) · [开发规范](http://valpoint.cn/wiki/dev/开发规范) · [作者信息解析](http://valpoint.cn/wiki/dev/作者信息解析)
 
 ---
 
