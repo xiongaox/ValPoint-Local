@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react';
-import '../../styles/fonts.css';
+
 import '../../index.css';
 import { adminSupabase } from '../../supabaseClient';
 import AdminLayout from './components/AdminLayout';

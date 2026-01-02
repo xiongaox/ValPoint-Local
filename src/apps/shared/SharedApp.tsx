@@ -8,7 +8,6 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import '../../styles/fonts.css';
 import '../../index.css';
 import 'leaflet/dist/leaflet.css';
 import { useEmailAuth } from '../../hooks/useEmailAuth';

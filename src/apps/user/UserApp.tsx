@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import '../../styles/fonts.css';
+
 import '../../index.css';
 import 'leaflet/dist/leaflet.css';
 import MainView from '../../features/lineups/MainView';

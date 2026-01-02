@@ -6,7 +6,10 @@ export default defineConfig({
   lang: 'zh-CN',
   base: '/wiki/',
 
-  head: [['script', { src: 'https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js' }]],
+  head: [
+    ['link', { rel: 'icon', href: '/wiki/logo.svg', type: 'image/svg+xml' }],
+    ['script', { src: 'https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js' }]
+  ],
 
   themeConfig: {
     logo: '/logo.svg',
@@ -45,6 +48,7 @@ export default defineConfig({
             { text: '使用流程', link: '/guide/使用流程' },
             { text: '个人库功能详解', link: '/guide/个人库功能详解' },
             { text: '共享库功能详解', link: '/guide/共享库功能详解' },
+            { text: '瞄点编辑器', link: '/guide/瞄点编辑器' },
             { text: '移动端详解', link: '/guide/移动端详解' },
             { text: '后台详解', link: '/guide/后台详解' }
           ],
