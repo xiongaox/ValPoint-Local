@@ -3,6 +3,9 @@ FROM --platform=$BUILDPLATFORM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install git (required by VitePress for lastUpdated)
+RUN apk add --no-cache git
+
 # Install dependencies
 COPY package.json package-lock.json ./
 RUN npm ci
