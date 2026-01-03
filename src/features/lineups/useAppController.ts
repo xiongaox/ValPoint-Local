@@ -193,7 +193,7 @@ export function useAppController() {
 
   const handleSelectMap = useCallback((map: MapOption | null) => {
     setSelectedMap(map);
-    setSelectedSide('all');
+    setSelectedSide('attack'); // 切换地图时默认选择进攻
     if (map && agents.length > 0) {
       setSelectedAgent(agents[0]);
     } else {

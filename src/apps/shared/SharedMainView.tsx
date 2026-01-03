@@ -211,7 +211,38 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
 
                 {isMobile && (
                     <>
-                        <div className="absolute top-3 left-3 z-10">
+                        {/* 第一行：顶部 Tab 栏 */}
+                        <div className="absolute top-0 left-0 right-0 z-20 h-14 bg-[#1a1a1a]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4">
+                            {/* 左侧：Logo */}
+                            <a href="/" className="flex items-center gap-2">
+                                <img src="/logo.svg" alt="ValPoint" className="w-6 h-6" />
+                                <span className="text-white font-bold">ValPoint</span>
+                            </a>
+                            {/* 右侧：GitHub & Wiki */}
+                            <div className="flex items-center gap-4">
+                                <a
+                                    href="https://github.com/xiongaox/ValPoint"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-400 hover:text-white transition-colors"
+                                    title="GitHub"
+                                >
+                                    <Icon name="Github" size={20} />
+                                </a>
+                                <a
+                                    href="https://valpoint.xaox.cc/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-400 hover:text-white transition-colors"
+                                    title="Wiki 文档"
+                                >
+                                    <Icon name="BookOpen" size={20} />
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* 第二行：个人库/共享库切换 */}
+                        <div className="absolute top-16 left-3 z-10">
                             <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                                 <a
                                     href={personalLibraryUrl || '/'}
@@ -229,7 +260,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             </div>
                         </div>
 
-                        <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+                        <div className="absolute top-16 right-3 z-10 flex items-center gap-2">
                             {user ? (
                                 <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5 items-center gap-2">
                                     <button
@@ -265,7 +296,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                             </button>
                         </div>
 
-                        <div className="absolute bottom-12 left-3 right-3 z-10 flex items-center justify-between gap-2">
+                        <div className="absolute bottom-8 left-3 right-3 z-10 flex items-center justify-between gap-2">
                             <button
                                 onClick={() => setIsMobileMapPickerOpen(true)}
                                 className="flex items-center gap-2 px-3 h-[46px] bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
@@ -314,7 +345,7 @@ function SharedMainView({ user, onSignOut, setAlertMessage, setViewingImage, onR
                         </div>
 
                         {controller.selectedAgent && (
-                            <div className="absolute top-20 right-3.5 z-10 flex flex-col gap-4">
+                            <div className="absolute top-32 right-3.5 z-10 flex flex-col gap-4">
                                 {getAbilityList(controller.selectedAgent).map((ability: any, idx: number) => {
                                     const iconUrl = getAbilityIcon(controller.selectedAgent!, idx);
                                     const isDisabled = disabledAbilities.has(idx);

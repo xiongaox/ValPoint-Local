@@ -7,7 +7,7 @@
  * - 整合数据来源与子组件的交互。
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { User } from '@supabase/supabase-js';
 import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
@@ -132,6 +132,16 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
 
   const [disabledAbilities, setDisabledAbilities] = useState<Set<number>>(new Set());
 
+  // 移动端：根据 disabledAbilities 过滤点位
+  const filteredMapLineups = useMemo(() => {
+    if (!isMobile || disabledAbilities.size === 0) {
+      return map.lineups;
+    }
+    return map.lineups.filter(
+      l => l.abilityIndex === null || l.abilityIndex === undefined || !disabledAbilities.has(l.abilityIndex)
+    );
+  }, [isMobile, disabledAbilities, map.lineups]);
+
   const sharedLibraryUrl = (window as any).__ENV__?.VITE_SHARED_LIBRARY_URL
     || import.meta.env.VITE_SHARED_LIBRARY_URL
     || '/';
@@ -164,7 +174,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           mapCover={map.mapCover}
           disableFitBoundsAnimation={true}
           activeTab={map.activeTab}
-          lineups={map.lineups}
+          lineups={filteredMapLineups}
           selectedLineupId={map.selectedLineupId}
           onLineupSelect={map.onLineupSelect}
           newLineupData={map.newLineupData}
@@ -216,7 +226,38 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
 
         {isMobile && (
           <>
-            <div className="absolute top-3 left-3 z-10">
+            {/* 第一行：顶部 Tab 栏 */}
+            <div className="absolute top-0 left-0 right-0 z-20 h-14 bg-[#1a1a1a]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4">
+              {/* 左侧：Logo */}
+              <a href="/" className="flex items-center gap-2">
+                <img src="/logo.svg" alt="ValPoint" className="w-6 h-6" />
+                <span className="text-white font-bold">ValPoint</span>
+              </a>
+              {/* 右侧：GitHub & Wiki */}
+              <div className="flex items-center gap-4">
+                <a
+                  href="https://github.com/xiongaox/ValPoint"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                  title="GitHub"
+                >
+                  <Icon name="Github" size={20} />
+                </a>
+                <a
+                  href="https://valpoint.xaox.cc/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-white transition-colors"
+                  title="Wiki 文档"
+                >
+                  <Icon name="BookOpen" size={20} />
+                </a>
+              </div>
+            </div>
+
+            {/* 第二行：个人库/共享库 + 用户信息（原有内容下移） */}
+            <div className="absolute top-16 left-3 z-10">
               <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
                 <div className="px-4 h-[32px] flex items-center justify-center rounded-lg text-sm font-medium bg-[#ff4655] text-white">
                   个人库
@@ -230,7 +271,8 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
               </div>
             </div>
 
-            <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+            <div className="absolute top-16 right-3 z-10 flex items-center gap-2">
+              {/* 用户信息 */}
               <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5 items-center gap-2">
                 <button
                   onClick={onOpenProfile}
@@ -247,6 +289,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                   退出
                 </button>
               </div>
+              {/* 点位列表 */}
               <button
                 onClick={() => setIsMobileLineupListOpen(true)}
                 className="w-[46px] h-[46px] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
@@ -256,7 +299,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
               </button>
             </div>
 
-            <div className="absolute bottom-12 left-3 right-3 z-10 flex items-center justify-between gap-2">
+            <div className="absolute bottom-8 left-3 right-3 z-10 flex items-center justify-between gap-2">
               <button
                 onClick={() => setIsMobileMapPickerOpen(true)}
                 className="flex items-center gap-2 px-3 h-[46px] bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
@@ -305,7 +348,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
             </div>
 
             {left.selectedAgent && (
-              <div className="absolute top-20 right-3.5 z-10 flex flex-col gap-4">
+              <div className="absolute top-32 right-3.5 z-10 flex flex-col gap-4">
                 {getAbilityList(left.selectedAgent).map((ability: any, idx: number) => {
                   const iconUrl = getAbilityIcon(left.selectedAgent!, idx);
                   const isDisabled = disabledAbilities.has(idx);
