@@ -114,6 +114,22 @@ const LeafletMap: React.FC<Props> = ({
     };
   }, []);
 
+  // 说明：监听容器尺寸变化，解决生产环境 CSS 延迟加载导致地图不居中的问题
+  useEffect(() => {
+    const map = mapInstance.current;
+    const container = mapRef.current;
+    if (!map || !container) return;
+
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+      const bounds: L.LatLngBoundsExpression = [[0, 0], [1000, 1000]];
+      map.fitBounds(bounds, { animate: false });
+    });
+
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
   useEffect(() => {
     const map = mapInstance.current;
     if (!map) return;
