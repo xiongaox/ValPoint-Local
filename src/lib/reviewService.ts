@@ -99,8 +99,24 @@ export async function approveSubmission(
             source_link: submission.source_link,
             author_name: submission.author_name,
             author_avatar: submission.author_avatar,
-            author_uid: submission.submitter_email || `user_${submission.submitter_id.substring(0, 8)}`,
+            author_uid: submission.author_uid, // 投稿者自定义 ID (如 VALPOINT)
         };
+
+        // 查询投稿者的 custom_id 作为 creator_id
+        let creatorId: string | null = null;
+        try {
+            const { data: profile } = await adminSupabase
+                .from('user_profiles')
+                .select('custom_id')
+                .eq('id', submission.submitter_id)
+                .single();
+            creatorId = profile?.custom_id || null;
+        } catch (e) {
+            console.warn('获取投稿者 custom_id 失败:', e);
+        }
+
+        // @ts-ignore
+        sharedLineup.creator_id = creatorId;
 
         const { error: insertError } = await adminSupabase
             .from(TABLE.shared)

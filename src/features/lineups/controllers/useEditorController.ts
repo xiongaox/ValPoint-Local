@@ -16,6 +16,7 @@ import { createEmptyLineup, toDbPayload, checkTitleExists } from '../lineupHelpe
 type EditorParams = {
   isGuest: boolean;
   userId: string | null;
+  userCustomId: string | null; // 当前用户的 custom_id
   activeTab: ActiveTab;
   selectedMap: { displayName: string; displayIcon?: string | null } | null;
   selectedAgent: AgentOption | null;
@@ -47,6 +48,7 @@ type EditorParams = {
 export function useEditorController({
   isGuest,
   userId,
+  userCustomId,
   activeTab,
   selectedMap,
   selectedAgent,
@@ -196,6 +198,7 @@ export function useEditorController({
       authorAvatar: cleanedWithSource.authorAvatar,
       authorUid: cleanedWithSource.authorUid,
       clonedFrom: null,
+      creatorId: userCustomId || null, // 当前用户的 custom_id
     };
     try {
       if (editingLineupId) {

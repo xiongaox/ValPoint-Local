@@ -106,6 +106,7 @@ type WritableLineup = {
   authorAvatar?: string | null;
   authorUid?: string | null;
   clonedFrom?: string | null;
+  creatorId?: string | null; // 点位创建者的 custom_id
 };
 
 export const toDbPayload = (data: WritableLineup, userId: string): LineupDbPayload => ({
@@ -134,6 +135,7 @@ export const toDbPayload = (data: WritableLineup, userId: string): LineupDbPaylo
   author_uid: data.authorUid || null,
   user_id: userId,
   cloned_from: data.clonedFrom || null,
+  creator_id: data.creatorId || null,
 });
 
 export const getMapDisplayName = (map: MapOption | null, translations: Record<string, string>) =>

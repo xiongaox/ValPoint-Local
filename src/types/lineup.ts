@@ -44,6 +44,7 @@ export type BaseLineup = {
   updatedAt?: string | null;
   clonedFrom?: string | null;
   userId?: string | null;
+  creatorId?: string | null; // 点位创建者的 custom_id
 };
 
 export type SharedLineup = BaseLineup & {
@@ -104,6 +105,7 @@ export type LineupDbPayload = {
   author_uid?: string | null;
   user_id: string;
   cloned_from?: string | null;
+  creator_id?: string | null; // 点位创建者的 custom_id
   created_at?: string | null;
   updated_at?: string | null;
 };

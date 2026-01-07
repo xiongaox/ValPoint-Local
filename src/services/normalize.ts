@@ -42,5 +42,6 @@ export const normalizeLineup = (raw: any, mapNameZhToEn: Record<string, string>)
     updatedAt: pick(raw.updated_at, raw.updatedAt),
     clonedFrom: pick(raw.cloned_from, raw.clonedFrom),
     userId: pick(raw.user_id, raw.userId),
+    creatorId: pick(raw.creator_id, raw.creatorId),
   };
 };

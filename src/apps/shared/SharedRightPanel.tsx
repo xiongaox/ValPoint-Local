@@ -193,22 +193,16 @@ function SharedRightPanel({
                                             >
                                                 {l.side === 'attack' ? '进攻' : '防守'}
                                             </span>
-                                            <div className="ml-auto flex items-center gap-1.5 max-w-[100px]">
-                                                {l.authorAvatar && (
-                                                    <img
-                                                        src={l.authorAvatar.startsWith('http') ? l.authorAvatar : `/agents/${l.authorAvatar}`}
-                                                        alt=""
-                                                        className="w-4 h-4 rounded-full object-cover"
-                                                    />
-                                                )}
-                                                {(l.authorName || l.userId) && (
-                                                    <span className="text-xs text-gray-500 truncate">
-                                                        {l.authorName || l.userId?.slice(0, 8)}
-                                                    </span>
-                                                )}
-                                            </div>
                                         </div>
                                     </div>
+                                    {(l.creatorId || l.authorUid) && (
+                                        <span
+                                            className="absolute top-10 right-4 text-[14px] text-gray-400 truncate max-w-[80px]"
+                                            title={`ID: ${l.creatorId || l.authorUid}`}
+                                        >
+                                            {l.creatorId || l.authorUid}
+                                        </span>
+                                    )}
                                 </div>
                             ))
                         )}

@@ -392,13 +392,16 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
             }
 
             // 4. 如果有配置，执行图片迁移
-            if (localConfig && localConfig.accessKeyId) {
+            // 兼容不同厂商的必填字段: aliyun(accessKeyId), tencent(secretId), qiniu(accessKey)
+            const isValidConfig = localConfig && (localConfig.accessKeyId || localConfig.secretId || localConfig.accessKey);
+
+            if (isValidConfig) {
                 // setAlertMessage('正在迁移图片到您的图床...');
                 try {
                     const startTime = performance.now();
                     console.log(`[ImageMigration] 开始迁移图片: ${lineup.title} (ID: ${lineup.id})`);
 
-                    const migrated = await migrateLineupImages(lineup, localConfig, (current, total) => {
+                    const migrated = await migrateLineupImages(lineup, localConfig!, (current, total) => {
                         // setAlertMessage(`正在迁移图片 (${current}/${total})...`);
                         // 计算进度: 10% -> 90%
                         const percent = 10 + Math.floor((current / total) * 80);
@@ -468,13 +471,19 @@ export function useSharedController({ user, setAlertMessage, setViewingImage, on
             if (multiConfigStr) {
                 const multiConfigs = JSON.parse(multiConfigStr);
                 const lastProvider = localStorage.getItem('valpoint_imagebed_last_provider');
-                if (lastProvider && multiConfigs[lastProvider] && multiConfigs[lastProvider].accessKeyId) {
-                    hasConfig = true;
+                if (lastProvider && multiConfigs[lastProvider]) {
+                    const c = multiConfigs[lastProvider];
+                    if (c.accessKeyId || c.secretId || c.accessKey) {
+                        hasConfig = true;
+                    }
                 }
             }
             if (!hasConfig) {
                 const old = localStorage.getItem('valpoint_imagebed_config');
-                if (old && JSON.parse(old).accessKeyId) hasConfig = true;
+                if (old) {
+                    const c = JSON.parse(old);
+                    if (c.accessKeyId || c.secretId || c.accessKey) hasConfig = true;
+                }
             }
         } catch (e) { }
 

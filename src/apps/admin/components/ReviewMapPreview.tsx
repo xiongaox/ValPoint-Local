@@ -49,22 +49,12 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
         setPosition({ x: 0, y: 0 });
     }, [submission?.id]);
 
-    const handleWheel = useCallback((e: WheelEvent) => {
+    const handleWheel = useCallback((e: React.WheelEvent) => {
         e.preventDefault();
-        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        e.stopPropagation();
+        const delta = e.deltaY > 0 ? -0.15 : 0.15;
         setScale((prev) => Math.min(Math.max(prev + delta, 0.5), 3));
     }, []);
-
-    React.useEffect(() => {
-        const element = containerRef.current;
-        if (!element) return;
-
-        element.addEventListener('wheel', handleWheel, { passive: false });
-
-        return () => {
-            element.removeEventListener('wheel', handleWheel);
-        };
-    }, [handleWheel]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
         if (e.button !== 0) return;
@@ -109,6 +99,7 @@ function ReviewMapPreview({ submission }: ReviewMapProps) {
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
+                onWheel={handleWheel}
             >
                 {mapCoverUrl && (
                     <div

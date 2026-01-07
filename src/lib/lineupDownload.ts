@@ -46,6 +46,7 @@ export type LineupDownloadPayload = {
   author_name?: string | null;
   author_avatar?: string | null;
   author_uid?: string | null;
+  creator_id?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
 };
@@ -126,6 +127,7 @@ const buildPayload = (lineup: BaseLineup, imageFiles: Partial<Record<LineupImage
   author_name: lineup.authorName ?? null,
   author_avatar: lineup.authorAvatar ?? null,
   author_uid: lineup.authorUid ?? null,
+  creator_id: lineup.creatorId ?? null,
   created_at: lineup.createdAt ?? null,
   updated_at: lineup.updatedAt ?? null,
 });

@@ -42,6 +42,7 @@ type LineupJsonPayload = {
     author_name?: string | null;
     author_avatar?: string | null;
     author_uid?: string | null;
+    creator_id?: string | null;
 };
 
 export type ImportProgress = {
@@ -198,6 +199,7 @@ export const importLineupFromZip = async (
             author_name: jsonPayload.author_name ?? null,
             author_avatar: jsonPayload.author_avatar ?? null,
             author_uid: jsonPayload.author_uid ?? null,
+            creator_id: jsonPayload.creator_id ?? null,
             user_id: userId,
             cloned_from: jsonPayload.id, // 说明：使用原始 ID 作为 cloned_from。
             created_at: new Date().toISOString(),

@@ -251,6 +251,7 @@ export function useAppController() {
   const { handleOpenEditor, handleEditorClose, handleEditStart, handleEditorSave } = useEditorController({
     isGuest,
     userId,
+    userCustomId: profile?.custom_id || null,
     activeTab,
     selectedMap,
     selectedAgent,
