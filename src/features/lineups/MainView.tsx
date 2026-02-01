@@ -17,6 +17,7 @@ import MobileAgentPicker from '../../components/MobileAgentPicker';
 import MobileMapPicker from '../../components/MobileMapPicker';
 import MobileLineupList from '../../components/MobileLineupList';
 import { getAbilityList, getAbilityIcon } from '../../utils/abilityIcons';
+import { cn } from '../../utils/classnames';
 
 import LeftPanel from '../../components/LeftPanel';
 import RightPanel from '../../components/RightPanel';
@@ -248,25 +249,25 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                 <span className="text-white text-sm font-medium max-w-[70px] truncate">{left.getMapDisplayName(left.selectedMap?.displayName || '') || '地图'}</span>
               </button>
 
-              <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">
-                <button
-                  onClick={() => left.setSelectedSide('attack')}
-                  className={`px-3 h-[32px] rounded-lg text-sm font-medium whitespace-nowrap transition-all ${left.selectedSide === 'attack'
-                    ? 'bg-[#ff4655] text-white'
-                    : 'text-gray-400'
-                    }`}
-                >
-                  进攻
-                </button>
-                <button
-                  onClick={() => left.setSelectedSide('defense')}
-                  className={`px-4 h-[32px] rounded-lg text-sm font-medium whitespace-nowrap transition-all ${left.selectedSide === 'defense'
-                    ? 'bg-emerald-500 text-white'
-                    : 'text-gray-400'
-                    }`}
-                >
-                  防守
-                </button>
+              <div className="flex bg-[#1a232e] p-1 rounded-xl border border-white/5">
+                {(['attack', 'defense', 'all'] as const).map((side) => (
+                  <button
+                    key={side}
+                    onClick={() => left.setSelectedSide(side)}
+                    className={cn(
+                      'px-3 h-[32px] rounded-lg text-sm font-medium whitespace-nowrap transition-all',
+                      left.selectedSide === side
+                        ? side === 'attack'
+                          ? 'bg-[#ff4655] text-white shadow-[0_0_12px_rgba(255,70,85,0.3)]'
+                          : side === 'defense'
+                            ? 'bg-[#00f2ff] text-white shadow-[0_0_12px_rgba(0,242,255,0.3)]'
+                            : 'bg-white/20 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    )}
+                  >
+                    {side === 'attack' ? '进攻' : side === 'defense' ? '防守' : '全部'}
+                  </button>
+                ))}
               </div>
 
               <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5">

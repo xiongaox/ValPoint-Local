@@ -13,7 +13,6 @@ type Props = {
   isOpen: boolean;
   onToggle: () => void;
   onBatchDownload?: () => void; // 说明：批量下载。
-  onProfile?: () => void; // 说明：个人信息设置。
   canBatchDownload?: boolean; // 说明：允许批量下载。
 };
 
@@ -36,7 +35,6 @@ const QuickActions: React.FC<Props> = ({
   isOpen,
   onToggle,
   onBatchDownload,
-  onProfile,
   canBatchDownload = false,
 }) => {
   return (

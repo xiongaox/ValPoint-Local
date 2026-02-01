@@ -316,7 +316,7 @@ export function useAppController() {
     setPlacingType((prev) => (prev === type ? null : type));
   };
 
-  const mainViewProps = buildMainViewProps({
+  const mainViewProps = useMemo(() => buildMainViewProps({
     activeTab,
     selectedMap,
     setSelectedMap: handleSelectMap, // 说明：用于移动端地图选择。
@@ -374,9 +374,18 @@ export function useAppController() {
     onTogglePinLineup: togglePinnedLineup,
     canBatchDownload: profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.can_batch_download,
     onReset: handleReset,
-  });
+  }), [
+    activeTab, selectedMap, handleSelectMap, maps, modal, selectedSide, setSelectedSide,
+    selectedAgent, handleSelectAgent, agents, agentCounts, selectedAbilityIndex,
+    setSelectedAbilityIndex, getMapDisplayName, getMapUrl, getMapCoverUrl, mapLineups,
+    selectedLineupId, setSelectedLineupId, newLineupData, setNewLineupData, placingType,
+    setPlacingType, orderedLineups, setViewingLineup, isFlipped, isActionMenuOpen,
+    setIsActionMenuOpen, handleTabSwitch, handleOpenEditor, searchQuery, setSearchQuery,
+    filteredLineups, handleDownload, handleRequestDelete, handleClearAll, userId,
+    pinnedLineupIds, togglePinnedLineup, profile, handleReset
+  ]);
 
-  const modalProps = buildModalProps({
+  const modalProps = useMemo(() => buildModalProps({
     isMapModalOpen: modal.isMapModalOpen,
     maps,
     selectedMap,
@@ -438,7 +447,14 @@ export function useAppController() {
     totalMapLineups: allMapLineups.length,
     totalAgentLineups: selectedAgent ? allMapLineups.filter(l => l.agentName === selectedAgent.displayName).length : 0,
     userId,
-  });
+  }), [
+    modal, maps, selectedMap, selectedAgent, selectedAbilityIndex, handleSelectMap,
+    getMapDisplayName, handlePreviewSubmit, performDelete, performClearAll,
+    performClearSelectedAgent, editingLineupId, newLineupData, setNewLineupData,
+    handleEditorSave, handleEditorClose, selectedSide, setSelectedSide, viewingLineup,
+    setViewingLineup, setSelectedLineupId, handleEditStart, getMapEnglishName,
+    saveNewLineup, fetchLineups, lineups, handleBatchDownload, allMapLineups.length, userId
+  ]);
 
   const { alertProps, lightboxProps } = buildUiProps({
     alertMessage: modal.alertMessage,

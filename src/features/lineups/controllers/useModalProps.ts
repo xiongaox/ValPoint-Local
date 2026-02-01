@@ -10,7 +10,6 @@
 import React from 'react';
 import AppModals from '../AppModals';
 import { MapOption, NewLineupForm, SharedLineup, BaseLineup, LibraryMode, LineupDbPayload, AgentOption } from '../../../types/lineup';
-import { ImageBedConfig } from '../../../types/imageBed';
 import { ImageProcessingSettings } from '../../../types/imageProcessing';
 import { LightboxImage } from '../../../types/ui';
 

@@ -7,15 +7,31 @@
  * - 与表单校验或数据提交逻辑联动。
  */
 
-// @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from './Icon';
 import { uploadImageApi, deleteImageApi } from '../services/lineups';
 import { prepareClipboardImage } from '../lib/imageCompression';
 import { fetchAuthorInfo } from '../utils/authorFetcher';
 import { useEscapeClose } from '../hooks/useEscapeClose';
+import { AgentOption, MapOption, NewLineupForm } from '../types/lineup';
 
-const fields = [
+interface EditorModalProps {
+  isEditorOpen: boolean;
+  editingLineupId: string | null;
+  newLineupData: NewLineupForm;
+  setNewLineupData: React.Dispatch<React.SetStateAction<NewLineupForm>> | ((fn: (prev: NewLineupForm) => NewLineupForm) => void);
+  handleEditorSave: () => void;
+  onClose: () => void;
+  selectedSide: 'attack' | 'defense' | 'all';
+  setSelectedSide: (val: 'attack' | 'defense' | 'all') => void;
+  setAlertMessage: (msg: string | null) => void;
+  selectedMap: MapOption | null;
+  selectedAgent: AgentOption | null;
+  selectedAbilityIndex: number | null;
+  getMapDisplayName: (name: string) => string;
+}
+
+const fields: { k: string; l: string; label: string; toggleKey?: keyof NewLineupForm }[] = [
   { k: 'stand', l: '站位图', label: '站位' },
   { k: 'stand2', l: '站位图2', toggleKey: 'enableStand2', label: '站位2' },
   { k: 'aim', l: '瞄点图', label: '瞄点' },
@@ -23,7 +39,7 @@ const fields = [
   { k: 'land', l: '技能落点图', label: '落位' },
 ];
 
-const TYPE_MAP = {
+const TYPE_MAP: Record<string, string> = {
   stand: '站位',
   stand2: '站位2',
   aim: '瞄点',
@@ -31,7 +47,7 @@ const TYPE_MAP = {
   land: '落位',
 };
 
-const EditorModal = ({
+const EditorModal: React.FC<EditorModalProps> = ({
   isEditorOpen,
   editingLineupId,
   newLineupData,
@@ -51,10 +67,10 @@ const EditorModal = ({
   useEscapeClose(isEditorOpen, onClose);
 
 
-  const [uploadingField, setUploadingField] = useState(null);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [isPastingSourceLink, setIsPastingSourceLink] = useState(false);
   const [isFetchingAuthor, setIsFetchingAuthor] = useState(false);
-  const fetchTimeoutRef = useRef(null);
+  const fetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
@@ -95,7 +111,7 @@ const EditorModal = ({
     };
   }, [newLineupData.sourceLink, setNewLineupData]);
 
-  const updateSourceLink = (value) => {
+  const updateSourceLink = (value: string) => {
     setNewLineupData((prev) => ({
       ...prev,
       sourceLink: value,
@@ -105,11 +121,11 @@ const EditorModal = ({
     }));
   };
 
-  const extractSourceLink = (rawText) => {
+  const extractSourceLink = (rawText: string) => {
     if (!rawText) return '';
     const matches = rawText.match(/https?:\/\/[^\s"'<>]+/g) || [];
     const priorities = ['bilibili.com', 'douyin.com', 'tiktok.com'];
-    const prioritized = matches.find((url) => priorities.some((host) => url.includes(host)));
+    const prioritized = matches.find((url: string) => priorities.some((host) => url.includes(host)));
     return prioritized || matches[0] || '';
   };
 
@@ -149,7 +165,7 @@ const EditorModal = ({
     setIsFetchingAuthor(false);
   };
 
-  const handleClipboardUpload = async (fieldKey) => {
+  const handleClipboardUpload = async (fieldKey: string) => {
     if (!navigator.clipboard?.read) {
       setAlertMessage?.('Clipboard API not supported in this browser');
       return;
@@ -172,18 +188,18 @@ const EditorModal = ({
 
       const fileForUpload = await prepareClipboardImage(blob, 'clipboard_' + Date.now());
 
-      const rawMapName = selectedMap?.displayName || newLineupData.mapId || 'unknown';
+      const rawMapName = selectedMap?.displayName || '';
       const mapName = getMapDisplayName ? getMapDisplayName(rawMapName) : rawMapName;
-      const agentName = selectedAgent?.displayName || newLineupData.agentId || 'unknown';
+      const agentName = selectedAgent?.displayName || '';
 
       let abilityName = 'general';
       let abilitySlot = '';
       if (selectedAgent && typeof selectedAbilityIndex === 'number') {
-        const abilities = selectedAgent.abilities || [];
+        const abilities = (selectedAgent as any).abilities || [];
         const ability = abilities[selectedAbilityIndex];
         if (ability) {
           abilityName = ability.displayName || ability.name || 'skill';
-          const slotMap = { 'Ability1': 'Q', 'Ability2': 'E', 'Grenade': 'C', 'Ultimate': 'X' };
+          const slotMap: Record<string, string> = { 'Ability1': 'Q', 'Ability2': 'E', 'Grenade': 'C', 'Ultimate': 'X' };
           abilitySlot = slotMap[ability.slot] || '';
         }
       }
@@ -201,8 +217,8 @@ const EditorModal = ({
 
       console.log('[EditorModal] upload success', { path: result.path });
 
-      setNewLineupData({ ...newLineupData, [fieldKey + 'Img']: result.path });
-    } catch (e) {
+      setNewLineupData((prev) => ({ ...prev, [fieldKey + 'Img']: result.path }));
+    } catch (e: any) {
       console.error('[EditorModal] upload error:', e);
       setAlertMessage?.(`Upload failed: ${e?.message || 'Unknown error'}`);
     } finally {
@@ -210,8 +226,8 @@ const EditorModal = ({
     }
   };
 
-  const handleClearImage = async (fieldKey) => {
-    const existingPath = newLineupData[`${fieldKey}Img`];
+  const handleClearImage = async (fieldKey: string) => {
+    const existingPath = (newLineupData as any)[`${fieldKey}Img`];
     if (existingPath && existingPath.startsWith('/data/images/')) {
       try {
         await deleteImageApi(existingPath);
@@ -221,7 +237,7 @@ const EditorModal = ({
         // 说明：即便后端删除失败（如文件已不存在），我们也继续清除前端状态，保持 UI 响应性。
       }
     }
-    setNewLineupData({ ...newLineupData, [`${fieldKey}Img`]: '' });
+    setNewLineupData((prev) => ({ ...prev, [`${fieldKey}Img`]: '' }));
   };
 
   const handleLocalUpload = async (fieldKey: string, file: File) => {
@@ -234,18 +250,18 @@ const EditorModal = ({
       setUploadingField(fieldKey);
       const fileForUpload = await prepareClipboardImage(file, file.name);
 
-      const rawMapName = selectedMap?.displayName || newLineupData.mapId || 'unknown';
+      const rawMapName = selectedMap?.displayName || '';
       const mapName = getMapDisplayName ? getMapDisplayName(rawMapName) : rawMapName;
-      const agentName = selectedAgent?.displayName || newLineupData.agentId || 'unknown';
+      const agentName = selectedAgent?.displayName || '';
 
       let abilityName = 'general';
       let abilitySlot = '';
       if (selectedAgent && typeof selectedAbilityIndex === 'number') {
-        const abilities = selectedAgent.abilities || [];
+        const abilities = (selectedAgent as any).abilities || [];
         const ability = abilities[selectedAbilityIndex];
         if (ability) {
           abilityName = ability.displayName || ability.name || 'skill';
-          const slotMap = { 'Ability1': 'Q', 'Ability2': 'E', 'Grenade': 'C', 'Ultimate': 'X' };
+          const slotMap: Record<string, string> = { 'Ability1': 'Q', 'Ability2': 'E', 'Grenade': 'C', 'Ultimate': 'X' };
           abilitySlot = slotMap[ability.slot] || '';
         }
       }
@@ -261,8 +277,8 @@ const EditorModal = ({
         abilitySlot
       );
 
-      setNewLineupData({ ...newLineupData, [fieldKey + 'Img']: result.path });
-    } catch (e) {
+      setNewLineupData((prev) => ({ ...prev, [fieldKey + 'Img']: result.path }));
+    } catch (e: any) {
       console.error('[EditorModal] local upload error:', e);
       setAlertMessage?.(`上传失败: ${e?.message || '未知错误'}`);
     } finally {
@@ -270,18 +286,18 @@ const EditorModal = ({
     }
   };
 
-  const toggleField = (field) => {
+  const toggleField = (field: typeof fields[0]) => {
     if (!field.toggleKey) return;
-    const enabled = newLineupData[field.toggleKey];
+    const enabled = (newLineupData as any)[field.toggleKey];
     if (enabled) {
-      setNewLineupData({
-        ...newLineupData,
-        [field.toggleKey]: false,
+      setNewLineupData((prev) => ({
+        ...prev,
+        [field.toggleKey!]: false,
         [`${field.k}Img`]: '',
         [`${field.k}Desc`]: '',
-      });
+      }));
     } else {
-      setNewLineupData({ ...newLineupData, [field.toggleKey]: true });
+      setNewLineupData((prev) => ({ ...prev, [field.toggleKey!]: true }));
     }
   };
 
@@ -310,7 +326,7 @@ const EditorModal = ({
                 className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-3 text-white focus:border-[#ff4655] outline-none transition-colors"
                 placeholder="例如：B区窗户进攻瞬爆烟"
                 value={newLineupData.title}
-                onChange={(e) => setNewLineupData({ ...newLineupData, title: e.target.value })}
+                onChange={(e) => setNewLineupData((prev) => ({ ...prev, title: e.target.value }))}
                 autoFocus
               />
             </div>
@@ -438,8 +454,8 @@ const EditorModal = ({
 
           <div className="grid grid-cols-1 gap-4">
             {fields.map((field) => {
-              const enabled = field.toggleKey ? newLineupData[field.toggleKey] : true;
-              const hasData = newLineupData[`${field.k}Img`] || newLineupData[`${field.k}Desc`];
+              const enabled = field.toggleKey ? (newLineupData as any)[field.toggleKey] : true;
+              const hasData = (newLineupData as any)[`${field.k}Img`] || (newLineupData as any)[`${field.k}Desc`];
               const shouldShow = enabled || hasData || !field.toggleKey;
               if (!shouldShow) {
                 return (
@@ -509,14 +525,14 @@ const EditorModal = ({
                     <textarea
                       className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-2 text-sm text-white placeholder-gray-500 h-16 resize-none overflow-y-auto focus:border-[#ff4655] outline-none"
                       placeholder="描述（可选）"
-                      value={newLineupData[`${field.k}Desc`]}
-                      onChange={(e) => setNewLineupData({ ...newLineupData, [`${field.k}Desc`]: e.target.value })}
+                      value={(newLineupData as any)[`${field.k}Desc`] || ''}
+                      onChange={(e) => setNewLineupData((prev) => ({ ...prev, [`${field.k}Desc`]: e.target.value }))}
                     />
 
-                    {newLineupData[`${field.k}Img`] ? (
+                    {(newLineupData as any)[`${field.k}Img`] ? (
                       <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#0f1923] h-40">
                         <img
-                          src={newLineupData[`${field.k}Img`]}
+                          src={(newLineupData as any)[`${field.k}Img`]}
                           alt={`${field.l} 预览`}
                           className="w-full h-full object-cover"
                           onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}

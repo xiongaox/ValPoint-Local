@@ -10,7 +10,13 @@
 import { zipSync, strToU8 } from 'fflate';
 import { MAP_TRANSLATIONS } from '../constants/maps';
 import { BaseLineup, LineupPosition } from '../types/lineup';
-import { downloadImageBlob } from './imageBed/utils';
+const downloadImageBlob = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+  const blob = await response.blob();
+  const extension = url.split('.').pop()?.split('?')[0] || 'webp';
+  return { blob, extension };
+};
 
 type LineupImageField = 'stand_img' | 'stand2_img' | 'aim_img' | 'aim2_img' | 'land_img';
 
