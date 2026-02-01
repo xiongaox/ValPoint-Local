@@ -147,6 +147,50 @@ router.post('/', upload.single('file'), async (req, res) => {
 });
 
 /**
+ * DELETE /api/upload - 删除图片文件
+ */
+router.delete('/', async (req, res) => {
+    try {
+        const { path: relativePath } = req.query;
+
+        if (!relativePath) {
+            return res.status(400).json({ error: '缺少文件路径' });
+        }
+
+        // 安全检查：确保路径在 /data/images/ 内部，防止目录遍历
+        if (!relativePath.startsWith('/data/images/')) {
+            return res.status(403).json({ error: '无效的文件路径' });
+        }
+
+        // 构造物理路径
+        // relativePath: /data/images/Map/Agent/Title/file.webp
+        const parts = relativePath.split('/').filter(Boolean);
+        // parts: ["data", "images", "Map", "Agent", "Title", "file.webp"]
+
+        // 移除 "data" 和 "images" 前缀，拼接 IMAGES_DIR
+        const subPath = path.join(...parts.slice(2));
+        const fullPath = path.join(IMAGES_DIR, subPath);
+
+        // 规范化并再次检查
+        const normalizedFullPath = path.normalize(fullPath);
+        if (!normalizedFullPath.startsWith(path.normalize(IMAGES_DIR))) {
+            return res.status(403).json({ error: '访问被拒绝' });
+        }
+
+        if (fs.existsSync(normalizedFullPath)) {
+            fs.unlinkSync(normalizedFullPath);
+            console.log(`[Upload] Deleted file: ${normalizedFullPath}`);
+            res.json({ success: true, message: '文件已删除' });
+        } else {
+            res.status(404).json({ error: '文件不存在' });
+        }
+    } catch (error) {
+        console.error('删除文件失败:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * POST /api/upload/base64 - Base64 图片上传
  */
 router.post('/base64', async (req, res) => {

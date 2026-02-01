@@ -8,10 +8,9 @@
  */
 
 import React from 'react';
-import { User } from '@supabase/supabase-js';
 import MainView from '../MainView';
 import { ActiveTab } from '../../../types/app';
-import { AgentOption, BaseLineup, LibraryMode, MapOption, NewLineupForm, SharedLineup } from '../../../types/lineup';
+import { AgentOption, BaseLineup, MapOption, NewLineupForm } from '../../../types/lineup';
 
 type Params = {
   activeTab: ActiveTab;
@@ -44,15 +43,6 @@ type Params = {
   isFlipped: boolean;
   isActionMenuOpen: boolean;
   onToggleActions: () => void;
-  onImageBedConfig: () => void;
-  onAdvancedSettings: () => void;
-  onPngSettings: () => void;
-  onChangePassword: () => void;
-  onClearLineups: () => void;
-  onSyncToShared?: () => void;
-  onPendingSubmissions?: () => void;
-  isAdmin?: boolean;
-  pendingTransfers: number;
   handleTabSwitch: (tab: ActiveTab) => void;
   togglePlacingType: (type: 'agent' | 'skill') => void;
   handleOpenEditor: () => void;
@@ -69,17 +59,11 @@ type Params = {
   userId: string | null;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
-  pinnedLimit: number;
   hideSharedButton?: boolean;
   hideAuthorLinks?: boolean;
   onBatchDownload: () => void;
-  onSubmitLineup?: (lineupId: string) => void;
-  user: User | null;
-  onSignOut: () => void;
-  onOpenProfile: () => void;
   canBatchDownload?: boolean;
   onReset?: () => void;
-  userAvatarUrl?: string | null;
 };
 
 export function buildMainViewProps(params: Params): React.ComponentProps<typeof MainView> {
@@ -129,17 +113,7 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
     quickActions: {
       isOpen: params.isActionMenuOpen,
       onToggle: params.onToggleActions,
-      onImageBedConfig: params.onImageBedConfig,
-      onAdvancedSettings: params.onAdvancedSettings,
-      onPngSettings: params.onPngSettings,
-      onChangePassword: params.onChangePassword,
-      onClearLineups: params.onClearLineups,
-      onSyncToShared: params.onSyncToShared,
-      onPendingSubmissions: params.onPendingSubmissions,
       onBatchDownload: params.onBatchDownload,
-      onProfile: params.onOpenProfile,
-      isAdmin: params.isAdmin,
-      pendingTransfers: params.pendingTransfers,
       canBatchDownload: params.canBatchDownload,
     },
     right: {
@@ -164,15 +138,8 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       userId: params.userId,
       pinnedLineupIds: params.pinnedLineupIds,
       onTogglePinLineup: params.onTogglePinLineup,
-      pinnedLimit: params.pinnedLimit,
-      onSubmitLineup: params.onSubmitLineup,
-      isAdmin: params.isAdmin,
     },
     hideSharedButton: params.hideSharedButton,
     hideAuthorLinks: params.hideAuthorLinks,
-    user: params.user,
-    onSignOut: params.onSignOut,
-    onOpenProfile: params.onOpenProfile,
-    userAvatarUrl: params.userAvatarUrl,
   };
 }

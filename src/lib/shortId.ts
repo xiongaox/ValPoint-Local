@@ -1,6 +1,6 @@
 /**
- * shortId - 占位模块（本地版本）
- * 简单的短ID生成
+ * shortId - 短ID生成工具
+ * 提供简单的随机短ID生成逻辑
  */
 
 export function generateShortId(): string {

@@ -26,8 +26,6 @@ const ViewerModal = ({
   isSavingShared = false,
   handleSaveToPersonal = undefined,
   isSavingToPersonal = false,
-  onSubmitLineup, // 说明：投稿回调。
-  isAdmin = true, // 说明：是否管理员，默认 true 不显示投稿按钮。
 }: any) => {
   const [authorInfo, setAuthorInfo] = useState<{ username: string; avatar: string; uid?: string } | null>(null);
   const [isLoadingAuthor, setIsLoadingAuthor] = useState(false);
@@ -176,16 +174,6 @@ const ViewerModal = ({
                   title="编辑"
                 >
                   <Icon name="Pencil" size={14} /> 编辑
-                </button>
-              )}
-              {!handleCopyShared && !isGuest && !isAdmin && onSubmitLineup && (
-                <button
-                  type="button"
-                  onClick={() => onSubmitLineup(viewingLineup.id)}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-purple-500/50 bg-purple-500/10 text-sm text-purple-300 hover:border-purple-400 hover:text-purple-200 transition-colors whitespace-nowrap"
-                  title="投稿此点位"
-                >
-                  <Icon name="Send" size={14} /> 投稿
                 </button>
               )}
               {handleCopyShared && !isMobile && (

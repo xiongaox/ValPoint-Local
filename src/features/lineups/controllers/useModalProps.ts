@@ -15,18 +15,6 @@ import { ImageProcessingSettings } from '../../../types/imageProcessing';
 import { LightboxImage } from '../../../types/ui';
 
 type Params = {
-  isAuthModalOpen: boolean;
-  userId: string | null;
-  targetUserId: string;
-  passwordInput: string;
-  isAuthLoading: boolean;
-  setIsAuthModalOpen: (v: boolean) => void;
-  setPendingUserId: (v: string) => void;
-  setPasswordInput: (v: string) => void;
-  setCustomUserIdInput: (v: string) => void;
-  handleResetUserId: () => void;
-  handleConfirmUserAuth: (pwd?: string) => void;
-  handleApplyCustomUserId: () => void;
   isMapModalOpen: boolean;
   maps: MapOption[];
   selectedMap: MapOption | null;
@@ -59,20 +47,7 @@ type Params = {
   setIsClearConfirmOpen: (v: boolean) => void;
   selectedAgentName: string | null;
   selectedAgentIcon: string | null;
-  isChangePasswordOpen: boolean;
-  setIsChangePasswordOpen: (v: boolean) => void;
-  isChangingPassword: boolean;
-  onChangePasswordSubmit: (oldPassword: string, newPassword: string, confirmPassword: string) => void;
-  isImageConfigOpen: boolean;
-  imageBedConfig: ImageBedConfig;
-  onImageConfigSave: (cfg: ImageBedConfig) => void;
-  setIsImageConfigOpen: (v: boolean) => void;
-  isAdvancedSettingsOpen: boolean;
-  imageProcessingSettings: ImageProcessingSettings;
-  onImageProcessingSave: (cfg: ImageProcessingSettings) => void;
-  setIsAdvancedSettingsOpen: (v: boolean) => void;
-  isPngSettingsOpen: boolean;
-  setIsPngSettingsOpen: (v: boolean) => void;
+  userId: string | null;
   isEditorOpen: boolean;
   editingLineupId: string | null;
   newLineupData: NewLineupForm;
@@ -105,25 +80,6 @@ type Params = {
 
 export function buildModalProps(params: Params): React.ComponentProps<typeof AppModals> {
   return {
-    isAuthModalOpen: params.isAuthModalOpen,
-    userId: params.userId,
-    targetUserId: params.targetUserId,
-    passwordInput: params.passwordInput,
-    isAuthLoading: params.isAuthLoading,
-    onAuthClose: () => {
-      if (!params.userId) return;
-      params.setIsAuthModalOpen(false);
-      params.setPendingUserId('');
-      params.setPasswordInput('');
-    },
-    onTargetUserChange: (val: string) => {
-      params.setPendingUserId(val);
-      params.setCustomUserIdInput(val);
-    },
-    onResetUserId: params.handleResetUserId,
-    onPasswordChange: (val: string) => params.setPasswordInput(val),
-    onGuestConfirm: () => params.handleConfirmUserAuth(''),
-    onLoginConfirm: () => params.handleConfirmUserAuth(),
     isMapModalOpen: params.isMapModalOpen,
     maps: params.maps,
     selectedMap: params.selectedMap,
@@ -161,21 +117,6 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     onClearModalClose: () => {
       params.setIsClearConfirmOpen(false);
     },
-
-    isChangePasswordOpen: params.isChangePasswordOpen,
-    isChangingPassword: params.isChangingPassword,
-    onChangePasswordSubmit: params.onChangePasswordSubmit,
-    setIsChangePasswordOpen: params.setIsChangePasswordOpen,
-    isImageConfigOpen: params.isImageConfigOpen,
-    imageBedConfig: params.imageBedConfig,
-    onImageConfigClose: () => params.setIsImageConfigOpen(false),
-    onImageConfigSave: params.onImageConfigSave,
-    isAdvancedSettingsOpen: params.isAdvancedSettingsOpen,
-    imageProcessingSettings: params.imageProcessingSettings,
-    onAdvancedSettingsClose: () => params.setIsAdvancedSettingsOpen(false),
-    isPngSettingsOpen: params.isPngSettingsOpen,
-    onPngSettingsClose: () => params.setIsPngSettingsOpen(false),
-    onImageProcessingSave: params.onImageProcessingSave,
     isEditorOpen: params.isEditorOpen,
     editingLineupId: params.editingLineupId,
     newLineupData: params.newLineupData,
@@ -207,5 +148,6 @@ export function buildModalProps(params: Params): React.ComponentProps<typeof App
     handleBatchDownload: params.handleBatchDownload,
     totalAgentLineups: params.totalAgentLineups,
     totalMapLineups: params.totalMapLineups,
+    userId: params.userId,
   };
 }

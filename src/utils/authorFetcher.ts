@@ -1,6 +1,6 @@
 /**
- * authorFetcher - 占位模块（本地版本）
- * 获取视频作者信息（调用本地 API）
+ * authorFetcher - 作者信息抓取工具
+ * 通过调用后端代理 API 获取视频作者的详细信息（如 B站、抖音等）
  */
 
 export interface AuthorInfo {

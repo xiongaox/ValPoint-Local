@@ -8,13 +8,9 @@
  */
 
 import React, { useState, useMemo } from 'react';
-import { User } from '@supabase/supabase-js';
 import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
-import LibrarySwitchButton from '../../components/LibrarySwitchButton';
-import CompactUserCard from '../../components/CompactUserCard';
 import UserAvatar from '../../components/UserAvatar';
-import AuthorLinksBar from '../../components/AuthorLinksBar';
 import Icon from '../../components/Icon';
 import { useIsMobile } from '../../hooks/useIsMobile';
 import MobileAgentPicker from '../../components/MobileAgentPicker';
@@ -24,7 +20,7 @@ import { getAbilityList, getAbilityIcon } from '../../utils/abilityIcons';
 
 import LeftPanel from '../../components/LeftPanel';
 import RightPanel from '../../components/RightPanel';
-import { BaseLineup, SharedLineup, AgentOption, MapOption, NewLineupForm, LibraryMode } from '../../types/lineup';
+import { BaseLineup, AgentOption, MapOption, NewLineupForm } from '../../types/lineup';
 import { ActiveTab } from '../../types/app';
 
 type LeftProps = {
@@ -67,17 +63,8 @@ type MapProps = {
 type QuickActionsProps = {
   isOpen: boolean;
   onToggle: () => void;
-  onImageBedConfig: () => void;
-  onAdvancedSettings: () => void;
-  onPngSettings?: () => void;
-  onChangePassword: () => void;
-  onClearLineups: () => void;
-  onSyncToShared?: () => void;
-  onPendingSubmissions?: () => void;
   onBatchDownload?: () => void;
   onProfile?: () => void;
-  isAdmin?: boolean;
-  pendingTransfers: number;
   canBatchDownload?: boolean;
 };
 
@@ -103,9 +90,6 @@ type RightProps = {
   userId: string | null;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
-  pinnedLimit: number;
-  onSubmitLineup?: (lineupId: string) => void;
-  isAdmin?: boolean;
 };
 
 type Props = {
@@ -117,13 +101,9 @@ type Props = {
   right: RightProps;
   hideSharedButton?: boolean;
   hideAuthorLinks?: boolean;
-  user: User | null;
-  onSignOut: () => void;
-  onOpenProfile: () => void;
-  userAvatarUrl?: string | null;
 };
 
-const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton, hideAuthorLinks, user, onSignOut, onOpenProfile, userAvatarUrl }) => {
+const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton, hideAuthorLinks }) => {
   const isMobile = useIsMobile();
   const [isMobileAgentPickerOpen, setIsMobileAgentPickerOpen] = useState(false);
   const [isMobileMapPickerOpen, setIsMobileMapPickerOpen] = useState(false);
@@ -187,42 +167,12 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           isFlipped={map.isFlipped}
         />
 
-        {!isMobile && (
-          <QuickActions
-            isOpen={quickActions.isOpen}
-            onToggle={quickActions.onToggle}
-            onImageBedConfig={quickActions.onImageBedConfig}
-            onAdvancedSettings={quickActions.onAdvancedSettings}
-            onPngSettings={quickActions.onPngSettings}
-            onChangePassword={quickActions.onChangePassword}
-            onClearLineups={quickActions.onClearLineups}
-            onSyncToShared={quickActions.onSyncToShared}
-            onPendingSubmissions={quickActions.onPendingSubmissions}
-            onBatchDownload={quickActions.onBatchDownload}
-            onProfile={quickActions.onProfile}
-            isAdmin={quickActions.isAdmin}
-            pendingTransfers={quickActions.pendingTransfers}
-            canBatchDownload={quickActions.canBatchDownload}
-          />
-        )}
-
-        {!isMobile && (
-          <>
-            <div className="absolute top-3 left-3 z-10 flex items-center gap-3">
-              <LibrarySwitchButton currentLibrary="personal" hideSharedButton={hideSharedButton} />
-              <CompactUserCard
-                user={user}
-                onSignOut={onSignOut}
-                onRequestLogin={onOpenProfile}
-              />
-            </div>
-            {!hideAuthorLinks && (
-              <div className="absolute top-3 right-3 z-10">
-                <AuthorLinksBar />
-              </div>
-            )}
-          </>
-        )}
+        <QuickActions
+          isOpen={quickActions.isOpen}
+          onToggle={quickActions.onToggle}
+          onBatchDownload={quickActions.onBatchDownload}
+          canBatchDownload={quickActions.canBatchDownload}
+        />
 
         {isMobile && (
           <>
@@ -272,23 +222,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
             </div>
 
             <div className="absolute top-16 right-3 z-10 flex items-center gap-2">
-              {/* 用户信息 */}
-              <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-1.5 items-center gap-2">
-                <button
-                  onClick={onOpenProfile}
-                  className="w-[32px] h-[32px] flex items-center justify-center rounded-lg overflow-hidden hover:bg-white/10 transition-colors"
-                  title="个人中心"
-                >
-                  <UserAvatar email={user?.email || ''} size={32} bordered={false} avatarUrl={userAvatarUrl} />
-                </button>
-                <button
-                  onClick={onSignOut}
-                  className="px-5 h-[32px] bg-[#ff4655] rounded-lg text-white text-sm font-medium hover:bg-[#ff5b6b] transition-colors"
-                  title="退出登录"
-                >
-                  退出
-                </button>
-              </div>
               {/* 点位列表 */}
               <button
                 onClick={() => setIsMobileLineupListOpen(true)}
@@ -421,9 +354,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           userId={right.userId}
           pinnedLineupIds={right.pinnedLineupIds}
           onTogglePinLineup={right.onTogglePinLineup}
-          pinnedLimit={right.pinnedLimit}
-          onSubmitLineup={right.onSubmitLineup}
-          isAdmin={right.isAdmin}
         />
       )}
 

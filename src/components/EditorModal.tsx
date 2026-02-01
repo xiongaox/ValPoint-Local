@@ -10,7 +10,7 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from './Icon';
-import { uploadImageApi } from '../services/lineups';
+import { uploadImageApi, deleteImageApi } from '../services/lineups';
 import { prepareClipboardImage } from '../lib/imageCompression';
 import { fetchAuthorInfo } from '../utils/authorFetcher';
 import { useEscapeClose } from '../hooks/useEscapeClose';
@@ -40,10 +40,8 @@ const EditorModal = ({
   onClose,
   selectedSide,
   setSelectedSide,
-  imageBedConfig,
   setAlertMessage,
 
-  imageProcessingSettings,
   selectedMap,
   selectedAgent,
   selectedAbilityIndex,
@@ -52,7 +50,7 @@ const EditorModal = ({
   if (!isEditorOpen) return null;
   useEscapeClose(isEditorOpen, onClose);
 
-  const [showLinkInput, setShowLinkInput] = useState(false);
+
   const [uploadingField, setUploadingField] = useState(null);
   const [isPastingSourceLink, setIsPastingSourceLink] = useState(false);
   const [isFetchingAuthor, setIsFetchingAuthor] = useState(false);
@@ -172,7 +170,7 @@ const EditorModal = ({
       const imgType = imgItem.types.find((t) => t.startsWith('image/')) || 'image/png';
       const blob = await imgItem.getType(imgType);
 
-      const fileForUpload = await prepareClipboardImage(blob, 'clipboard_' + Date.now(), imageProcessingSettings);
+      const fileForUpload = await prepareClipboardImage(blob, 'clipboard_' + Date.now());
 
       const rawMapName = selectedMap?.displayName || newLineupData.mapId || 'unknown';
       const mapName = getMapDisplayName ? getMapDisplayName(rawMapName) : rawMapName;
@@ -212,7 +210,17 @@ const EditorModal = ({
     }
   };
 
-  const handleClearImage = (fieldKey) => {
+  const handleClearImage = async (fieldKey) => {
+    const existingPath = newLineupData[`${fieldKey}Img`];
+    if (existingPath && existingPath.startsWith('/data/images/')) {
+      try {
+        await deleteImageApi(existingPath);
+        console.log(`[EditorModal] Physically deleted image from backend: ${existingPath}`);
+      } catch (e) {
+        console.error('[EditorModal] Failed to delete image from backend:', e);
+        // 说明：即便后端删除失败（如文件已不存在），我们也继续清除前端状态，保持 UI 响应性。
+      }
+    }
     setNewLineupData({ ...newLineupData, [`${fieldKey}Img`]: '' });
   };
 
@@ -224,7 +232,7 @@ const EditorModal = ({
 
     try {
       setUploadingField(fieldKey);
-      const fileForUpload = await prepareClipboardImage(file, file.name, imageProcessingSettings);
+      const fileForUpload = await prepareClipboardImage(file, file.name);
 
       const rawMapName = selectedMap?.displayName || newLineupData.mapId || 'unknown';
       const mapName = getMapDisplayName ? getMapDisplayName(rawMapName) : rawMapName;
@@ -426,14 +434,6 @@ const EditorModal = ({
 
           <div className="flex items-center justify-between text-xs text-gray-400 uppercase font-bold">
             <span>截图与描述</span>
-            <button
-              type="button"
-              onClick={() => setShowLinkInput((v) => !v)}
-              className="px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-[11px] text-white hover:border-[#ff4655] hover:bg-[#ff4655]/10 transition-colors flex items-center gap-1"
-            >
-              <Icon name="Link" size={12} />
-              {showLinkInput ? '关闭链接输入' : '启用链接输入'}
-            </button>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
@@ -477,58 +477,34 @@ const EditorModal = ({
                     )}
                   </div>
                   <div className="flex flex-col gap-3">
-                    {!showLinkInput && (
-                      <>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          ref={(el) => { fileInputRefs.current[field.k] = el; }}
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleLocalUpload(field.k, file);
-                            e.target.value = ''; // 说明：重置输入以便重复选择同一文件。
-                          }}
-                          className="hidden"
-                        />
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleClipboardUpload(field.k)}
-                            disabled={uploadingField === field.k}
-                            className="h-10 flex-1 px-2 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            <Icon name="ClipboardCheck" size={14} />
-                            {uploadingField === field.k ? '上传中' : '剪贴板'}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => fileInputRefs.current[field.k]?.click()}
-                            disabled={uploadingField === field.k}
-                            className="h-10 flex-1 px-2 py-2 rounded-lg text-xs font-semibold border border-[#2a323d] bg-[#0f1923] text-gray-200 hover:border-[#ff4655]/60 hover:text-white transition-colors flex items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            <Icon name="FolderOpen" size={14} />
-                            本地
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleClearImage(field.k)}
-                            className="h-10 flex-1 px-2 py-2 rounded-lg border border-[#2a323d] bg-[#0f1923] text-xs text-gray-200 hover:border-red-500/60 hover:text-red-200 transition-colors flex items-center justify-center gap-1"
-                          >
-                            <Icon name="Eraser" size={14} />
-                            清除
-                          </button>
-                        </div>
-                      </>
-                    )}
-
-                    {showLinkInput && (
-                      <input
-                        className="w-full h-10 bg-[#0f1923] border border-[#2a323d] rounded-lg px-3 text-sm text-white placeholder-gray-500 leading-5 focus:border-[#ff4655] outline-none"
-                        placeholder="图片链接（可选）"
-                        value={newLineupData[`${field.k}Img`]}
-                        onChange={(e) => setNewLineupData({ ...newLineupData, [`${field.k}Img`]: e.target.value })}
-                      />
-                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleClipboardUpload(field.k)}
+                        disabled={uploadingField === field.k}
+                        className="h-10 flex-1 px-2 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-[#ff5b6b] to-[#ff3c4d] hover:from-[#ff6c7b] hover:to-[#ff4c5e] shadow-md shadow-red-900/30 transition-all flex items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <Icon name="ClipboardCheck" size={14} />
+                        {uploadingField === field.k ? '上传中' : '剪贴板'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRefs.current[field.k]?.click()}
+                        disabled={uploadingField === field.k}
+                        className="h-10 flex-1 px-2 py-2 rounded-lg text-xs font-semibold border border-[#2a323d] bg-[#0f1923] text-gray-200 hover:border-[#ff4655]/60 hover:text-white transition-colors flex items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        <Icon name="FolderOpen" size={14} />
+                        本地
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleClearImage(field.k)}
+                        className="h-10 flex-1 px-2 py-2 rounded-lg border border-[#2a323d] bg-[#0f1923] text-xs text-gray-200 hover:border-red-500/60 hover:text-red-200 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Icon name="Eraser" size={14} />
+                        清除
+                      </button>
+                    </div>
 
                     <textarea
                       className="w-full bg-[#0f1923] border border-[#2a323d] rounded-lg p-2 text-sm text-white placeholder-gray-500 h-16 resize-none overflow-y-auto focus:border-[#ff4655] outline-none"

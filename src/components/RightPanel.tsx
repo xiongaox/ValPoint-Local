@@ -1,5 +1,5 @@
 /**
- * RightPanel - 右侧面板
+ * RightPanel - 右侧面板 (Docker 本地版)
  *
  * 职责：
  * - 承载右侧面板相关信息与操作入口。
@@ -7,7 +7,6 @@
  * - 向父级汇报用户操作或选择。
  */
 
-// @ts-nocheck
 import React, { useEffect, useMemo, useState } from 'react';
 import Icon from './Icon';
 
@@ -33,9 +32,6 @@ type Props = {
   userId: string | null;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
-  pinnedLimit: number;
-  onSubmitLineup?: (lineupId: string) => void; // 说明：投稿单个点位。
-  isAdmin?: boolean; // 说明：管理员标记。
 };
 
 const RightPanel: React.FC<Props> = ({
@@ -60,9 +56,6 @@ const RightPanel: React.FC<Props> = ({
   userId,
   pinnedLineupIds,
   onTogglePinLineup,
-  pinnedLimit,
-  onSubmitLineup,
-  isAdmin = true,
 }) => {
   const pageSize = 7;
   const [page, setPage] = useState(1);
@@ -292,18 +285,6 @@ const RightPanel: React.FC<Props> = ({
                             >
                               <Icon name="Pin" size={14} />
                             </button>
-                            {!isAdmin && onSubmitLineup && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onSubmitLineup(l.id);
-                                }}
-                                className="text-gray-600 hover:text-purple-400 p-1 rounded hover:bg-white/5 transition-colors"
-                                title="投稿此点位"
-                              >
-                                <Icon name="Send" size={14} />
-                              </button>
-                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -316,7 +297,10 @@ const RightPanel: React.FC<Props> = ({
                             </button>
                             {userId && (
                               <button
-                                onClick={(e) => handleRequestDelete(l.id, e)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRequestDelete(l.id, e);
+                                }}
                                 className="text-gray-600 hover:text-red-500 p-1 rounded hover:bg-white/5 transition-colors"
                                 title="删除"
                               >

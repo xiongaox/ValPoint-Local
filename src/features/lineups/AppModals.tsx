@@ -1,12 +1,3 @@
-/**
- * AppModals - 点位应用Modals
- *
- * 职责：
- * - 渲染点位应用Modals相关的界面结构与样式。
- * - 处理用户交互与状态变更并触发回调。
- * - 组合子组件并提供可配置项。
- */
-
 import React from 'react';
 import MapPickerModal from '../../components/MapPickerModal';
 import PreviewModal from '../../components/PreviewModal';
@@ -14,34 +5,16 @@ import AlertModal from '../../components/AlertModal';
 import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import ClearLineupsModal from '../../components/ClearLineupsModal';
 
-import ImageBedConfigModal from '../../components/ImageBedConfigModal';
-import AdvancedSettingsDrawer from '../../components/AdvancedSettingsDrawer';
-import ChangePasswordModal from '../../components/ChangePasswordModal';
-import ImageProcessingModal from '../../components/ImageProcessingModal';
 import EditorModal from '../../components/EditorModal';
 import ViewerModal from '../../components/ViewerModal';
 import Lightbox from '../../components/Lightbox';
-import AuthModal from '../../components/AuthModal';
 import ChangelogModal from '../../components/ChangelogModal';
 import ImportLineupModal from '../../components/ImportLineupModal';
 import BatchDownloadModal from './components/BatchDownloadModal';
-import { BaseLineup, SharedLineup, MapOption, LineupSide, NewLineupForm, LineupDbPayload, AgentOption } from '../../types/lineup';
-import { ImageBedConfig } from '../../types/imageBed';
-import { ImageProcessingSettings } from '../../types/imageProcessing';
+import { BaseLineup, MapOption, LineupSide, NewLineupForm, LineupDbPayload, AgentOption } from '../../types/lineup';
 import { LightboxImage } from '../../types/ui';
 
 type Props = {
-  isAuthModalOpen: boolean;
-  userId: string | null;
-  targetUserId: string;
-  passwordInput: string;
-  isAuthLoading: boolean;
-  onAuthClose: () => void;
-  onTargetUserChange: (val: string) => void;
-  onResetUserId: () => void;
-  onPasswordChange: (val: string) => void;
-  onGuestConfirm: () => void;
-  onLoginConfirm: () => void;
   isMapModalOpen: boolean;
   maps: MapOption[];
   selectedMap: MapOption | null;
@@ -71,20 +44,6 @@ type Props = {
   onClearConfirm: () => void;
   onClearAgentConfirm: () => void;
   onClearModalClose: () => void;
-  isChangePasswordOpen: boolean;
-  isChangingPassword: boolean;
-  onChangePasswordSubmit: (oldPassword: string, newPassword: string, confirmPassword: string) => void;
-  setIsChangePasswordOpen: (v: boolean) => void;
-  isImageConfigOpen: boolean;
-  imageBedConfig: ImageBedConfig;
-  onImageConfigClose: () => void;
-  onImageConfigSave: (cfg: ImageBedConfig) => void;
-  isAdvancedSettingsOpen: boolean;
-  onAdvancedSettingsClose: () => void;
-  isPngSettingsOpen: boolean;
-  onPngSettingsClose: () => void;
-  imageProcessingSettings: ImageProcessingSettings;
-  onImageProcessingSave: (cfg: ImageProcessingSettings) => void;
   isEditorOpen: boolean;
   editingLineupId: string | null;
   newLineupData: NewLineupForm;
@@ -112,22 +71,10 @@ type Props = {
   handleBatchDownload: (scope: 'agent' | 'map') => Promise<void>;
   totalAgentLineups: number;
   totalMapLineups: number;
-  onSubmitLineup?: (lineupId: string) => void;
-  isAdmin?: boolean;
+  userId: string | null;
 };
 
 const AppModals: React.FC<Props> = ({
-  isAuthModalOpen,
-  userId,
-  targetUserId,
-  passwordInput,
-  isAuthLoading,
-  onAuthClose,
-  onTargetUserChange,
-  onResetUserId,
-  onPasswordChange,
-  onGuestConfirm,
-  onLoginConfirm,
   isMapModalOpen,
   maps,
   selectedMap,
@@ -157,20 +104,6 @@ const AppModals: React.FC<Props> = ({
   onClearConfirm,
   onClearAgentConfirm,
   onClearModalClose,
-  isChangePasswordOpen,
-  isChangingPassword,
-  onChangePasswordSubmit,
-  setIsChangePasswordOpen,
-  isImageConfigOpen,
-  imageBedConfig,
-  onImageConfigClose,
-  onImageConfigSave,
-  isAdvancedSettingsOpen,
-  onAdvancedSettingsClose,
-  isPngSettingsOpen,
-  onPngSettingsClose,
-  imageProcessingSettings,
-  onImageProcessingSave,
   isEditorOpen,
   editingLineupId,
   newLineupData,
@@ -198,8 +131,7 @@ const AppModals: React.FC<Props> = ({
   handleBatchDownload,
   totalAgentLineups,
   totalMapLineups,
-  onSubmitLineup,
-  isAdmin,
+  userId,
 }) => {
   return (
     <>
@@ -213,27 +145,6 @@ const AppModals: React.FC<Props> = ({
         totalAgentLineups={totalAgentLineups}
         totalMapLineups={totalMapLineups}
         onDownload={handleBatchDownload}
-      />
-
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        userId={userId}
-        targetUserId={targetUserId}
-        passwordInput={passwordInput}
-        isAuthLoading={isAuthLoading}
-        onClose={onAuthClose}
-        onTargetUserChange={onTargetUserChange}
-        onResetUserId={onResetUserId}
-        onPasswordChange={onPasswordChange}
-        onGuestConfirm={onGuestConfirm}
-        onLoginConfirm={onLoginConfirm}
-      />
-
-      <ChangePasswordModal
-        isOpen={isChangePasswordOpen}
-        onClose={() => setIsChangePasswordOpen(false)}
-        isChangingPassword={isChangingPassword}
-        onChangePasswordSubmit={onChangePasswordSubmit}
       />
 
       <MapPickerModal
@@ -272,23 +183,6 @@ const AppModals: React.FC<Props> = ({
         onClearSelectedAgent={onClearAgentConfirm}
       />
 
-      <ImageBedConfigModal isOpen={isImageConfigOpen} config={imageBedConfig} onClose={onImageConfigClose} onSave={onImageConfigSave} />
-
-      <AdvancedSettingsDrawer
-        isOpen={isAdvancedSettingsOpen}
-        settings={imageProcessingSettings}
-        onClose={onAdvancedSettingsClose}
-        onSave={onImageProcessingSave}
-        userId={userId}
-      />
-
-      <ImageProcessingModal
-        isOpen={isPngSettingsOpen}
-        settings={imageProcessingSettings}
-        onClose={onPngSettingsClose}
-        onSave={onImageProcessingSave}
-      />
-
       <EditorModal
         isEditorOpen={isEditorOpen}
         editingLineupId={editingLineupId}
@@ -298,9 +192,7 @@ const AppModals: React.FC<Props> = ({
         onClose={onEditorClose}
         selectedSide={selectedSide}
         setSelectedSide={setSelectedSide}
-        imageBedConfig={imageBedConfig}
         setAlertMessage={setAlertMessage}
-        imageProcessingSettings={imageProcessingSettings}
         selectedMap={selectedMap}
         selectedAgent={selectedAgent}
         selectedAbilityIndex={selectedAbilityIndex}
@@ -315,8 +207,6 @@ const AppModals: React.FC<Props> = ({
         getMapDisplayName={getMapDisplayName}
         getMapEnglishName={getMapEnglishName}
         isGuest={isGuest}
-        onSubmitLineup={onSubmitLineup}
-        isAdmin={isAdmin}
       />
 
       <Lightbox viewingImage={viewingImage} setViewingImage={setViewingImage} />

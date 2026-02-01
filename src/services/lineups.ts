@@ -194,6 +194,25 @@ export async function uploadImageApi(
 }
 
 /**
+ * 删除服务器上的图片文件
+ */
+export async function deleteImageApi(path: string): Promise<{ success: boolean; message: string }> {
+  const query = new URLSearchParams();
+  query.append('path', path);
+
+  const response = await fetch(`${API_BASE}/upload?${query.toString()}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || '图片删除失败');
+  }
+
+  return response.json();
+}
+
+/**
  * 上传 ZIP 点位包
  */
 export async function uploadZipApi(file: File): Promise<{

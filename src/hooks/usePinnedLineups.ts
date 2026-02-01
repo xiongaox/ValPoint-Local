@@ -1,6 +1,6 @@
 /**
- * usePinnedLineups - 占位模块（本地版本）
- * 本地化版本的置顶功能
+ * usePinnedLineups - 本地置顶功能
+ * 基于 localStorage 实现点位置顶排序逻辑
  */
 
 import { useMemo, useCallback, useState, useEffect } from 'react';

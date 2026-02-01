@@ -8,7 +8,6 @@
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { useEmailAuth } from '../../hooks/useEmailAuth';
 import { useLineups } from '../../hooks/useLineups';
 import { useLineupActions } from '../../hooks/useLineupActions';
 import { useValorantData } from '../../hooks/useValorantData';
@@ -16,20 +15,18 @@ import { useLineupFiltering } from '../../hooks/useLineupFiltering';
 import { useModalState } from '../../hooks/useModalState';
 import { usePinnedLineups } from '../../hooks/usePinnedLineups';
 import { useLineupDownload } from '../../hooks/useLineupDownload';
-import { AgentOption, BaseLineup, LibraryMode, SharedLineup, MapOption } from '../../types/lineup';
+import { AgentOption, BaseLineup, MapOption } from '../../types/lineup';
 import { useMapInfo } from './controllers/useMapInfo';
 import { useActionMenu } from './controllers/useActionMenu';
 import { useAppLifecycle } from './controllers/useAppLifecycle';
 import { useEditorController } from './controllers/useEditorController';
 import { useDeletionController } from './controllers/useDeletionController';
-import { useShareController } from './controllers/useShareController';
 import { useViewController } from './controllers/useViewController';
 import { buildMainViewProps } from './controllers/useMainViewProps';
 import { buildModalProps } from './controllers/useModalProps';
 import { buildUiProps } from './controllers/useUiProps';
 import { useAppState } from './controllers/useAppState';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { supabase } from '../../supabaseClient';
 
 const DEFAULT_PINNED_COUNT = 8;
 
@@ -127,28 +124,8 @@ export function useAppController() {
     }
   }, [selectedMap, selectedAgent, selectedLineupId, hasInitializedMap, hasInitializedAgent]);
 
-  const { user, signOut } = useEmailAuth();
-  const userId = user?.id || null;
-  const { profile, isLoading: profileLoading } = useUserProfile();
-
-
-
-  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
-  const userMode = 'login' as const;
-  const isGuest = false;
-  const isAuthModalOpen = false;
-  const setIsAuthModalOpen = () => { };
-  const pendingUserId = '';
-  const setPendingUserId = () => { };
-  const customUserIdInput = user?.user_metadata?.custom_id || '';
-  const setCustomUserIdInput = () => { };
-  const passwordInput = '';
-  const setPasswordInput = () => { };
-  const isAuthLoading = false;
-  const targetUserId = userId || '';
-  const handleApplyCustomUserId = () => { };
-  const handleResetUserId = () => { };
-  const handleConfirmUserAuth = async () => { };
+  const { profile } = useUserProfile();
+  const userId = profile?.id || 'local-user';
   const { lineups, setLineups, fetchLineups } = useLineups(mapNameZhToEn);
 
   // Restore Lineup from URL (Deep Link)
@@ -165,17 +142,19 @@ export function useAppController() {
       }
     }
   }, [lineups, selectedLineupId, setSelectedLineupId, setViewingLineup]);
+
   const { pinnedLineupIds, togglePinnedLineup, orderedLineups } = usePinnedLineups({
     userId,
     lineups,
   });
+
   const { handleDownload } = useLineupDownload({
     lineups: orderedLineups,
     setAlertMessage: modal.setAlertMessage,
   });
+
   const { saveNewLineup, updateLineup, deleteLineup, clearLineups, clearLineupsByAgent } = useLineupActions();
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [returnUrl, setReturnUrl] = useState<string | null>(null);
+
 
   const { agentCounts, filteredLineups, isFlipped, mapLineups, allMapLineups } = useLineupFiltering({
     lineups: orderedLineups,
@@ -228,7 +207,7 @@ export function useAppController() {
   });
 
   const { handleTabSwitch, handlePreviewSubmit } = useViewController({
-    isGuest,
+    isGuest: false,
     activeTab,
     agents,
     selectedAgent,
@@ -249,7 +228,7 @@ export function useAppController() {
   });
 
   const { handleOpenEditor, handleEditorClose, handleEditStart, handleEditorSave } = useEditorController({
-    isGuest,
+    isGuest: false,
     userId,
     userCustomId: profile?.custom_id || null,
     activeTab,
@@ -281,7 +260,7 @@ export function useAppController() {
   });
 
   const { handleRequestDelete, performDelete, handleClearAll, performClearAll, performClearSelectedAgent } = useDeletionController({
-    isGuest,
+    isGuest: false,
     userId,
     lineups,
     selectedAgent,
@@ -300,63 +279,12 @@ export function useAppController() {
   const {
     isActionMenuOpen,
     setIsActionMenuOpen,
-    isImageConfigOpen,
-    setIsImageConfigOpen,
-    imageBedConfig,
-    isAdvancedSettingsOpen,
-    setIsAdvancedSettingsOpen,
-    isPngSettingsOpen,
-    setIsPngSettingsOpen,
-    imageProcessingSettings,
-    handleImageBedConfig,
-    handleOpenAdvancedSettings,
-    handleOpenPngSettings,
-    handleChangePassword,
     handleQuickClear,
-    handleImageConfigSave,
-    handleImageProcessingSave,
   } = useActionMenu({
-    userId,
-    setAlertMessage: (msg: string) => modal.setAlertMessage(msg),
-    setIsAuthModalOpen,
-    setPendingUserId,
-    setCustomUserIdInput,
-    setPasswordInput,
     handleClearAll,
-    setIsChangePasswordOpen: modal.setIsChangePasswordOpen,
   });
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('open') === 'image_config') {
-      setIsImageConfigOpen(true);
-      const ret = params.get('return_to');
-      if (ret) setReturnUrl(decodeURIComponent(ret));
-    }
-  }, [setIsImageConfigOpen]);
 
-  useEffect(() => {
-    if (!isImageConfigOpen && returnUrl) {
-      window.location.href = returnUrl;
-    }
-  }, [isImageConfigOpen, returnUrl]);
-
-  const { onSaveShared, isSavingShared, pendingTransfers } = useShareController({
-    lineups,
-    userId,
-    isGuest,
-    getMapEnglishName,
-    setAlertMessage: modal.setAlertMessage,
-    handleTabSwitch,
-    setAlertActionLabel: modal.setAlertActionLabel,
-    setAlertAction: modal.setAlertAction,
-    setAlertSecondaryLabel: modal.setAlertSecondaryLabel,
-    setAlertSecondaryAction: modal.setAlertSecondaryAction,
-    imageBedConfig,
-    saveNewLineup,
-    fetchLineups,
-    updateLineup,
-  });
 
   const handleBatchDownload = useCallback(async (scope: 'agent' | 'map') => {
     if (!selectedMap) return;
@@ -383,66 +311,8 @@ export function useAppController() {
     }
   }, [selectedMap, selectedAgent, allMapLineups, handleDownload, modal]);
 
-  const handleChangePasswordSubmit = useCallback(
-    async (oldPassword: string, newPassword: string, confirmPassword: string) => {
-      if (!newPassword || !confirmPassword) {
-        modal.setAlertMessage('请输入新密码');
-        return;
-      }
-
-      if (newPassword !== confirmPassword) {
-        modal.setAlertMessage('两次输入的密码不一致');
-        return;
-      }
-
-      if (newPassword.length < 6) {
-        modal.setAlertMessage('新密码长度不能少于 6 位');
-        return;
-      }
-
-      setIsChangingPassword(true);
-
-      try {
-        if (!user?.email) throw new Error('用户未登录');
-
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: user.email,
-          password: oldPassword,
-        });
-
-        if (signInError) {
-          console.error('Verify old password failed:', signInError);
-          modal.setAlertMessage('旧密码错误，请重新输入');
-          setIsChangingPassword(false);
-          return;
-        }
-
-        const { error: updateError } = await supabase.auth.updateUser({
-          password: newPassword,
-        });
-
-        if (updateError) {
-          throw updateError;
-        }
-
-        modal.setIsChangePasswordOpen(false);
-        modal.setAlertMessage('密码修改成功！下次登录请使用新密码');
-
-      } catch (err: any) {
-        console.error('Change password failed:', err);
-        modal.setAlertMessage(err.message || '修改密码失败，请稍后重试');
-      } finally {
-        setIsChangingPassword(false);
-      }
-    },
-    [modal, user, setIsChangingPassword],
-  );
 
   const togglePlacingType = (type: 'agent' | 'skill') => {
-    if (isGuest) {
-      modal.setAlertMessage('游客模式无法标注点位，请先输入密码进入登录模式');
-      return;
-    }
     setPlacingType((prev) => (prev === type ? null : type));
   };
 
@@ -481,12 +351,7 @@ export function useAppController() {
     isFlipped,
     isActionMenuOpen,
     onToggleActions: () => setIsActionMenuOpen((v) => !v),
-    onImageBedConfig: handleImageBedConfig,
-    onAdvancedSettings: handleOpenAdvancedSettings,
-    onPngSettings: handleOpenPngSettings,
-    onChangePassword: handleChangePassword,
-    onClearLineups: handleQuickClear,
-    pendingTransfers,
+    onBatchDownload: () => modal.setIsBatchDownloadModalOpen(true),
     handleTabSwitch,
     togglePlacingType,
     handleOpenEditor,
@@ -507,31 +372,11 @@ export function useAppController() {
     userId,
     pinnedLineupIds,
     onTogglePinLineup: togglePinnedLineup,
-    pinnedLimit: DEFAULT_PINNED_COUNT,
-    hideSharedButton: imageProcessingSettings.hideSharedButton,
-    hideAuthorLinks: imageProcessingSettings.hideAuthorLinks,
-    onBatchDownload: () => modal.setIsBatchDownloadModalOpen(true),
-    user,
-    onSignOut: signOut,
-    onOpenProfile: () => setIsProfileModalOpen(true),
     canBatchDownload: profile?.role === 'admin' || profile?.role === 'super_admin' || profile?.can_batch_download,
     onReset: handleReset,
-    userAvatarUrl: profile?.avatar,
   });
 
   const modalProps = buildModalProps({
-    isAuthModalOpen,
-    userId,
-    targetUserId,
-    passwordInput,
-    isAuthLoading,
-    setIsAuthModalOpen,
-    setPendingUserId,
-    setPasswordInput,
-    setCustomUserIdInput,
-    handleResetUserId,
-    handleConfirmUserAuth,
-    handleApplyCustomUserId,
     isMapModalOpen: modal.isMapModalOpen,
     maps,
     selectedMap,
@@ -564,16 +409,6 @@ export function useAppController() {
     setIsClearConfirmOpen: modal.setIsClearConfirmOpen,
     selectedAgentName: selectedAgent?.displayName ?? null,
     selectedAgentIcon: selectedAgent?.displayIcon ?? null,
-    isImageConfigOpen,
-    imageBedConfig,
-    onImageConfigSave: handleImageConfigSave,
-    setIsImageConfigOpen,
-    isAdvancedSettingsOpen,
-    setIsAdvancedSettingsOpen,
-    isPngSettingsOpen,
-    setIsPngSettingsOpen,
-    imageProcessingSettings,
-    onImageProcessingSave: handleImageProcessingSave,
     isEditorOpen: modal.isEditorOpen,
     editingLineupId,
     newLineupData,
@@ -588,11 +423,7 @@ export function useAppController() {
     handleEditStart,
     setViewingImage: modal.setViewingImage,
     getMapEnglishName,
-    isGuest,
-    isChangePasswordOpen: modal.isChangePasswordOpen,
-    setIsChangePasswordOpen: modal.setIsChangePasswordOpen,
-    isChangingPassword,
-    onChangePasswordSubmit: handleChangePasswordSubmit,
+    isGuest: false,
     viewingImage: modal.viewingImage,
     isChangelogOpen: modal.isChangelogOpen,
     setIsChangelogOpen: modal.setIsChangelogOpen,
@@ -606,6 +437,7 @@ export function useAppController() {
     handleBatchDownload,
     totalMapLineups: allMapLineups.length,
     totalAgentLineups: selectedAgent ? allMapLineups.filter(l => l.agentName === selectedAgent.displayName).length : 0,
+    userId,
   });
 
   const { alertProps, lightboxProps } = buildUiProps({
@@ -623,12 +455,14 @@ export function useAppController() {
     setViewingImage: modal.setViewingImage,
   });
 
+  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
+
   return {
     activeTab,
     mainViewProps,
     modalProps,
     isProfileModalOpen,
     setIsProfileModalOpen,
-    orderedLineups, // 说明：暴露点位列表供 UserApp 直接投稿。
+    orderedLineups,
   };
 }
