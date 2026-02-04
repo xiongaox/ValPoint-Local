@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValPoint - 更新日志</title>
+    <meta name="description" content="ValPoint 项目的完整更新历史记录">
+    <style>
+        :root {
+            --bg-color: #0f1215;
+            --card-bg: #1f2326;
+            --primary: #ff4655;
+            --text-primary: #ece8e1;
+            --text-secondary: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .entry {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .entry::before {
+            content: '';
+            position: absolute;
+            left: -2.4rem;
+            top: 0.25rem;
+            width: 0.8rem;
+            height: 0.8rem;
+            background-color: var(--primary);
+            border-radius: 50%;
+            border: 4px solid var(--bg-color);
+        }
+
+        h2.date {
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        li {
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        li::before {
+            content: '•';
+            color: var(--primary);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        li strong {
+            color: white;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Sub-lists */
+        li ul {
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+        }
+
+        li ul li {
+            font-size: 0.95em;
+            margin-bottom: 0.5rem;
+        }
+
+        li ul li::before {
+            content: '-';
+            color: var(--text-secondary);
+            font-weight: normal;
+        }
+
+        a.back-link {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 2rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        a.back-link:hover {
+            color: white;
+            border-color: var(--primary);
+            background-color: rgba(255, 70, 85, 0.1);
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .timeline {
+                padding-left: 1rem;
+                border-left: 1px solid var(--border-color);
+            }
+
+            .entry::before {
+                left: -1.35rem;
+                width: 0.6rem;
+                height: 0.6rem;
+                border-width: 3px;
+            }
+
+            body {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>更新日志</h1>
+            <p class="subtitle">Docker Local 版本更新历史</p>
+        </header>
+
+        <div class="timeline">
+            <!-- 2026-02-05 -->
+            <div class="entry">
+                <h2 class="date">2026-02-05</h2>
+                <ul>
+                    <li>
+                        <strong>迁移地图池状态功能并重构更新日志系统</strong>
+                        <ul>
+                            <li>新增 <code>mapPoolService.ts</code> 对接远程 API，实现地图池状态实时同步。</li>
+                            <li>更新 <code>MapPickerModal.tsx</code>，支持显示地图排位状态（在池/回归/轮出）。</li>
+                            <li>新增 <code>public/log.html</code> 独立日志页面，替代原有 Wiki 链接并适配深色主题。</li>
+                            <li>优化 <code>ChangelogModal.tsx</code> 交互，仅展示最近更新详情并提供完整日志入口。</li>
+                            <li>重构 <code>src/changelog.ts</code>，清理历史数据并同步 docker_local 分支专属记录。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 2026-02-04 -->
+            <div class="entry">
+                <h2 class="date">2026-02-04</h2>
+                <ul>
+                    <li>
+                        <strong>迁移地图池状态功能</strong>
+                        <ul>
+                            <li>新增 <code>mapPoolService.ts</code> 对接远程 API。</li>
+                            <li>更新 <code>src/types/lineup.ts</code> 和 <code>useValorantData.ts</code> 支持状态字段。</li>
+                            <li>优化 <code>MapPickerModal.tsx</code> 显示“在池/回归/轮出”状态角标。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 2026-02-02 -->
+            <div class="entry">
+                <h2 class="date">2026-02-02</h2>
+                <ul>
+                    <li>
+                        <strong>完善 Docker 发布自动化与部署文档</strong>
+                        <ul>
+                            <li>自动化脚本：修复 <code>scripts/publish_docker.ps1</code>，新增
+                                <code>scripts/publish_docker.sh</code>。
+                            </li>
+                            <li>服务端优化：支持通过 <code>DATA_DIR</code> 提供静态文件服务，修复容器内图片显示问题。</li>
+                            <li>部署配置：优化 <code>docker-compose.yml</code>，统一端口为 3209。</li>
+                            <li>文档更新：重写 README，新增 Docker Hub 发布指南。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 2026-02-01 -->
+            <div class="entry">
+                <h2 class="date">2026-02-01</h2>
+                <ul>
+                    <li>
+                        <strong>深度清理废弃逻辑与依赖，优化本地版架构</strong>
+                        <ul>
+                            <li>移除 crypto-js、Supabase 类型及冗余依赖。</li>
+                            <li>删除废弃模块：图床模块、废弃类型定义、Serverless 函数目录。</li>
+                            <li>清理部署配置：删除 vercel.json, wrangler.toml 等云端配置文件。</li>
+                            <li>构建优化：重构 vite.config.ts，引入分包策略。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>深度清理 Supabase 遗留、优化编辑器 UI 及增强图片物理删除</strong>
+                        <ul>
+                            <li>彻底移除 Supabase 依赖及 Mock 认证逻辑。</li>
+                            <li>编辑器优化：移除链接输入，增强物理删除功能（支持删除 WebP 文件）。</li>
+                            <li>UI 布局微调：修复快捷按钮定位。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>项目架构扁平化重构与死代码清理</strong>
+                        <ul>
+                            <li>移除 src/apps 目录结构，简化为单层级。</li>
+                            <li>重构根应用组件 App.tsx 适配本地化版本。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>修复导出信息缺失、批量删除失败及导入元数据丢失问题</strong>
+                        <ul>
+                            <li>修复作者信息提取 (B站/抖音 UID)。</li>
+                            <li>新增 DELETE /api/lineups 路由，支持批量清空并同步删除物理图片。</li>
+                            <li>优化 ZIP 导入解析逻辑，确保元数据完整。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>实现用户昵称持久化及导出元数据同步</strong>
+                        <ul>
+                            <li>使用 localStorage 实现用户昵称持久化。</li>
+                            <li>优化用户信息弹窗，增加校验与随机生成功能。</li>
+                            <li>导出时透传作者昵称，修复 API 参数传递问题。</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>优优化图片存储层级与命名规范</strong>
+                        <ul>
+                            <li>重构上传逻辑，实现“地图/英雄/点位/”三级目录存储。</li>
+                            <li>优化编辑器上传逻辑，支持自动映射技能槽位。</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/" class="back-link">返回首页</a>
+        </div>
+    </div>
+</body>
+
+</html>
