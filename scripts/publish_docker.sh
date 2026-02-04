@@ -27,8 +27,13 @@ fi
 echo -e "\033[32mDocker 运行正常\033[0m"
 
 # 1. 获取输入
-VERSION=$(get_package_version)
-echo -e "\n当前项目版本: \033[33m$VERSION\033[0m"
+DETECTED_VERSION=$(get_package_version)
+echo -e "\n检测到项目版本: \033[33m$DETECTED_VERSION\033[0m"
+
+read -p "请输入要发布的版本号 (默认: $DETECTED_VERSION): " INPUT_VERSION
+VERSION=${INPUT_VERSION:-$DETECTED_VERSION}
+
+echo -e "将使用版本: \033[32m$VERSION\033[0m"
 
 read -p "请输入 Docker Hub 用户名 (默认: xiongaox): " NAMESPACE
 NAMESPACE=${NAMESPACE:-xiongaox}

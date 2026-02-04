@@ -9,7 +9,7 @@ WORKDIR /app
 
 # 安装依赖
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm config set registry https://registry.npmmirror.com && npm ci
 
 # 复制源码并构建
 COPY . .
@@ -22,7 +22,7 @@ WORKDIR /app/server
 
 # 复制后端依赖
 COPY server/package*.json ./
-RUN npm ci --only=production
+RUN npm config set registry https://registry.npmmirror.com && npm ci --only=production
 
 # ============================================
 # Stage 3: 生产运行时
