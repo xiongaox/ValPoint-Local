@@ -29,3 +29,7 @@ Icon?
 .TemporaryItems
 .VolumeIcon.icns
 .DS_Store
+
+# Worktrees
+.worktrees/
+worktrees/
