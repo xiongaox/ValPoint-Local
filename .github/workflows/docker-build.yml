@@ -1,21 +1,39 @@
-name: Docker Build
+# ============================================
+# ValPoint Docker 多平台构建 & 推送
+# ============================================
+# 触发方式：
+#   1. 推送 tag（v* 格式）→ 自动构建并打版本标签
+#   2. 手动触发 → 构建 latest
+# ============================================
+
+name: Build and Push Docker Image
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: xiongaox7806/valpoint_s
 
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 检查 tag message 是否包含 [skip docker]，用于跳过构建
       - name: Check for skip docker
         id: check
         run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "skip=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           MSG=$(git tag -n1 --format='%(contents)' ${{ github.ref_name }})
           echo "Tag message: $MSG"
           if [[ "$MSG" == *"[skip docker]"* ]]; then
@@ -25,14 +43,17 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
 
+      # 设置 QEMU（支持多架构模拟）
       - name: Set up QEMU
         if: steps.check.outputs.skip != 'true'
         uses: docker/setup-qemu-action@v3
 
+      # 设置 Docker Buildx
       - name: Set up Docker Buildx
         if: steps.check.outputs.skip != 'true'
         uses: docker/setup-buildx-action@v3
 
+      # 登录 Docker Hub
       - name: Login to Docker Hub
         if: steps.check.outputs.skip != 'true'
         uses: docker/login-action@v3
@@ -40,18 +61,27 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Extract version from tag
+      # 提取 Docker 元数据（标签 & 标签名）
+      - name: Extract Docker metadata
         if: steps.check.outputs.skip != 'true'
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
-      - name: Build and push
+      # 构建并推送多平台镜像（amd64 + arm64）
+      - name: Build and push multi-platform image
         if: steps.check.outputs.skip != 'true'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            xiongaox7806/valpoint-a:latest
-            xiongaox7806/valpoint-a:${{ steps.version.outputs.VERSION }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

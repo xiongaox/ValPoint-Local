@@ -11,7 +11,8 @@
     "server": "cd server && node index.js",
     "server:dev": "cd server && node --watch index.js",
     "docker:build": "docker build -t valpoint_s .",
-    "docker:run": "docker run -p 3209:3209 -v valpoint_data:/data valpoint_s"
+    "docker:run": "docker run -p 3209:3209 -v valpoint_data:/data valpoint_s",
+    "release": "node scripts/release.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
