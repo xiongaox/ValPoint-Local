@@ -1,12 +1,12 @@
+```javascript
 #!/usr/bin/env node
 
 /**
- * ValPoint 版本发布脚本
- * 用途：自动创建 git tag 并推送，触发 GitHub Actions 构建多平台 Docker 镜像
+ * ValPoint Docker 构建脚本 (Local Branch)
+ * 用途：仅构建 Docker 镜像，不发布 Release
  * 用法：
- *   npm run release                  → 交互式发布
- *   npm run release -- --dry-run     → 预览模式（不实际创建/推送标签）
- *   npm run release -- 1.2.3         → 直接指定版本号
+ *   npm run release                  → 交互式构建
+ *   npm run release -- --dry-run     → 预览模式
  */
 
 import { execSync } from 'child_process';
@@ -22,17 +22,17 @@ const DRY_RUN = process.argv.includes('--dry-run') || process.argv.includes('--p
 
 // 颜色工具
 const c = {
-    green: (s) => `\x1b[32m${s}\x1b[0m`,
-    yellow: (s) => `\x1b[33m${s}\x1b[0m`,
-    cyan: (s) => `\x1b[36m${s}\x1b[0m`,
-    red: (s) => `\x1b[31m${s}\x1b[0m`,
-    dim: (s) => `\x1b[2m${s}\x1b[0m`,
-    magenta: (s) => `\x1b[35m${s}\x1b[0m`,
+    green: (s) => `\x1b[32m${ s } \x1b[0m`,
+    yellow: (s) => `\x1b[33m${ s } \x1b[0m`,
+    cyan: (s) => `\x1b[36m${ s } \x1b[0m`,
+    red: (s) => `\x1b[31m${ s } \x1b[0m`,
+    dim: (s) => `\x1b[2m${ s } \x1b[0m`,
+    magenta: (s) => `\x1b[35m${ s } \x1b[0m`,
 };
 
 /** 执行命令并返回 stdout（静默 stderr） */
-function run(cmd) {
-    return execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+function run(cmd, options = {}) {
+    return execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'], ...options }).trim();
 }
 
 /** 检查命令是否执行成功 */
@@ -62,24 +62,24 @@ function prompt(question) {
  */
 async function getLatestDockerHubVersion() {
     const url = `https://hub.docker.com/v2/repositories/${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}/tags/?page_size=100`;
-    try {
-        const res = await fetch(url);
-        if (!res.ok) return null;
+try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
 
-        const data = await res.json();
-        const versions = (data.results || [])
-            .map((t) => t.name)
-            .filter((name) => /^\d+\.\d+\.\d+$/.test(name))
-            .sort((a, b) => {
-                const pa = a.split('.').map(Number);
-                const pb = b.split('.').map(Number);
-                return pb[0] - pa[0] || pb[1] - pa[1] || pb[2] - pa[2];
-            });
+    const data = await res.json();
+    const versions = (data.results || [])
+        .map((t) => t.name)
+        .filter((name) => /^\d+\.\d+\.\d+$/.test(name))
+        .sort((a, b) => {
+            const pa = a.split('.').map(Number);
+            const pb = b.split('.').map(Number);
+            return pb[0] - pa[0] || pb[1] - pa[1] || pb[2] - pa[2];
+        });
 
-        return versions[0] || null;
-    } catch {
-        return null;
-    }
+    return versions[0] || null;
+} catch {
+    return null;
+}
 }
 
 /** 递增补丁版本号：1.0.0 → 1.0.1 */
@@ -92,11 +92,11 @@ function incrementPatch(version) {
 async function main() {
     const modeLabel = DRY_RUN ? c.magenta(' [预览模式]') : '';
     console.log(c.cyan('================================'));
-    console.log(c.cyan('   ValPoint 版本发布工具') + modeLabel);
+    console.log(c.cyan('   ValPoint Docker 构建工具') + modeLabel);
     console.log(c.cyan('================================'));
 
     if (DRY_RUN) {
-        console.log(c.magenta('🔍 预览模式：不会实际创建或推送标签\n'));
+        console.log(c.magenta('🔍 预览模式：不会实际执行构建\n'));
     }
 
     // 1. 显示当前分支信息
@@ -106,16 +106,11 @@ async function main() {
     console.log(`📝 最新提交：${lastCommit}`);
 
     // 2. 检查当前分支是否为 main
-    if (branch !== 'main') {
-        console.log(c.yellow(`\n⚠️  警告：检测到当前位于分支 '${branch}'`));
-        console.log(c.red('❌ 为了保持 Git Release 与生产环境一致，严禁在非 main 分支发版！'));
-        console.log(`💡 请切换到 main 分支 (或 main worktree) 后再运行发版命令。`);
-
-        if (!DRY_RUN) {
-            process.exit(1);
-        } else {
-            console.log(c.magenta('🔍 [预览模式] 跳过分支检查，继续预览...'));
-        }
+    if (branch === 'main') {
+        console.log(c.yellow(`\n⚠️  注意：你正在 main 分支上运行本地构建脚本`));
+        console.log(`通常 main 分支应使用 Release 流程 (npm run release) 触发云端构建。`);
+    } else {
+        console.log(c.green(`\n✅ 检测到开发分支 '${branch}'，准备执行 Docker 构建...`));
     }
 
     // 3. 确定版本号
@@ -177,35 +172,37 @@ async function main() {
         }
     }
 
-    // 6. 确认发布
-    console.log(`\n${c.green(`📦 发布版本：${tag}`)}`);
+    // 7. 执行 Docker 构建 (不再打标签)
+    console.log(`\n${c.cyan(`🐳 开始构建 Docker 镜像: valpoint_s:${version}`)}`);
 
     if (DRY_RUN) {
-        console.log(c.magenta('\n✅ 预览完成！以上为实际发布时的效果'));
-        console.log(c.dim('移除 --dry-run 参数即可正式发布'));
+        console.log(c.magenta('\n✅ [预览模式] 模拟构建完成 (未实际执行)'));
         process.exit(0);
     }
 
-    const confirm = await prompt('确认创建标签并推送？(y/n): ');
+    const confirm = await prompt('确认开始构建？(y/n): ');
     if (confirm.toLowerCase() !== 'y') {
         console.log(c.yellow('已取消'));
         process.exit(0);
     }
 
-    // 7. 创建并推送 tag
-    console.log(c.cyan(`\n[1/2] 正在创建标签 ${tag}...`));
-    run(`git tag -a "${tag}" -m "Release ${tag}"`);
+    try {
+        console.log(c.cyan(`\n[1/1] 正在执行 docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`));
+        // 执行构建
+        run(`docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`, { stdio: 'inherit' });
+        // 可选：构建 latest 标签
+        run(`docker tag ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
 
-    console.log(c.cyan('[2/2] 正在推送标签到远程仓库...'));
-    run(`git push origin "${tag}"`);
-
-    console.log(c.green('\n✅ 发布成功！'));
-    console.log(`🏷️  标签：${tag}`);
-    console.log('🔄 GitHub Actions 将自动构建多平台 Docker 镜像');
-    console.log(c.yellow(`👀 查看构建状态：${GITHUB_ACTIONS_URL}`));
+        console.log(c.green('\n✅ Docker 构建成功！'));
+        console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version}`);
+        console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
+    } catch (e) {
+        console.error(c.red(`\n❌ 构建失败: ${e.message}`));
+        process.exit(1);
+    }
 }
 
 main().catch((err) => {
-    console.error(c.red(`❌ 发布失败：${err.message}`));
+    console.error(c.red(`❌ 脚本执行失败：${err.message}`));
     process.exit(1);
 });
