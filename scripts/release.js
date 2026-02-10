@@ -105,7 +105,20 @@ async function main() {
     console.log(`📌 当前分支：${c.green(branch)}`);
     console.log(`📝 最新提交：${lastCommit}`);
 
-    // 2. 确定版本号
+    // 2. 检查当前分支是否为 main
+    if (branch !== 'main') {
+        console.log(c.yellow(`\n⚠️  警告：检测到当前位于分支 '${branch}'`));
+        console.log(c.red('❌ 为了保持 Git Release 与生产环境一致，严禁在非 main 分支发版！'));
+        console.log(`💡 请切换到 main 分支 (或 main worktree) 后再运行发版命令。`);
+
+        if (!DRY_RUN) {
+            process.exit(1);
+        } else {
+            console.log(c.magenta('🔍 [预览模式] 跳过分支检查，继续预览...'));
+        }
+    }
+
+    // 3. 确定版本号
     let version;
     const argVersion = process.argv.find((a) => /^v?\d+\.\d+\.\d+$/.test(a));
 
