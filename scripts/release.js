@@ -1,4 +1,3 @@
-```javascript
 #!/usr/bin/env node
 
 /**
@@ -22,12 +21,12 @@ const DRY_RUN = process.argv.includes('--dry-run') || process.argv.includes('--p
 
 // 颜色工具
 const c = {
-    green: (s) => `\x1b[32m${ s } \x1b[0m`,
-    yellow: (s) => `\x1b[33m${ s } \x1b[0m`,
-    cyan: (s) => `\x1b[36m${ s } \x1b[0m`,
-    red: (s) => `\x1b[31m${ s } \x1b[0m`,
-    dim: (s) => `\x1b[2m${ s } \x1b[0m`,
-    magenta: (s) => `\x1b[35m${ s } \x1b[0m`,
+    green: (s) => `\x1b[32m${s} \x1b[0m`,
+    yellow: (s) => `\x1b[33m${s} \x1b[0m`,
+    cyan: (s) => `\x1b[36m${s} \x1b[0m`,
+    red: (s) => `\x1b[31m${s} \x1b[0m`,
+    dim: (s) => `\x1b[2m${s} \x1b[0m`,
+    magenta: (s) => `\x1b[35m${s} \x1b[0m`,
 };
 
 /** 执行命令并返回 stdout（静默 stderr） */
@@ -62,24 +61,24 @@ function prompt(question) {
  */
 async function getLatestDockerHubVersion() {
     const url = `https://hub.docker.com/v2/repositories/${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}/tags/?page_size=100`;
-try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
 
-    const data = await res.json();
-    const versions = (data.results || [])
-        .map((t) => t.name)
-        .filter((name) => /^\d+\.\d+\.\d+$/.test(name))
-        .sort((a, b) => {
-            const pa = a.split('.').map(Number);
-            const pb = b.split('.').map(Number);
-            return pb[0] - pa[0] || pb[1] - pa[1] || pb[2] - pa[2];
-        });
+        const data = await res.json();
+        const versions = (data.results || [])
+            .map((t) => t.name)
+            .filter((name) => /^\d+\.\d+\.\d+$/.test(name))
+            .sort((a, b) => {
+                const pa = a.split('.').map(Number);
+                const pb = b.split('.').map(Number);
+                return pb[0] - pa[0] || pb[1] - pa[1] || pb[2] - pa[2];
+            });
 
-    return versions[0] || null;
-} catch {
-    return null;
-}
+        return versions[0] || null;
+    } catch {
+        return null;
+    }
 }
 
 /** 递增补丁版本号：1.0.0 → 1.0.1 */
