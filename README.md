@@ -1,7 +1,7 @@
-# ValPoint (Docker Local Version)
+# ValPoint-Local
 
 ValPoint 是一个专业的《无畏契约/瓦罗兰特》点位分享与管理平台。
-**此版本为 Docker 本地化特别版**，旨在提供完全独立、隐私安全且易于部署的私有化点位库解决方案。
+**此版本为 ValPoint 的独立私有化部署版本**，旨在提供完全独立、隐私安全且易于部署的私有化点位库解决方案。
 
 ![Licence](https://img.shields.io/github/license/xiongaox/ValPoint)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-blue?logo=docker)
