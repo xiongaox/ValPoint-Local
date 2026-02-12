@@ -6,6 +6,7 @@ notes/local/
 .env.production
 .env.development
 *.bak
+*.tsbuildinfo
 dist
 coverage
 docs/.obsidian/workspace.json
