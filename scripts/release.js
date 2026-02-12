@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * ValPoint Docker 构建脚本 (Local Branch)
- * 用途：仅构建 Docker 镜像，不发布 Release
+ * ValPoint 发布脚本 (Tag Trigger)
+ * 用途：默认仅推送 tag 触发云端 Docker 构建
  * 用法：
- *   npm run release                  → 交互式构建
- *   npm run release -- --dry-run     → 预览模式
+ *   npm run release                       → 仅触发云端构建
+ *   npm run release -- --local-build      → 先本地构建，再触发云端构建
+ *   npm run release -- --dry-run          → 预览模式
  */
 
 import { execSync } from 'child_process';
@@ -18,6 +19,8 @@ const GITHUB_ACTIONS_URL = 'https://github.com/xiongaox/ValPoint/actions';
 
 // 是否为预览模式
 const DRY_RUN = process.argv.includes('--dry-run') || process.argv.includes('--preview');
+// 是否执行本地构建（默认 false）
+const LOCAL_BUILD = process.argv.includes('--local-build');
 
 // 颜色工具
 const c = {
@@ -100,7 +103,7 @@ function getCloudTriggerCommands(tag) {
 async function main() {
     const modeLabel = DRY_RUN ? c.magenta(' [预览模式]') : '';
     console.log(c.cyan('================================'));
-    console.log(c.cyan('   ValPoint Docker 构建工具') + modeLabel);
+    console.log(c.cyan('   ValPoint 发布工具') + modeLabel);
     console.log(c.cyan('================================'));
 
     if (DRY_RUN) {
@@ -115,10 +118,9 @@ async function main() {
 
     // 2. 检查当前分支是否为 main
     if (branch === 'main') {
-        console.log(c.yellow(`\n⚠️  注意：你正在 main 分支上运行本地构建脚本`));
-        console.log(`通常 main 分支应使用 Release 流程 (npm run release) 触发云端构建。`);
+        console.log(c.green('\n✅ 当前为 main 分支，将使用 tag 触发云端构建。'));
     } else {
-        console.log(c.green(`\n✅ 检测到开发分支 '${branch}'，准备执行 Docker 构建...`));
+        console.log(c.yellow(`\n⚠️  当前是 '${branch}' 分支，推送 tag 后仍会触发云端构建。`));
     }
 
     // 3. 确定版本号
@@ -181,42 +183,52 @@ async function main() {
         }
     }
 
-    // 7. 执行 Docker 构建 (不再打标签)
-    console.log(`\n${c.cyan(`🐳 开始构建 Docker 镜像: valpoint_s:${version}`)}`);
-    console.log(c.dim(`构建完成后将自动触发云端构建: ${tag}`));
+    const localBuildCommand = `docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`;
+    console.log(`\n${c.cyan(`🚀 准备发布版本: ${tag}`)}`);
+    if (LOCAL_BUILD) {
+        console.log(c.dim(`本次将先执行本地构建，再触发云端构建。`));
+    } else {
+        console.log(c.dim(`默认仅触发云端构建（不执行本地 docker build）。`));
+    }
 
     if (DRY_RUN) {
-        console.log(c.magenta('\n🔗 预览：将执行以下命令触发 GitHub Actions'));
+        console.log(c.magenta('\n🔗 预览：将执行以下命令'));
+        if (LOCAL_BUILD) {
+            console.log(c.dim(localBuildCommand));
+        }
         console.log(c.dim(cloudCommands.createTag));
         console.log(c.dim(cloudCommands.pushTag));
         console.log(c.magenta('\n✅ [预览模式] 模拟构建完成 (未实际执行)'));
         process.exit(0);
     }
 
-    const confirm = await prompt('确认开始构建？(y/n): ');
+    const confirm = await prompt('确认开始发布？(y/n): ');
     if (confirm.toLowerCase() !== 'y') {
         console.log(c.yellow('已取消'));
         process.exit(0);
     }
 
     try {
-        console.log(c.cyan(`\n[1/2] 正在执行 docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`));
-        // 执行构建
-        run(`docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`, { stdio: 'inherit' });
-        // 可选：构建 latest 标签
-        run(`docker tag ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
+        if (LOCAL_BUILD) {
+            console.log(c.cyan(`\n[1/2] 正在执行 ${localBuildCommand}`));
+            run(localBuildCommand, { stdio: 'inherit' });
+            run(`docker tag ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
+            console.log(c.green('✅ 本地 Docker 构建成功'));
+        }
 
-        console.log(c.cyan(`\n[2/2] 正在创建并推送标签 ${tag}（触发 GitHub Actions）`));
+        console.log(c.cyan(`\n[${LOCAL_BUILD ? '2/2' : '1/1'}] 正在创建并推送标签 ${tag}（触发 GitHub Actions）`));
         run(cloudCommands.createTag, { stdio: 'inherit' });
         run(cloudCommands.pushTag, { stdio: 'inherit' });
 
-        console.log(c.green('\n✅ Docker 构建成功！'));
-        console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version}`);
-        console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
-        console.log(c.green(`✅ 云端构建已触发: ${tag}`));
+        console.log(c.green('\n✅ 发布命令执行完成！'));
+        if (LOCAL_BUILD) {
+            console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version}`);
+            console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
+        }
+        console.log(c.green(`✅ 云端构建触发标签: ${tag}`));
         console.log(`查看 Actions: ${GITHUB_ACTIONS_URL}/workflows/docker-build.yml`);
     } catch (e) {
-        console.error(c.red(`\n❌ 构建失败: ${e.message}`));
+        console.error(c.red(`\n❌ 发布失败: ${e.message}`));
         process.exit(1);
     }
 }
