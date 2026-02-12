@@ -7,17 +7,16 @@
  * - 整合数据来源与子组件的交互。
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import LeafletMap from '../../components/LeafletMap';
 import QuickActions from '../../components/QuickActions';
-import UserAvatar from '../../components/UserAvatar';
 import Icon from '../../components/Icon';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import PadPortraitSidebar from '../../components/PadPortraitSidebar';
+import { useDeviceMode } from '../../hooks/useDeviceMode';
 import MobileAgentPicker from '../../components/MobileAgentPicker';
 import MobileMapPicker from '../../components/MobileMapPicker';
 import MobileLineupList from '../../components/MobileLineupList';
 import { getAbilityList, getAbilityIcon } from '../../utils/abilityIcons';
-import { cn } from '../../utils/classnames';
 
 import LeftPanel from '../../components/LeftPanel';
 import RightPanel from '../../components/RightPanel';
@@ -27,8 +26,8 @@ import { ActiveTab } from '../../types/app';
 type LeftProps = {
   activeTab: ActiveTab;
   selectedMap: MapOption | null;
-  setSelectedMap: (map: MapOption | null) => void; // 说明：用于移动端地图选择。
-  maps: MapOption[]; // 说明：移动端地图列表。
+  setSelectedMap: (map: MapOption | null) => void;
+  maps: MapOption[];
   setIsMapModalOpen: (v: boolean) => void;
   selectedSide: 'all' | 'attack' | 'defense';
   setSelectedSide: React.Dispatch<React.SetStateAction<'all' | 'attack' | 'defense'>>;
@@ -104,31 +103,46 @@ type Props = {
   hideAuthorLinks?: boolean;
 };
 
-const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right, hideSharedButton, hideAuthorLinks }) => {
-  const isMobile = useIsMobile();
+const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quickActions, right }) => {
+  const { isMobile, isTabletLandscape, isIPad, isPortrait } = useDeviceMode();
+  const isPadPortrait = isMobile && isIPad && isPortrait;
+  const isTabletHybrid = isTabletLandscape || isPadPortrait;
+  const isAndroidMobile = isMobile && !isPadPortrait;
+  const isDesktop = !isMobile && !isTabletLandscape;
+
   const [isMobileAgentPickerOpen, setIsMobileAgentPickerOpen] = useState(false);
   const [isMobileMapPickerOpen, setIsMobileMapPickerOpen] = useState(false);
   const [isMobileLineupListOpen, setIsMobileLineupListOpen] = useState(false);
-  const [isMobileUserMenuOpen, setIsMobileUserMenuOpen] = useState(false); // 说明：用户菜单状态。
+  const [isTabletRightPanelOpen, setIsTabletRightPanelOpen] = useState(false);
 
   const [disabledAbilities, setDisabledAbilities] = useState<Set<number>>(new Set());
 
-  // 移动端：根据 disabledAbilities 过滤点位
+  useEffect(() => {
+    if (!isTabletHybrid) {
+      setIsTabletRightPanelOpen(false);
+    }
+  }, [isTabletHybrid]);
+
+  useEffect(() => {
+    if (isTabletHybrid && activeTab === 'create') {
+      right.handleTabSwitch('view');
+    }
+  }, [isTabletHybrid, activeTab, right.handleTabSwitch]);
+
   const filteredMapLineups = useMemo(() => {
     if (!isMobile || disabledAbilities.size === 0) {
       return map.lineups;
     }
     return map.lineups.filter(
-      l => l.abilityIndex === null || l.abilityIndex === undefined || !disabledAbilities.has(l.abilityIndex)
+      (l) => l.abilityIndex === null || l.abilityIndex === undefined || !disabledAbilities.has(l.abilityIndex)
     );
   }, [isMobile, disabledAbilities, map.lineups]);
 
-  const sharedLibraryUrl = (window as any).__ENV__?.VITE_SHARED_LIBRARY_URL
-    || import.meta.env.VITE_SHARED_LIBRARY_URL
-    || '/';
-
   const deployPlatform = (window as any).__ENV__?.VITE_DEPLOY_PLATFORM
     || import.meta.env.VITE_DEPLOY_PLATFORM;
+
+  const sideSwitchContainerClass = 'flex items-center justify-center gap-0 p-2 w-[166px] h-[54px] bg-black/70 backdrop-blur-[4px] rounded-[12px] border border-white/15 box-border';
+  const sideSwitchButtonBaseClass = 'flex items-center justify-center w-[74px] h-[36px] rounded-[8px] text-[14px] font-bold leading-none text-center px-0 transition-all duration-200';
 
   return (
     <div className="flex h-screen w-screen bg-[#0f1923] text-white overflow-hidden">
@@ -149,6 +163,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           getMapDisplayName={left.getMapDisplayName}
           openChangelog={left.openChangelog}
           onReset={left.onReset}
+          layoutMode={isTabletLandscape ? 'tablet-compact' : 'desktop'}
         />
       )}
 
@@ -160,36 +175,79 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
           activeTab={map.activeTab}
           lineups={filteredMapLineups}
           selectedLineupId={map.selectedLineupId}
-          onLineupSelect={map.onLineupSelect}
+          onLineupSelect={(id) => {
+            map.onLineupSelect(id);
+            if (isTabletHybrid && id === null) {
+              setIsTabletRightPanelOpen(false);
+            }
+          }}
           newLineupData={map.newLineupData}
           setNewLineupData={map.setNewLineupData}
           placingType={map.placingType}
           setPlacingType={(val) => map.setPlacingType(val as 'agent' | 'skill' | null)}
           selectedAgent={map.selectedAgent}
           selectedAbilityIndex={map.selectedAbilityIndex}
-          onViewLineup={map.onViewLineup}
+          onViewLineup={(id) => {
+            map.onViewLineup(id);
+            if (isTabletHybrid) {
+              setIsTabletRightPanelOpen(false);
+            }
+          }}
           isFlipped={map.isFlipped}
         />
 
-        {!isMobile && (
+        {isDesktop && (
           <QuickActions
             isOpen={quickActions.isOpen}
             onToggle={quickActions.onToggle}
             onBatchDownload={quickActions.onBatchDownload}
             canBatchDownload={quickActions.canBatchDownload}
+            mode={isTabletHybrid ? 'pad' : 'default'}
+            sizeMode={isPadPortrait ? 'pad' : 'default'}
           />
         )}
 
-        {isMobile && (
+        {!isMobile && isTabletLandscape && (
+          <div className="absolute top-2 right-2 z-20 origin-top-right scale-[0.86] flex items-center gap-2">
+            <div className={sideSwitchContainerClass}>
+              <button
+                onClick={() => left.setSelectedSide('attack')}
+                className={`${sideSwitchButtonBaseClass} ${left.selectedSide === 'attack'
+                  ? 'bg-[#ff4655] text-white'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+              >
+                进攻
+              </button>
+              <button
+                onClick={() => left.setSelectedSide('defense')}
+                className={`${sideSwitchButtonBaseClass} ${left.selectedSide === 'defense'
+                  ? 'bg-emerald-500 text-white'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+              >
+                防守
+              </button>
+            </div>
+            <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-2.5 tablet-fab-safe">
+              <button
+                onClick={() => setIsTabletRightPanelOpen((v) => !v)}
+                className="w-9 h-9 rounded-lg transition-all text-gray-200 hover:text-white hover:bg-white/10 flex items-center justify-center"
+                title="点位列表"
+              >
+                <Icon name="List" size={22} className="text-white" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isAndroidMobile && (
           <>
-            {/* 第一行：顶部 Tab 栏 */}
             <div className="absolute top-0 left-0 right-0 z-20 h-14 bg-[#1a1a1a]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between px-4">
-              {/* 左侧：Logo */}
               <a href="/" className="flex items-center gap-2">
                 <img src="/logo.svg" alt="ValPoint" className="w-6 h-6" />
                 <span className="text-white font-bold">ValPoint</span>
               </a>
-              {/* 右侧：GitHub & Wiki */}
               <div className="flex items-center gap-4">
                 {deployPlatform && (
                   <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white/10 text-gray-400 border border-white/5">
@@ -217,10 +275,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
               </div>
             </div>
 
-
-
             <div className="absolute top-16 right-3 z-10 flex items-center gap-2">
-              {/* 点位列表 */}
               <button
                 onClick={() => setIsMobileLineupListOpen(true)}
                 className="w-[46px] h-[46px] flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl border border-white/10"
@@ -228,7 +283,6 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
               >
                 <Icon name="List" size={20} className="text-white" />
               </button>
-
             </div>
 
             <div className="absolute bottom-8 left-3 right-3 z-10 flex items-center justify-between gap-2">
@@ -284,12 +338,12 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
                 {getAbilityList(left.selectedAgent).map((ability: any, idx: number) => {
                   const iconUrl = getAbilityIcon(left.selectedAgent!, idx);
                   const isDisabled = disabledAbilities.has(idx);
-                  const isSelected = !isDisabled; // 说明：选中表示未禁用。
+                  const isSelected = !isDisabled;
                   return (
                     <button
                       key={idx}
                       onClick={() => {
-                        setDisabledAbilities(prev => {
+                        setDisabledAbilities((prev) => {
                           const next = new Set(prev);
                           if (next.has(idx)) {
                             next.delete(idx);
@@ -321,9 +375,144 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
             )}
           </>
         )}
+
+        {isPadPortrait && (
+          <>
+            <PadPortraitSidebar
+              selectedMap={left.selectedMap}
+              selectedAgent={left.selectedAgent}
+              agents={left.agents}
+              agentCounts={left.agentCounts}
+              getMapDisplayName={left.getMapDisplayName}
+              onMapClick={() => left.setIsMapModalOpen(true)}
+              onSelectAgent={(agent) => {
+                left.setSelectedAgent(agent);
+                left.setSelectedSide('attack');
+              }}
+            />
+
+            <div className="absolute top-2 right-2 z-20 origin-top-right scale-[0.9]">
+              <div className="flex items-start gap-2">
+                <div className={sideSwitchContainerClass}>
+                  <button
+                    onClick={() => left.setSelectedSide('attack')}
+                    className={`${sideSwitchButtonBaseClass} ${left.selectedSide === 'attack'
+                      ? 'bg-[#ff4655] text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                  >
+                    进攻
+                  </button>
+                  <button
+                    onClick={() => left.setSelectedSide('defense')}
+                    className={`${sideSwitchButtonBaseClass} ${left.selectedSide === 'defense'
+                      ? 'bg-emerald-500 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }`}
+                  >
+                    防守
+                  </button>
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex bg-black/60 backdrop-blur-sm rounded-xl border border-white/10 p-2.5 tablet-fab-safe">
+                    <button
+                      onClick={() => setIsTabletRightPanelOpen((v) => !v)}
+                      className="w-9 h-9 rounded-lg transition-all text-gray-200 hover:text-white hover:bg-white/10 flex items-center justify-center"
+                      title="点位列表"
+                    >
+                      <Icon name="List" size={22} className="text-white" />
+                    </button>
+                  </div>
+
+                  {left.selectedAgent && (
+                    <div className="flex flex-col gap-4">
+                      {getAbilityList(left.selectedAgent).map((ability: any, idx: number) => {
+                        const iconUrl = getAbilityIcon(left.selectedAgent!, idx);
+                        const isDisabled = disabledAbilities.has(idx);
+                        const isSelected = !isDisabled;
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => {
+                              setDisabledAbilities((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(idx)) {
+                                  next.delete(idx);
+                                } else {
+                                  next.add(idx);
+                                }
+                                return next;
+                              });
+                            }}
+                            className={`w-[56px] h-[56px] rounded-xl border transition-all flex items-center justify-center ${isSelected
+                              ? 'bg-[#ff4655] border-[#ff4655] shadow-lg shadow-red-500/30'
+                              : 'bg-black/40 border-white/10 opacity-50'
+                              }`}
+                            title={ability.displayName || `技能${idx + 1}`}
+                          >
+                            {iconUrl ? (
+                              <img
+                                src={iconUrl}
+                                alt=""
+                                className={`w-8 h-8 object-contain ${isSelected ? 'brightness-0 invert' : ''}`}
+                              />
+                            ) : (
+                              <span className="text-white text-sm font-bold">{idx + 1}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {isTabletHybrid && (
+          <>
+            {isTabletRightPanelOpen && (
+              <button
+                onClick={() => setIsTabletRightPanelOpen(false)}
+                className="absolute inset-0 z-30 bg-black/35"
+                aria-label="关闭点位抽屉"
+              />
+            )}
+            <div className={`tablet-drawer-panel absolute top-0 right-0 bottom-0 z-40 transition-transform duration-300 ease-out ${isTabletRightPanelOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'}`}>
+              <RightPanel
+                activeTab={right.activeTab}
+                handleTabSwitch={(tab) => right.handleTabSwitch(tab as ActiveTab)}
+                selectedSide={right.selectedSide}
+                setSelectedSide={(val) => right.setSelectedSide(val as 'all' | 'attack' | 'defense')}
+                placingType={right.placingType}
+                togglePlacingType={(type) => right.togglePlacingType(type as 'agent' | 'skill')}
+                newLineupData={right.newLineupData}
+                handleOpenEditor={right.handleOpenEditor}
+                searchQuery={right.searchQuery}
+                setSearchQuery={right.setSearchQuery}
+                filteredLineups={right.filteredLineups}
+                selectedLineupId={right.selectedLineupId}
+                handleViewLineup={(id) => {
+                  right.handleViewLineup(id);
+                  setIsTabletRightPanelOpen(false);
+                }}
+                handleDownload={right.handleDownload}
+                handleRequestDelete={right.handleRequestDelete}
+                handleClearAll={right.handleClearAll}
+                getMapDisplayName={right.getMapDisplayName}
+                onOpenImportModal={right.onOpenImportModal}
+                userId={right.userId}
+                pinnedLineupIds={right.pinnedLineupIds}
+                onTogglePinLineup={right.onTogglePinLineup}
+                layoutMode="tablet-drawer"
+              />
+            </div>
+          </>
+        )}
       </div>
 
-      {!isMobile && (
+      {isDesktop && (
         <RightPanel
           activeTab={right.activeTab}
           handleTabSwitch={(tab) => right.handleTabSwitch(tab as ActiveTab)}

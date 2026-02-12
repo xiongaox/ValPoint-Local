@@ -108,7 +108,6 @@ export function buildMainViewProps(params: Params): React.ComponentProps<typeof 
       selectedAbilityIndex: params.selectedAbilityIndex,
       onViewLineup: params.onViewLineup,
       isFlipped: params.isFlipped,
-
     },
     quickActions: {
       isOpen: params.isActionMenuOpen,

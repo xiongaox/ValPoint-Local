@@ -11,8 +11,8 @@ import { MapPoolStatus } from '../types/lineup';
 /** 远程 API 地址 */
 const API_URL = 'https://xiongaox.github.io/valorant-rotation-api/maps.json';
 
-/** API 返回的地图状态类型 */
-type ApiMapStatus = 'in_pool' | 'returning';
+/** API 返回的地图状态类型（下划线风格） */
+type ApiMapStatus = 'in_pool' | 'returning' | 'rotated_out' | 'new';
 
 /** API 响应结构 */
 type ApiResponse = {
@@ -29,12 +29,15 @@ let cachedConfig: Record<string, MapPoolStatus> | null = null;
  * 将 API 状态格式转换为内部格式
  * API 使用下划线格式（in_pool），内部使用短横线格式（in-pool）
  */
-function convertStatus(apiStatus: ApiMapStatus): MapPoolStatus {
+function convertStatus(apiStatus: string): MapPoolStatus {
+    const normalized = apiStatus.trim().toLowerCase();
     const statusMap: Record<ApiMapStatus, MapPoolStatus> = {
         'in_pool': 'in-pool',
         'returning': 'returning',
+        'rotated_out': 'rotated-out',
+        'new': 'new',
     };
-    return statusMap[apiStatus] || 'in-pool';
+    return statusMap[normalized as ApiMapStatus] || 'in-pool';
 }
 
 /**

@@ -1,15 +1,15 @@
 ---
 name: valpoint-git-description
-description: 仅在 ValPoint 项目中使用；当用户输入"git描述"时，根据距离上次提交后的改动生成中文 Git Commit Message，并在生成后同步更新 src/changelog.ts。
+description: 仅在 ValPoint-Local 项目中使用；当用户输入"git描述"时，根据距离上次提交后的改动生成中文 Git Commit Message，并在生成后同步更新 src/changelog.ts。
 ---
 
 # ValPoint Git 描述与日志同步
 
 按以下步骤执行：
 
-1. 先确认当前仓库根目录是 `ValPoint`。
+1. 先确认当前仓库根目录是 `ValPoint-Local`。
    - 运行 `git rev-parse --show-toplevel`。
-   - 若结果路径最后一级不是 `ValPoint`，立即停止并提示：此技能仅支持 ValPoint 项目。
+   - 若结果路径最后一级不是 `ValPoint-Local`，立即停止并提示：此技能仅支持 ValPoint-Local 项目。
 
 2. 收集"距离上次提交后"的改动信息。
    - 运行 `git status --short` 查看新增/修改/删除/未跟踪文件。
@@ -25,7 +25,7 @@ description: 仅在 ValPoint 项目中使用；当用户输入"git描述"时，�
 
 4. 使用生成好的 Commit Message 同步更新 `src/changelog.ts`。
    - 使用本地日期（`YYYY-MM-DD`）作为日志日期。
-   - 这是强制写入步骤：无论同日期条目是否已存在、文本是否看起来相似，都必须执行覆盖写入，不允许以"已最新""已同步""变更相同"为理由跳过。
+   - 这是强制写入步骤：无论同日期条目是否已存在、文本是否看起来相似，都必须执行写入，不允许以"已最新""已同步""变更相同"为理由跳过。
    - 从 Commit Message 中提取内容：
      - `summaryLine` = 第一行 Summary。
      - `bodyLines` = 第三行开始的非空行集合。
@@ -39,11 +39,16 @@ description: 仅在 ValPoint 项目中使用；当用户输入"git描述"时，�
        - `perf` -> `【优化】`
        - `docs` -> `【文档】`
        - `chore`/`build`/`ci` -> `【运维】`
-       - 未命中时默认 `【优化】`
+     - 未命中时默认 `【优化】`
      - 清理 `summaryLine` 与 `bodyLines` 的编号前缀（如 `1. `、`1) `、`1、`）后再写入日志。
      - 对 `logItems` 中每一项补齐 `【类型】` 前缀；禁止写入 `feat:`、`fix:` 等英文前缀。
    - 更新 `src/changelog.ts`：
-     - 若 `changelogEntries` 已存在同日期条目，则覆盖该条目的 `items` 为 `logItems`。
+     - 若 `changelogEntries` 已存在同日期条目：
+       - 必须先查询当天提交历史作为上下文：`git log --since=\"today 00:00\" --until=\"tomorrow 00:00\" --pretty=format:\"%h %s\"`。
+       - 读取该日期原有 `items` 为 `existingItems`。
+       - 采用追加写入：`mergedItems = [...existingItems, ...logItems]`，不得覆盖或清空原有当天日志。
+       - 可选去重：仅当新旧条目文本完全相同才去重，保持时间顺序与原有条目优先。
+       - 将该日期条目的 `items` 更新为 `mergedItems`。
      - 若不存在同日期条目，则在数组最前面插入新条目，`items` 为 `logItems`。
 
 5. 严格遵守输出格式要求。
@@ -55,5 +60,7 @@ description: 仅在 ValPoint 项目中使用；当用户输入"git描述"时，�
 6. 若当前没有任何可提交改动，也必须按同一格式返回，明确说明"无变更可提交"，并且不要改动日志文件。
 
 7. 完成后做最小校验。
-   - 重新读取 `src/changelog.ts` 的目标日期节，确认条目内容与 `logItems` 完全一致。
-   - 若不一致，立即再次覆盖，直到一致后再输出结果。
+   - 重新读取 `src/changelog.ts` 的目标日期节：
+     - 若是新建日期，确认条目内容与 `logItems` 完全一致。
+     - 若是已有日期，确认条目内容与 `mergedItems` 完全一致（包含原有条目 + 新增条目）。
+   - 若不一致，立即再次写入，直到一致后再输出结果。

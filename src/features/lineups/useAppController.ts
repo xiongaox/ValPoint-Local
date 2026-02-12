@@ -279,12 +279,9 @@ export function useAppController() {
   const {
     isActionMenuOpen,
     setIsActionMenuOpen,
-    handleQuickClear,
   } = useActionMenu({
     handleClearAll,
   });
-
-
 
   const handleBatchDownload = useCallback(async (scope: 'agent' | 'map') => {
     if (!selectedMap) return;
@@ -380,7 +377,8 @@ export function useAppController() {
     setSelectedAbilityIndex, getMapDisplayName, getMapUrl, getMapCoverUrl, mapLineups,
     selectedLineupId, setSelectedLineupId, newLineupData, setNewLineupData, placingType,
     setPlacingType, orderedLineups, setViewingLineup, isFlipped, isActionMenuOpen,
-    setIsActionMenuOpen, handleTabSwitch, handleOpenEditor, searchQuery, setSearchQuery,
+    setIsActionMenuOpen,
+    handleTabSwitch, handleOpenEditor, searchQuery, setSearchQuery,
     filteredLineups, handleDownload, handleRequestDelete, handleClearAll, userId,
     pinnedLineupIds, togglePinnedLineup, profile, handleReset
   ]);

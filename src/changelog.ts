@@ -11,6 +11,18 @@ type ChangelogItem = string | { text: string; children?: string[] };
 
 export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
   {
+    date: '2026-02-12',
+    items: [
+      '【新增】迁移 pad 端适配到 ValPoint-Local 并修复地图状态映射',
+      '【新增】新增 useDeviceMode 与 PadPortraitSidebar，主视图支持 iPad 横屏混合布局和竖屏侧栏',
+      '【优化】调整 LeftPanel、RightPanel、ViewerModal、Lightbox、LeafletMap 与安全区样式，pad 端隐藏快捷按钮',
+      '【修复】补齐地图池 API 的 rotated_out/new 状态映射，正确显示在池/回归/轮出/新图角标',
+      '【运维】删除 Sync from upstream 工作流并更新 valpoint-git-description 技能为 ValPoint-Local 项目校验',
+      '【运维】同步 package-lock.json 与本地运行产生的 data/valpoint.db-shm 变更',
+      '【文档】新增 iPad 适配迁移计划文档 docs/plans/2026-02-12-ipad-adaptation-port-to-local.md',
+    ],
+  },
+  {
     date: '2026-02-10',
     items: [
       '【运维】GitHub Actions 多平台 Docker 构建（amd64 + arm64）',

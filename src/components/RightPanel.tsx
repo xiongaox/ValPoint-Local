@@ -32,6 +32,11 @@ type Props = {
   userId: string | null;
   pinnedLineupIds: string[];
   onTogglePinLineup: (id: string) => void;
+  pinnedLimit?: number;
+  onSubmitLineup?: (lineupId: string) => void;
+  isAdmin?: boolean;
+  layoutMode?: 'desktop' | 'tablet-drawer';
+  className?: string;
 };
 
 const RightPanel: React.FC<Props> = ({
@@ -56,7 +61,15 @@ const RightPanel: React.FC<Props> = ({
   userId,
   pinnedLineupIds,
   onTogglePinLineup,
+  onSubmitLineup,
+  isAdmin = true,
+  layoutMode = 'desktop',
+  className = '',
 }) => {
+  const isTabletDrawer = layoutMode === 'tablet-drawer';
+  const isPadRestricted = isTabletDrawer;
+  const canCreate = Boolean(userId) && !isPadRestricted;
+  const effectiveActiveTab = isPadRestricted && activeTab === 'create' ? 'view' : activeTab;
   const pageSize = 7;
   const [page, setPage] = useState(1);
   const showPagination = filteredLineups.length > 8;
@@ -77,25 +90,25 @@ const RightPanel: React.FC<Props> = ({
   }, [filteredLineups, page, showPagination]);
 
   return (
-    <div className="w-96 flex-shrink-0 flex flex-col bg-[#1f2326] border-l border-white/10 z-20 shadow-2xl">
+    <div className={`${isTabletDrawer ? 'w-[360px] max-w-[calc(100vw-18rem)] h-full' : 'w-96'} flex-shrink-0 flex flex-col bg-[#1f2326] border-l border-white/10 z-20 shadow-2xl ${className}`.trim()}>
       <div className="flex border-b border-white/10">
         <button
           onClick={() => handleTabSwitch('view')}
-          className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${activeTab === 'view' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+          className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${effectiveActiveTab === 'view' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
             }`}
         >
           <Icon name="Search" size={18} /> 查看点位
         </button>
-        {userId && (
+        {canCreate && (
           <button
             onClick={() => handleTabSwitch('create')}
-            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${activeTab === 'create' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
+            className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold uppercase tracking-wider transition-colors ${effectiveActiveTab === 'create' ? 'bg-[#ff4655] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
           >
             <Icon name="Plus" size={18} /> 新增点位
           </button>
         )}
-        {userId && (
+        {canCreate && (
           <button
             onClick={onOpenImportModal}
             className="py-4 px-4 flex items-center justify-center border-l border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
@@ -108,7 +121,7 @@ const RightPanel: React.FC<Props> = ({
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
 
-        {activeTab === 'create' ? (
+        {effectiveActiveTab === 'create' ? (
           <div className="space-y-6 animate-in fade-in">
             <div>
               <label className="text-[12px] font-bold text-[#ff4655] uppercase tracking-wider block mb-3">
@@ -285,6 +298,18 @@ const RightPanel: React.FC<Props> = ({
                             >
                               <Icon name="Pin" size={14} />
                             </button>
+                            {!isAdmin && onSubmitLineup && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onSubmitLineup(l.id);
+                                }}
+                                className="text-gray-600 hover:text-purple-400 p-1 rounded hover:bg-white/5 transition-colors"
+                                title="投稿此点位"
+                              >
+                                <Icon name="Send" size={14} />
+                              </button>
+                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
