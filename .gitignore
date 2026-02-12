@@ -16,6 +16,7 @@ supabase/cloud
 # VitePress
 docs/.vitepress/cache
 docs/.vitepress/dist
+docs/plans
 .temp
 
 # macOS
