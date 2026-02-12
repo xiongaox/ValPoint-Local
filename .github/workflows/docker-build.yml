@@ -71,7 +71,6 @@ jobs:
           tags: |
             type=raw,value=latest
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
 
       # 构建并推送多平台镜像（amd64 + arm64）
       - name: Build and push multi-platform image
