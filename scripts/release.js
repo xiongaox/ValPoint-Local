@@ -31,7 +31,8 @@ const c = {
 
 /** 执行命令并返回 stdout（静默 stderr） */
 function run(cmd, options = {}) {
-    return execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'], ...options }).trim();
+    const output = execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'], ...options });
+    return typeof output === 'string' ? output.trim() : '';
 }
 
 /** 检查命令是否执行成功 */
@@ -86,6 +87,14 @@ function incrementPatch(version) {
     const parts = version.split('.').map(Number);
     parts[2] += 1;
     return parts.join('.');
+}
+
+/** 生成触发云端构建的 Git 命令 */
+function getCloudTriggerCommands(tag) {
+    return {
+        createTag: `git tag -a ${tag} -m "release: ${tag}"`,
+        pushTag: `git push origin ${tag}`,
+    };
 }
 
 async function main() {
@@ -143,6 +152,7 @@ async function main() {
     // 去掉可能手动输入的 'v' 前缀
     version = version.replace(/^v/, '');
     const tag = `v${version}`;
+    const cloudCommands = getCloudTriggerCommands(tag);
 
     // 3. 校验版本号格式
     if (!/^\d+\.\d+\.\d+$/.test(version)) {
@@ -173,8 +183,12 @@ async function main() {
 
     // 7. 执行 Docker 构建 (不再打标签)
     console.log(`\n${c.cyan(`🐳 开始构建 Docker 镜像: valpoint_s:${version}`)}`);
+    console.log(c.dim(`构建完成后将自动触发云端构建: ${tag}`));
 
     if (DRY_RUN) {
+        console.log(c.magenta('\n🔗 预览：将执行以下命令触发 GitHub Actions'));
+        console.log(c.dim(cloudCommands.createTag));
+        console.log(c.dim(cloudCommands.pushTag));
         console.log(c.magenta('\n✅ [预览模式] 模拟构建完成 (未实际执行)'));
         process.exit(0);
     }
@@ -186,15 +200,21 @@ async function main() {
     }
 
     try {
-        console.log(c.cyan(`\n[1/1] 正在执行 docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`));
+        console.log(c.cyan(`\n[1/2] 正在执行 docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`));
         // 执行构建
         run(`docker build -t ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} .`, { stdio: 'inherit' });
         // 可选：构建 latest 标签
         run(`docker tag ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version} ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
 
+        console.log(c.cyan(`\n[2/2] 正在创建并推送标签 ${tag}（触发 GitHub Actions）`));
+        run(cloudCommands.createTag, { stdio: 'inherit' });
+        run(cloudCommands.pushTag, { stdio: 'inherit' });
+
         console.log(c.green('\n✅ Docker 构建成功！'));
         console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:${version}`);
         console.log(`镜像: ${DOCKERHUB_NAMESPACE}/${DOCKERHUB_IMAGE}:latest`);
+        console.log(c.green(`✅ 云端构建已触发: ${tag}`));
+        console.log(`查看 Actions: ${GITHUB_ACTIONS_URL}/workflows/docker-build.yml`);
     } catch (e) {
         console.error(c.red(`\n❌ 构建失败: ${e.message}`));
         process.exit(1);
