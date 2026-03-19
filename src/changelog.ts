@@ -11,6 +11,16 @@ type ChangelogItem = string | { text: string; children?: string[] };
 
 export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
   {
+    date: '2026-03-19',
+    items: [
+      '【新增】同步 ValPoint 角色筛选与迷核英雄，并修复技能图标抖动问题',
+      '【新增】特工“迷核”相关数据、头像与技能资源',
+      '【新增】左侧面板特工角色分类筛选（先锋/哨位/决斗/控场）',
+      '【优化】特工头像区域布局，使其支持独立滚动并优化了悬浮动画',
+      '【修复】技能图标选中高亮时引起的底部布局抖动问题',
+    ],
+  },
+  {
     date: '2026-02-12',
     items: [
       '【新增】迁移 pad 端适配到 ValPoint-Local 并修复地图状态映射',
