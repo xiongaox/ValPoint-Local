@@ -11,6 +11,14 @@ type ChangelogItem = string | { text: string; children?: string[] };
 
 export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
   {
+    date: '2026-03-23',
+    items: [
+      '【优化】更新莲华古城地图 SVG 素材',
+      '【优化】更新攻方-莲华古城(Lotus).svg 素材文件',
+      '【优化】更新守方-莲华古城(Lotus).svg 素材文件',
+    ],
+  },
+  {
     date: '2026-03-19',
     items: [
       '【新增】同步 ValPoint 角色筛选与迷核英雄，并修复技能图标抖动问题',
