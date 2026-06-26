@@ -72,6 +72,22 @@ export function initDatabase() {
         CREATE INDEX IF NOT EXISTS idx_lineups_created ON lineups(created_at DESC);
     `);
 
+    // 创建 error_marks 报错标记表
+    db.exec(`
+        CREATE TABLE IF NOT EXISTS error_marks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            lineup_id TEXT NOT NULL,
+            error_type TEXT NOT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            UNIQUE(user_id, lineup_id)
+        )
+    `);
+
+    db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_error_marks_user ON error_marks(user_id);
+    `);
+
     console.log('✅ Database initialized successfully');
 }
 

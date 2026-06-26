@@ -194,6 +194,7 @@ const MainView: React.FC<Props> = ({ activeTab, clearSelection, left, map, quick
             }
           }}
           isFlipped={map.isFlipped}
+          showErrorMarking={true}
         />
 
         {isDesktop && (

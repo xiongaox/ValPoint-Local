@@ -207,6 +207,7 @@ const AppModals: React.FC<Props> = ({
         getMapDisplayName={getMapDisplayName}
         getMapEnglishName={getMapEnglishName}
         isGuest={isGuest}
+        showErrorMarking={true}
       />
 
       <Lightbox viewingImage={viewingImage} setViewingImage={setViewingImage} />

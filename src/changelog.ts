@@ -11,6 +11,23 @@ type ChangelogItem = string | { text: string; children?: string[] };
 
 export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
   {
+    date: '2026-06-26',
+    items: [
+      '【新增】增加新地图天枢云阙(Summit)并支持其实时状态展示',
+      '【新增】导入天枢云阙(Summit)攻守方 SVG 地图文件及高清封面',
+      '【新增】个人点位库报错标记功能（描述错误/图片错误/图片未标记/已处理）',
+      '【新增】在 ViewerModal 中增加报错标记下拉菜单',
+      '【新增】在 LeafletMap 中支持根据报错状态渲染红色错误外框',
+      '【优化】更新本地配置 (localMaps, constants) 支持天枢云阙的基础数据和名称映射',
+      '【修复】禁用 mapPoolService 远程请求缓存，修复地图池角标状态无法实时刷新的问题',
+      '【新增】同步 ValPoint 更新并添加天枢云阙地图与报错标记功能',
+      '【新增】新增 useErrorMarks.ts 与 error-marks.js 提供本地 SQLite 接口',
+      '【新增】在 server/db.js 中新增 error_marks 表存储标记数据',
+      '【新增】安装 react-is 依赖，修复 vite 打包异常',
+      '【新增】移除 .gitignore 中的 data 目录，恢复 Git 对本地数据库的追踪',
+    ],
+  },
+  {
     date: '2026-03-23',
     items: [
       '【优化】更新莲华古城地图 SVG 素材',

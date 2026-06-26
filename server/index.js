@@ -16,6 +16,7 @@ import lineupsRouter from './routes/lineups.js';
 import uploadRouter from './routes/upload.js';
 import proxyRouter from './routes/proxy.js';
 import statsRouter from './routes/stats.js';
+import errorMarksRouter from './routes/error-marks.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,7 @@ app.use('/api/lineups', lineupsRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/proxy', proxyRouter);
 app.use('/api/stats', statsRouter);
+app.use('/api/error-marks', errorMarksRouter);
 
 // 健康检查
 app.get('/api/health', (req, res) => {
