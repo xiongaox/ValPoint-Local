@@ -1,9 +1,23 @@
 ---
 name: valpoint-git-description
-description: 仅在 ValPoint-Local 项目中使用；当用户输入"git描述"时，根据距离上次提交后的改动生成中文 Git Commit Message，并在生成后同步更新 src/changelog.ts。
+description: 仅在 ValPoint-Local 项目中使用；输入「git描述」时生成中文 Commit Message 并提交到本地 Git，不推送、不写更新日志；输入「git描述并提交」时写更新日志、提交后推送到 GitHub；输入「git描述提交并构建」时在上述基础上运行 npm run release 打标签，触发 GitHub Actions 构建（dist 归档 + Docker 镜像）。构建前若用户未指明版本号，必须先询问版本，不得默认。
 ---
 
-# ValPoint Git 描述与日志同步
+# ValPoint-Local Git 描述
+
+## 触发模式（仅三种）
+
+| 触发词 | 本地提交 | 写入更新日志 | 推送 GitHub | 云端构建（打标签发版） |
+|--------|:--------:|:------------:|:-----------:|:----------------------:|
+| `git描述` | ✅ | ❌ | ❌ | ❌ |
+| `git描述并提交` | ✅ | ✅ | ✅ | ❌ |
+| `git描述提交并构建` | ✅ | ✅ | ✅ | ✅ |
+
+- **必须优先识别最长的 `git描述提交并构建`**，其次是 `git描述并提交`，最后才是 `git描述`；
+  不得把长触发词当作短触发词处理（这是最容易出的错）。
+- `git描述并提交` 也要写更新日志：`src/changelog.ts` 会打进前端构建产物，日志若不随本次提交一起推送，
+  下次构建出的版本仍显示旧的更新日志。**写日志必须在 `git push` 之前**。
+- 与 `git描述提交并构建` 的区别仅在于：不运行 `npm run release`、不打版本标签、不触发云端构建。
 
 按以下步骤执行：
 
@@ -23,44 +37,76 @@ description: 仅在 ValPoint-Local 项目中使用；当用户输入"git描述"�
    - 第三行开始写 Body，按要点逐行展开主要变更、重构、修复或文档更新，每行一个要点。
    - 不编造不存在的改动，不写与当前 diff 无关的内容。
 
-4. 使用生成好的 Commit Message 同步更新 `src/changelog.ts`。
-   - 使用本地日期（`YYYY-MM-DD`）作为日志日期。
-   - 这是强制写入步骤：无论同日期条目是否已存在、文本是否看起来相似，都必须执行写入，不允许以"已最新""已同步""变更相同"为理由跳过。
-   - 从 Commit Message 中提取内容：
+4. 提交到本地 Git。
+   - 运行 `git add -A`，将当前工作区全部可提交改动加入暂存区。
+   - 使用生成的 Summary 和 Body 执行 `git commit`。
+   - 提交成功后运行 `git rev-parse --short HEAD` 获取提交哈希。
+   - 若提交失败，说明失败原因，不得声称已完成提交。
+
+5. 仅在触发词包含 `并提交` / `提交并构建` 时写入更新日志。
+   - 更新日志位置：`src/changelog.ts` 的 `changelogEntries` 数组（元素结构 `{ date, items }`）。
+   - 日期使用本地日期 `YYYY-MM-DD`。
+   - 从 Commit Message 提取内容：
      - `summaryLine` = 第一行 Summary。
      - `bodyLines` = 第三行开始的非空行集合。
-     - `logItems` = `[summaryLine, ...bodyLines]`；若 `bodyLines` 为空，则 `logItems` 仅包含 `summaryLine`。
+     - `rawLogItems` = `[summaryLine, ...bodyLines]`；若 `bodyLines` 为空，则仅含 `summaryLine`。
    - 日志格式标准化（必须执行）：
-     - 日志条目统一使用项目既有风格：`【类型】描述`。
-     - 将 `summaryLine` 中的 conventional 前缀映射为中文类型：
+     - 将 `summaryLine` 的 conventional 前缀映射为中文类型：
        - `feat` -> `【新增】`
        - `fix` -> `【修复】`
        - `refactor` -> `【重构】`
        - `perf` -> `【优化】`
        - `docs` -> `【文档】`
        - `chore`/`build`/`ci` -> `【运维】`
-     - 未命中时默认 `【优化】`
-     - 清理 `summaryLine` 与 `bodyLines` 的编号前缀（如 `1. `、`1) `、`1、`）后再写入日志。
-     - 对 `logItems` 中每一项补齐 `【类型】` 前缀；禁止写入 `feat:`、`fix:` 等英文前缀。
-   - 更新 `src/changelog.ts`：
-     - 若 `changelogEntries` 已存在同日期条目：
-       - 必须先查询当天提交历史作为上下文：`git log --since=\"today 00:00\" --until=\"tomorrow 00:00\" --pretty=format:\"%h %s\"`。
-       - 读取该日期原有 `items` 为 `existingItems`。
-       - 采用追加写入：`mergedItems = [...existingItems, ...logItems]`，不得覆盖或清空原有当天日志。
-       - 可选去重：仅当新旧条目文本完全相同才去重，保持时间顺序与原有条目优先。
-       - 将该日期条目的 `items` 更新为 `mergedItems`。
-     - 若不存在同日期条目，则在数组最前面插入新条目，`items` 为 `logItems`。
+       - 未命中时默认 `【优化】`
+     - 清理每一项的编号前缀（如 `1. `、`1) `、`1、`）。
+     - 为每一项补齐 `【类型】` 前缀；禁止写入 `feat:`、`fix:` 等英文前缀。
+     - 得到标准化的 `newLogItems` 数组。
+   - 更新 `src/changelog.ts`（增量更新）：
+     - **已存在同日期条目**：把 `newLogItems` 追加到该条目的 `items` 末尾，完全相同的文本不重复添加。
+     - **不存在同日期条目**：在数组最前面插入新条目，`items` 为 `newLogItems`。
+   - **写入日志后必须补一次 `git add -A` 与 `git commit`**，确保日志本身也进入本次推送/发版范围。
+   - 该步骤在 `git描述并提交` 与 `git描述提交并构建` 下都要执行。
+   - 触发词为 `git描述` 时不写日志。
 
-5. 严格遵守输出格式要求。
-   - 最终结果只输出一个代码块，便于一键复制。
+6. 仅在触发词包含 `并提交` / `提交并构建` 时推送 GitHub。
+   - **必须在第 5 步写入日志并提交之后再推送**——顺序不能颠倒，否则推上去的是不含日志的版本。
+   - 运行 `git push`，推送到当前分支已配置的上游远程仓库。
+   - 不运行 `git pull`，不切换分支，不修改远程地址。
+   - 若推送失败，明确说明本地提交已成功、GitHub 推送失败及失败原因。
+   - 触发词为 `git描述` 时，绝不运行 `git push` 或其他远程仓库操作。
+
+7. 仅在触发词为 `git描述提交并构建` 时触发云端构建。
+   - **发版版本必须先问，不得默认**：
+     - 先看用户是否指明了版本号（如「发 v2.2.5」「升到 2.2.5」）。
+     - **指明版本号** → 按该版本发布。
+     - **未指明版本号** → **停下询问**：「本次发布哪个版本？（当前最新标签为 v<旧版本>，默认下一个补丁 v<新版本>）」得到答复再继续。
+       **绝不默认直接发版**，以免误发/漏发版本。
+   - 执行 `npm run release`（即 `scripts/release.js`）。
+     - 版本号来源是 **Docker Hub 最新 tag**（不是 git tag）；脚本会先查询并给出建议的下一补丁版本。
+     - 脚本会交互式询问：版本号（回车取建议值）、工作区有未提交改动时的二次确认、`确认开始发布？(y/n)`。
+       按用户答复输入；版本号必须与用户确认的一致。
+     - 脚本会拒绝已存在的 tag；需要重发同一版本时，先 `git tag -d v<版本>` 与 `git push origin --delete v<版本>`，
+       且必须由用户明确要求，不得自行重发。
+     - 只有用户明确要求跳过 Docker 时，才允许在标签 message 中带 `[skip docker]`；不得擅自跳过。
+   - `npm run release` 会创建并推送版本标签，触发 GitHub Actions：
+     - `release.yml`：`npm ci` → `npm run build` → 归档 `dist.tar.gz` → 上传 GitHub Release。
+     - `docker-build.yml`：构建并推送多架构 Docker 镜像 `xiongaox7806/valpoint_s`（除非标签 message 含 `[skip docker]`）。
+   - **标签版本必须等于用户确认的版本**。打标签前核对脚本输出的版本；若不一致，停下来重新与用户确认。
+   - 用 `gh run list --limit 5` 确认工作流已触发并跟踪到结束；失败时报告失败的 job 与原因。
+     `gh run watch` 偶发提前退出但 run 仍在跑，此时改用 `gh run view <id> --json status,conclusion` 复核。
+   - 构建完成用 `gh release view v<版本>` 核对产物清单（应含 `dist.tar.gz`），报告给用户。
+
+8. 严格遵守输出格式要求。
+   - 成功时最终结果只输出一个代码块，内含 Commit Message、提交哈希，以及本次是否执行和完成
+     `git push`、是否写入更新日志、是否触发云端构建的说明。
+   - 构建模式下还必须写明工作流结果与产物清单。
    - 代码块内必须是纯文本，不使用加粗、图标、列表 markdown 标记等格式修饰。
-   - 始终满足结构：Summary / 空行 / Body。
+   - Commit Message 始终满足结构：Summary / 空行 / Body。
+   - 路径清洗：如果 diff 信息中包含 `file:///`、`cci://` 或本地绝对路径，必须转换为相对于项目根目录的相对路径或纯文件名。
    - 除代码块外，不额外输出解释文字。
 
-6. 若当前没有任何可提交改动，也必须按同一格式返回，明确说明"无变更可提交"，并且不要改动日志文件。
-
-7. 完成后做最小校验。
-   - 重新读取 `src/changelog.ts` 的目标日期节：
-     - 若是新建日期，确认条目内容与 `logItems` 完全一致。
-     - 若是已有日期，确认条目内容与 `mergedItems` 完全一致（包含原有条目 + 新增条目）。
-   - 若不一致，立即再次写入，直到一致后再输出结果。
+9. 若当前没有任何可提交改动，不创建空提交。
+   - 对于 `git描述` 与 `git描述并提交`：不执行推送，说明"无变更可提交，未创建本地提交"。
+   - 对于 `git描述提交并构建`：若本次会话已提交过、只是要触发构建，可直接进入第 7 步的构建环节，
+     并在最终结果说明"无新增变更，直接执行构建"。

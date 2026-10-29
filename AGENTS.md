@@ -63,3 +63,16 @@ npm run release             # interactive tag/release helper
 - `README.md` mentions `npm run client`, but no such script exists in `package.json`.
 - LSP TypeScript server is not installed in this environment; symbol mapping used AST/grep fallback.
 - Nearest `AGENTS.md` should be treated as local override for files inside its subtree.
+
+## PROJECT SKILLS
+The following project-local skill is available in this repository only:
+- `valpoint-git-description`: 中文 Commit Message 与发版流程（file: `.agent/skills/valpoint-git-description/SKILL.md`）。
+
+## PROJECT TRIGGER RULE
+- 触发词（优先匹配最长）：
+  - `git描述`：生成中文 Commit Message 并本地提交；不写日志、不推送。
+  - `git描述并提交`：+ 同步写 `src/changelog.ts`，提交后再 `git push`。
+  - `git描述提交并构建`：+ 运行 `npm run release` 打标签，触发 GitHub Actions（dist 归档 + Docker 镜像）；未指明版本号须先询问版本。
+- Scope: only this repository (`/Users/xiongaox/Downloads/00code/ValPoint-Local`)
+- Required behavior: invoke `.agent/skills/valpoint-git-description/SKILL.md` workflow.
+- Execution policy: 用户只发触发词时直接执行，不再索要额外提醒；构建模式未给版本号必须先问，不得默认。

@@ -11,6 +11,18 @@ type ChangelogItem = string | { text: string; children?: string[] };
 
 export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
   {
+    date: '2026-10-29',
+    items: [
+      '【新增】同步 ValPoint：复用已有点位标注与相近点位聚合显示',
+      '【新增】新增 lineupPositions 聚类工具，按英雄/技能把相近站位与落点合并为簇（容差 8 地图单位）',
+      '【新增】查看模式按簇渲染地图标记，重叠点位通过弹层列出并可选中，连线改为悬停/选中时按簇锚点绘制',
+      '【新增】标注面板新增“选择已有站位/落点”入口，命中候选后自动带入该点位的图片与描述并提示下一步标注',
+      '【优化】重绘 Leaflet 弹层与合并弹层样式，新增候选点呼吸光圈与关闭按钮交互',
+      '【新增】补充新英雄遐思数据：头像、技能图标与技能名称映射',
+      '【优化】更新盐海矿镇(Corrode)攻守方 SVG 地图素材',
+    ],
+  },
+  {
     date: '2026-06-26',
     items: [
       '【新增】增加新地图天枢云阙(Summit)并支持其实时状态展示',
