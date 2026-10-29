@@ -11,6 +11,14 @@ type ChangelogItem = string | { text: string; children?: string[] };
 
 export const changelogEntries: { date: string; items: ChangelogItem[] }[] = [
   {
+    date: '2026-10-30',
+    items: [
+      '【修复】提高 Leaflet 弹窗样式优先级，避免生产构建白底覆盖自定义深色样式',
+      '【修复】为弹窗覆盖规则统一加 .leaflet-container 前缀提升优先级',
+      '【修复】修复 leaflet.css 在产物中排在 index.css 之后时默认白底覆盖深色弹窗的问题',
+    ],
+  },
+  {
     date: '2026-10-29',
     items: [
       '【新增】同步 ValPoint：复用已有点位标注与相近点位聚合显示',
